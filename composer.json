@@ -1,0 +1,64 @@
+{
+    "name": "oasfakephp/oas-fake-php",
+    "description": "Intercept HTTP requests, validate against OpenAPI schemas, and generate fake responses for testing",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "openapi",
+        "swagger",
+        "mock",
+        "fake",
+        "testing",
+        "http",
+        "vcr",
+        "guzzle",
+        "curl"
+    ],
+    "require": {
+        "php": "^8.2",
+        "canvural/php-openapi-faker": "^2.0",
+        "cebe/php-openapi": "1.7.0",
+        "guzzlehttp/psr7": "^2.6",
+        "league/openapi-psr7-validator": "^0.18",
+        "php-vcr/php-vcr": "^1.8",
+        "symfony/event-dispatcher": "^6.0 || ^7.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "phpstan/phpstan": "^2.0",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "friendsofphp/php-cs-fixer": "^3.64",
+        "guzzlehttp/guzzle": "^7.9",
+        "phpstan/extension-installer": "^1.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "OasFakePHP\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "OasFakePHP\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "phpstan/extension-installer": true
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test:coverage": "XDEBUG_MODE=coverage phpunit --coverage-html coverage",
+        "phpstan": "phpstan analyse",
+        "cs-check": "php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "php-cs-fixer fix",
+        "quality": [
+            "@cs-check",
+            "@phpstan",
+            "@test"
+        ]
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

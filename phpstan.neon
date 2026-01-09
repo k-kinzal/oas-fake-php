@@ -1,0 +1,15 @@
+parameters:
+    level: max
+    paths:
+        - src
+    excludePaths:
+        - tests
+
+    checkUninitializedProperties: true
+    checkImplicitMixed: true
+    checkBenevolentUnionTypes: true
+
+    ignoreErrors: []
+
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: true
