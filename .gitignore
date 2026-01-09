@@ -1,0 +1,16 @@
+/vendor/
+/coverage/
+/.phpunit.cache/
+.phpunit.result.cache
+/.php-cs-fixer.cache
+/composer.lock
+*.phar
+.DS_Store
+.idea/
+.vscode/
+.claude/
+
+# Examples
+examples/*/vendor/
+examples/*/composer.lock
+examples/*/.phpunit.result.cache

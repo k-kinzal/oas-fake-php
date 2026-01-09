@@ -1,0 +1,95 @@
+openapi: 3.0.0
+info:
+  title: Weather Forecast API
+  version: 1.0.0
+servers:
+  - url: https://api.weather.example.com
+paths:
+  /forecast:
+    get:
+      operationId: getForecast
+      summary: Get weather forecast
+      parameters:
+        - name: city
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: days
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 14
+            default: 7
+      responses:
+        '200':
+          description: Weather forecast
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Forecast'
+  /current:
+    get:
+      operationId: getCurrentWeather
+      summary: Get current weather
+      parameters:
+        - name: city
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Current weather
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentWeather'
+components:
+  schemas:
+    Forecast:
+      type: object
+      required:
+        - city
+        - days
+      properties:
+        city:
+          type: string
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayForecast'
+    DayForecast:
+      type: object
+      required:
+        - date
+        - tempHigh
+        - tempLow
+        - condition
+      properties:
+        date:
+          type: string
+          format: date
+        tempHigh:
+          type: number
+        tempLow:
+          type: number
+        condition:
+          type: string
+    CurrentWeather:
+      type: object
+      required:
+        - city
+        - temperature
+        - condition
+      properties:
+        city:
+          type: string
+        temperature:
+          type: number
+        condition:
+          type: string
+        humidity:
+          type: integer

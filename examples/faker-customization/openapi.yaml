@@ -1,0 +1,92 @@
+openapi: 3.0.0
+info:
+  title: Blog API
+  version: 1.0.0
+servers:
+  - url: https://api.blog.example.com
+paths:
+  /articles:
+    get:
+      operationId: listArticles
+      summary: List all articles
+      responses:
+        '200':
+          description: A list of articles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+  /articles/{articleId}:
+    get:
+      operationId: getArticle
+      summary: Get an article by ID
+      parameters:
+        - name: articleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: An article
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+components:
+  schemas:
+    Article:
+      type: object
+      required:
+        - id
+        - title
+        - body
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        body:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          maxItems: 5
+        author:
+          $ref: '#/components/schemas/Author'
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+    Author:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        bio:
+          type: string
+    Comment:
+      type: object
+      required:
+        - id
+        - text
+      properties:
+        id:
+          type: integer
+        text:
+          type: string
+        authorName:
+          type: string

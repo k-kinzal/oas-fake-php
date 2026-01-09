@@ -1,0 +1,65 @@
+openapi: 3.0.0
+info:
+  title: Auth API
+  version: 1.0.0
+servers:
+  - url: https://api.auth.example.com
+paths:
+  /me:
+    get:
+      operationId: getMe
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+  /settings:
+    get:
+      operationId: getSettings
+      summary: Get user settings
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UserProfile:
+      type: object
+      required:
+        - id
+        - name
+        - email
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+    Settings:
+      type: object
+      required:
+        - theme
+        - language
+      properties:
+        theme:
+          type: string
+        language:
+          type: string
+        notifications:
+          type: boolean

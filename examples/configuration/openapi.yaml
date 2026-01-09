@@ -1,0 +1,32 @@
+openapi: 3.0.0
+info:
+  title: Status API
+  version: 1.0.0
+servers:
+  - url: https://api.status.example.com
+paths:
+  /status:
+    get:
+      operationId: getStatus
+      summary: Get system status
+      responses:
+        '200':
+          description: System status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+components:
+  schemas:
+    Status:
+      type: object
+      required:
+        - healthy
+        - version
+      properties:
+        healthy:
+          type: boolean
+        version:
+          type: string
+        uptime:
+          type: integer

@@ -1,0 +1,16 @@
+parameters:
+    level: max
+    paths:
+        - src
+    excludePaths:
+        - tests
+
+    phpVersion: 80000
+    checkUninitializedProperties: true
+    checkImplicitMixed: true
+    checkBenevolentUnionTypes: true
+
+    ignoreErrors: []
+
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: true
