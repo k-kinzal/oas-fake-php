@@ -24,6 +24,6 @@
     </source>
 
     <php>
-        <env name="OAS_FAKE_VCR_MODE" value="replay"/>
+        <env name="OAS_FAKE_MODE" value="fake"/>
     </php>
 </phpunit>

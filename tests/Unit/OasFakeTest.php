@@ -2,162 +2,118 @@
 
 declare(strict_types=1);
 
-namespace OasFakePHP\Tests\Unit;
+namespace OasFake\Tests\Unit;
 
-use GuzzleHttp\Psr7\Response;
-use OasFakePHP\Config\Configuration;
-use OasFakePHP\OasFake;
-use OasFakePHP\Response\CallbackRegistry;
-use OasFakePHP\Vcr\Mode;
+use OasFake\OasFake;
+use OasFake\Server;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 
 #[CoversClass(OasFake::class)]
 final class OasFakeTest extends TestCase
 {
-    private string $fixturesPath;
-
     protected function setUp(): void
     {
-        OasFake::resetInstance();
-        $this->fixturesPath = __DIR__ . '/../Fixtures/openapi';
+        OasFake::reset();
     }
 
     protected function tearDown(): void
     {
-        OasFake::resetInstance();
-    }
-
-    public function testGetInstance(): void
-    {
-        $instance1 = OasFake::getInstance();
-        $instance2 = OasFake::getInstance();
-
-        self::assertSame($instance1, $instance2);
-    }
-
-    public function testFromYamlFile(): void
-    {
-        $config = OasFake::fromYamlFile($this->fixturesPath . '/petstore.yaml');
-
-        self::assertInstanceOf(Configuration::class, $config);
-        self::assertTrue(OasFake::getConfiguration()->hasSchema());
-    }
-
-    public function testFromJsonString(): void
-    {
-        $json = json_encode([
-            'openapi' => '3.0.0',
-            'info' => ['title' => 'Test', 'version' => '1.0.0'],
-            'paths' => [],
-        ], JSON_THROW_ON_ERROR);
-
-        $config = OasFake::fromJsonString($json);
-
-        self::assertInstanceOf(Configuration::class, $config);
-        self::assertTrue(OasFake::getConfiguration()->hasSchema());
-    }
-
-    public function testFromYamlString(): void
-    {
-        $yaml = "openapi: 3.0.0\ninfo:\n  title: Test\n  version: 1.0.0\npaths: {}";
-
-        $config = OasFake::fromYamlString($yaml);
-
-        self::assertInstanceOf(Configuration::class, $config);
-        self::assertTrue(OasFake::getConfiguration()->hasSchema());
-    }
-
-    public function testRegisterCallback(): void
-    {
-        $callback = static fn (ServerRequestInterface $req, ?ResponseInterface $res): ResponseInterface => new Response();
-
-        OasFake::registerCallback('testOp', $callback);
-
-        $registry = OasFake::getCallbackRegistry();
-        self::assertTrue($registry->hasForOperationId('testOp'));
-    }
-
-    public function testRegisterCallbackForPath(): void
-    {
-        $callback = static fn (ServerRequestInterface $req, ?ResponseInterface $res): ResponseInterface => new Response();
-
-        OasFake::registerCallbackForPath('/pets', 'GET', $callback);
-
-        $registry = OasFake::getCallbackRegistry();
-        self::assertInstanceOf(CallbackRegistry::class, $registry);
-    }
-
-    public function testStartAndStop(): void
-    {
-        OasFake::fromYamlFile($this->fixturesPath . '/petstore.yaml')
-            ->setMode(Mode::PASSTHROUGH)
-            ->setCassettePath(sys_get_temp_dir());
-
-        self::assertFalse(OasFake::isRunning());
-
-        OasFake::start();
-        self::assertTrue(OasFake::isRunning());
-
-        OasFake::stop();
-        self::assertFalse(OasFake::isRunning());
-    }
-
-    public function testReset(): void
-    {
-        OasFake::fromYamlFile($this->fixturesPath . '/petstore.yaml')
-            ->setMode(Mode::PASSTHROUGH)
-            ->setCassettePath(sys_get_temp_dir());
-
-        OasFake::registerCallback('test', static fn ($req, $res) => new Response());
-
-        OasFake::start();
-        self::assertTrue(OasFake::isRunning());
-
         OasFake::reset();
-        self::assertFalse(OasFake::isRunning());
-        self::assertFalse(OasFake::getCallbackRegistry()->hasForOperationId('test'));
     }
 
-    public function testGetConfiguration(): void
+    public function testStartWithServerInstance(): void
     {
-        $config = OasFake::getConfiguration();
+        $server = $this->createMock(Server::class);
+        $server->expects(self::once())->method('start');
 
-        self::assertInstanceOf(Configuration::class, $config);
+        OasFake::start($server);
     }
 
-    public function testGetCallbackRegistry(): void
+    public function testStartWithConfigureCallback(): void
     {
-        $registry = OasFake::getCallbackRegistry();
+        $server = new Server();
+        $callbackInvoked = false;
 
-        self::assertInstanceOf(CallbackRegistry::class, $registry);
+        // The configure callback receives the server and should return it
+        // start() will throw because no schema, but the callback should be invoked first
+        try {
+            OasFake::start($server, static function (Server $s) use (&$callbackInvoked): Server {
+                $callbackInvoked = true;
+
+                return $s->withSchema('/nonexistent/schema.yaml');
+            });
+        } catch (\OasFake\Exception\SchemaNotFoundException) {
+            // Expected - no schema file
+        }
+
+        self::assertTrue($callbackInvoked);
     }
 
-    public function testResetInstance(): void
+    public function testStopStopsServer(): void
     {
-        $instance1 = OasFake::getInstance();
+        $server = $this->createMock(Server::class);
+        $server->expects(self::once())->method('start');
+        $server->expects(self::once())->method('stop');
 
-        OasFake::resetInstance();
-
-        $instance2 = OasFake::getInstance();
-
-        self::assertNotSame($instance1, $instance2);
+        OasFake::start($server);
+        OasFake::stop();
     }
 
-    public function testStopWhenNotStarted(): void
+    public function testStopWhenNotRunningDoesNothing(): void
     {
         // Should not throw
         OasFake::stop();
         self::assertFalse(OasFake::isRunning());
     }
 
-    public function testStartWithoutSchemaThrowsException(): void
+    public function testIsRunningReturnsFalseByDefault(): void
     {
-        $this->expectException(\OasFakePHP\Exception\SchemaNotFoundException::class);
-        $this->expectExceptionMessage('No OpenAPI schema has been loaded');
+        self::assertFalse(OasFake::isRunning());
+    }
 
-        OasFake::start();
+    public function testIsRunningReturnsTrueWhenServerIsRunning(): void
+    {
+        $server = $this->createMock(Server::class);
+        $server->method('isRunning')->willReturn(true);
+        $server->expects(self::once())->method('start');
+
+        OasFake::start($server);
+
+        self::assertTrue(OasFake::isRunning());
+    }
+
+    public function testCurrentReturnsNullByDefault(): void
+    {
+        self::assertNull(OasFake::current());
+    }
+
+    public function testCurrentReturnsRunningServer(): void
+    {
+        $server = $this->createMock(Server::class);
+        OasFake::start($server);
+
+        self::assertSame($server, OasFake::current());
+    }
+
+    public function testResetStopsAndClears(): void
+    {
+        $server = $this->createMock(Server::class);
+        $server->expects(self::once())->method('stop');
+
+        OasFake::start($server);
+        OasFake::reset();
+
+        self::assertNull(OasFake::current());
+        self::assertFalse(OasFake::isRunning());
+    }
+
+    public function testCurrentReturnsNullAfterStop(): void
+    {
+        $server = $this->createMock(Server::class);
+        OasFake::start($server);
+        OasFake::stop();
+
+        self::assertNull(OasFake::current());
     }
 }

@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace OasFakePHP\Server;
+namespace OasFake;
 
 use Attribute;
 
 #[Attribute(Attribute::TARGET_METHOD)]
-final class Callback
+final class Route
 {
     public function __construct(
-        public readonly string $path,
         public readonly string $method,
+        public readonly string $path,
     ) {
     }
 }
