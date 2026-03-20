@@ -20,8 +20,7 @@
         "cebe/php-openapi": "1.7.0",
         "guzzlehttp/psr7": "^2.6",
         "league/openapi-psr7-validator": "^0.18",
-        "php-vcr/php-vcr": "^1.8",
-        "symfony/event-dispatcher": "^6.0 || ^7.0"
+        "php-vcr/php-vcr": "^1.8"
     },
     "require-dev": {
         "phpunit/phpunit": "^11.0",
@@ -33,11 +32,13 @@
     },
     "autoload": {
         "psr-4": {
+            "OasFake\\": "src/",
             "OasFakePHP\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
+            "OasFake\\Tests\\": "tests/",
             "OasFakePHP\\Tests\\": "tests/"
         }
     },
