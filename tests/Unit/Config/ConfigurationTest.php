@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace OasFakePHP\Tests\Unit\Config;
 
 use cebe\openapi\spec\OpenApi;
+use OasFake\Exception\SchemaNotFoundException;
 use OasFakePHP\Config\Configuration;
-use OasFakePHP\Exception\SchemaNotFoundException;
 use OasFakePHP\Vcr\Mode;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;

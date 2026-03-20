@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OasFakePHP\Exception;
+namespace OasFake\Exception;
 
-use Exception;
+use RuntimeException;
 
-class OasFakeException extends Exception
+class OasFakeException extends RuntimeException
 {
 }

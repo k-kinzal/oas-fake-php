@@ -6,7 +6,7 @@ namespace OasFakePHP\Config;
 
 use cebe\openapi\Reader;
 use cebe\openapi\spec\OpenApi;
-use OasFakePHP\Exception\SchemaNotFoundException;
+use OasFake\Exception\SchemaNotFoundException;
 use OasFakePHP\Vcr\Mode;
 
 final class Configuration

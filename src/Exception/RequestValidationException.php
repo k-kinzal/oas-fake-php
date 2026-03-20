@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFakePHP\Exception;
+namespace OasFake\Exception;
 
 use League\OpenAPIValidation\PSR7\Exception\ValidationFailed;
 use Psr\Http\Message\RequestInterface;

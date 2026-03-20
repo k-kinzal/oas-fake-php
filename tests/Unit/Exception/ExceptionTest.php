@@ -7,10 +7,10 @@ namespace OasFakePHP\Tests\Unit\Exception;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use League\OpenAPIValidation\PSR7\Exception\Validation\RequiredParameterMissing;
-use OasFakePHP\Exception\OasFakeException;
-use OasFakePHP\Exception\RequestValidationException;
-use OasFakePHP\Exception\ResponseValidationException;
-use OasFakePHP\Exception\SchemaNotFoundException;
+use OasFake\Exception\OasFakeException;
+use OasFake\Exception\RequestValidationException;
+use OasFake\Exception\ResponseValidationException;
+use OasFake\Exception\SchemaNotFoundException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 

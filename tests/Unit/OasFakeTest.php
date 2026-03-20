@@ -155,7 +155,7 @@ final class OasFakeTest extends TestCase
 
     public function testStartWithoutSchemaThrowsException(): void
     {
-        $this->expectException(\OasFakePHP\Exception\SchemaNotFoundException::class);
+        $this->expectException(\OasFake\Exception\SchemaNotFoundException::class);
         $this->expectExceptionMessage('No OpenAPI schema has been loaded');
 
         OasFake::start();

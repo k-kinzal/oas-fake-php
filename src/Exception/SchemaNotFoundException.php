@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFakePHP\Exception;
+namespace OasFake\Exception;
 
 final class SchemaNotFoundException extends OasFakeException
 {

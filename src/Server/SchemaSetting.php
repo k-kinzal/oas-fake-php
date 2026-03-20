@@ -6,7 +6,7 @@ namespace OasFakePHP\Server;
 
 use cebe\openapi\Reader;
 use cebe\openapi\spec\OpenApi;
-use OasFakePHP\Exception\SchemaNotFoundException;
+use OasFake\Exception\SchemaNotFoundException;
 
 trait SchemaSetting
 {

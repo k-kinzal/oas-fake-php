@@ -8,7 +8,7 @@ use cebe\openapi\Reader;
 use cebe\openapi\spec\OpenApi;
 use GuzzleHttp\Psr7\Response;
 use League\OpenAPIValidation\PSR7\OperationAddress;
-use OasFakePHP\Exception\ResponseValidationException;
+use OasFake\Exception\ResponseValidationException;
 use OasFakePHP\Validation\ResponseValidator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;

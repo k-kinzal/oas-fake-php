@@ -9,7 +9,7 @@ use League\OpenAPIValidation\PSR7\Exception\ValidationFailed;
 use League\OpenAPIValidation\PSR7\OperationAddress;
 use League\OpenAPIValidation\PSR7\ServerRequestValidator as LeagueServerRequestValidator;
 use League\OpenAPIValidation\PSR7\ValidatorBuilder;
-use OasFakePHP\Exception\RequestValidationException;
+use OasFake\Exception\RequestValidationException;
 use Psr\Http\Message\ServerRequestInterface;
 
 final class RequestValidator

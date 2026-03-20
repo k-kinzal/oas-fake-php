@@ -7,7 +7,7 @@ namespace OasFakePHP\Tests\Unit\Validation;
 use cebe\openapi\Reader;
 use cebe\openapi\spec\OpenApi;
 use GuzzleHttp\Psr7\ServerRequest;
-use OasFakePHP\Exception\RequestValidationException;
+use OasFake\Exception\RequestValidationException;
 use OasFakePHP\Validation\RequestValidator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
