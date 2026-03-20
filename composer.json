@@ -33,11 +33,13 @@
     },
     "autoload": {
         "psr-4": {
+            "OasFake\\": "src/",
             "OasFakePHP\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
+            "OasFake\\Tests\\": "tests/",
             "OasFakePHP\\Tests\\": "tests/"
         }
     },
