@@ -1,0 +1,1 @@
+[{"request":{"method":"GET","url":"https://api.petstore.example.com/pets","headers":{"Host":"api.petstore.example.com"}},"response":{"status":{"http_version":"1.1","code":"200","message":"OK"},"headers":{"Content-Type":"application/json"},"body":"[{\"id\":1,\"name\":\"Buddy\"}]"},"index":0}]

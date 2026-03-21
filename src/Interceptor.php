@@ -9,6 +9,8 @@ use cebe\openapi\spec\PathItem;
 
 use function is_string;
 
+use LogicException;
+use OasFake\Exception\ReplayMismatchError;
 use OasFake\Exception\ValidationException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -21,6 +23,7 @@ use VCR\Request as VcrRequest;
 use VCR\Response as VcrResponse;
 use VCR\VCR;
 use VCR\VCRFactory;
+use VCR\Videorecorder;
 
 /**
  * HTTP interceptor that bridges PHP-VCR with OpenAPI validation and fake response generation.
@@ -76,6 +79,8 @@ final class Interceptor
 
         if ($this->mode === Mode::FAKE) {
             $this->registerFakeHooks();
+        } elseif ($this->mode === Mode::REPLAY) {
+            $this->registerReplayHooks();
         }
 
         $this->running = true;
@@ -205,7 +210,7 @@ final class Interceptor
     {
         VCR::configure()
             ->setMode('none')
-            ->enableRequestMatchers(['method', 'url']);
+            ->enableRequestMatchers(['method', 'url', 'host', 'query_string', 'body', 'post_fields', 'headers']);
     }
 
     private function postStartSetup(): void
@@ -221,6 +226,26 @@ final class Interceptor
     private function registerFakeHooks(): void
     {
         $handler = fn (VcrRequest $request): VcrResponse => $this->handle($request);
+
+        foreach (VCR::configure()->getLibraryHooks() as $hookClass) {
+            /** @var \VCR\LibraryHooks\LibraryHook $hook */
+            $hook = VCRFactory::get($hookClass);
+            $hook->disable();
+            $hook->enable($handler);
+        }
+    }
+
+    private function registerReplayHooks(): void
+    {
+        $handler = function (VcrRequest $request): VcrResponse {
+            /** @var Videorecorder $videorecorder */
+            $videorecorder = VCRFactory::get(Videorecorder::class);
+            try {
+                return $videorecorder->handleRequest($request);
+            } catch (LogicException $e) {
+                throw ReplayMismatchError::forRequest($request, $e);
+            }
+        };
 
         foreach (VCR::configure()->getLibraryHooks() as $hookClass) {
             /** @var \VCR\LibraryHooks\LibraryHook $hook */

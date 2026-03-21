@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OasFake\Tests\Unit;
 
 use GuzzleHttp\Psr7\Response;
+use OasFake\Exception\ReplayMismatchError;
 use OasFake\Exception\ValidationException;
 use OasFake\Handler;
 use OasFake\HandlerMap;
@@ -211,18 +212,86 @@ final class InterceptorTest extends TestCase
         self::assertSame(201, $vcrResponse->getStatusCode());
     }
 
+    public function testReplayModeReturnsMatchingRecording(): void
+    {
+        $interceptor = $this->createInterceptor(
+            mode: Mode::REPLAY,
+            cassettePath: __DIR__ . '/../Fixtures/cassettes',
+            validateRequests: false,
+            validateResponses: false,
+        );
+
+        try {
+            $interceptor->start();
+
+            $response = @file_get_contents('https://api.petstore.example.com/pets');
+
+            self::assertSame('[{"id":1,"name":"Buddy"}]', $response);
+        } finally {
+            $interceptor->stop();
+        }
+    }
+
+    public function testReplayModeThrowsOnBodyMismatch(): void
+    {
+        $interceptor = $this->createInterceptor(
+            mode: Mode::REPLAY,
+            cassettePath: __DIR__ . '/../Fixtures/cassettes',
+            validateRequests: false,
+            validateResponses: false,
+        );
+
+        try {
+            $interceptor->start();
+
+            $this->expectException(ReplayMismatchError::class);
+
+            $context = stream_context_create([
+                'http' => [
+                    'method' => 'GET',
+                    'content' => 'unexpected-body',
+                    'header' => "Host: api.petstore.example.com\r\n",
+                ],
+            ]);
+            @file_get_contents('https://api.petstore.example.com/pets', false, $context);
+        } finally {
+            $interceptor->stop();
+        }
+    }
+
+    public function testReplayModeThrowsOnQueryStringMismatch(): void
+    {
+        $interceptor = $this->createInterceptor(
+            mode: Mode::REPLAY,
+            cassettePath: __DIR__ . '/../Fixtures/cassettes',
+            validateRequests: false,
+            validateResponses: false,
+        );
+
+        try {
+            $interceptor->start();
+
+            $this->expectException(ReplayMismatchError::class);
+
+            @file_get_contents('https://api.petstore.example.com/pets?limit=10');
+        } finally {
+            $interceptor->stop();
+        }
+    }
+
     /**
      * @param list<MiddlewareInterface> $middleware
      */
     private function createInterceptor(
         string $mode = Mode::FAKE,
+        ?string $cassettePath = null,
         bool $validateRequests = true,
         bool $validateResponses = true,
         array $middleware = [],
     ): Interceptor {
         return new Interceptor(
             mode: $mode,
-            cassettePath: $this->cassettePath,
+            cassettePath: $cassettePath ?? $this->cassettePath,
             schema: $this->schema,
             validator: $this->validator,
             fakerOptions: [],
