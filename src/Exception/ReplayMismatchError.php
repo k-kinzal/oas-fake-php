@@ -26,8 +26,8 @@ final class ReplayMismatchError extends AssertionError
         ];
 
         if ($body !== null && $body !== '') {
-            $truncated = mb_strlen($body) > 200
-                ? mb_substr($body, 0, 200) . '...'
+            $truncated = strlen($body) > 200
+                ? substr($body, 0, 200) . '...'
                 : $body;
             $lines[] = sprintf('Request body: %s', $truncated);
         }
