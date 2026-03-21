@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace OasFake;
 
 use GuzzleHttp\Psr7\Response;
+use LogicException;
+use OasFake\Exception\ReplayMismatchError;
 use VCR\Request as VcrRequest;
 use VCR\Response as VcrResponse;
 use VCR\VCR;
@@ -159,6 +161,11 @@ final class ServerRegistry
                 return $entry['interceptor']->handle($request);
             }
 
+            if ($entry['mode'] === Mode::REPLAY) {
+                return $this->handleReplayRequest($request);
+            }
+
+            // RECORD mode
             /** @var Videorecorder $videorecorder */
             $videorecorder = VCRFactory::get(Videorecorder::class);
 
@@ -174,6 +181,24 @@ final class ServerRegistry
                 (string) json_encode(['error' => 'No OasFake server registered for: ' . $url]),
             ),
         );
+    }
+
+    private function handleReplayRequest(VcrRequest $request): VcrResponse
+    {
+        VCR::configure()->enableRequestMatchers(['method', 'url', 'host', 'query_string', 'body', 'post_fields', 'headers']);
+
+        try {
+            /** @var Videorecorder $videorecorder */
+            $videorecorder = VCRFactory::get(Videorecorder::class);
+
+            return $videorecorder->handleRequest($request);
+        } catch (LogicException $e) {
+            throw ReplayMismatchError::forRequest($request, $e);
+        } finally {
+            VCR::configure()
+                ->addRequestMatcher('fake_matcher', static fn (): bool => true)
+                ->enableRequestMatchers(['fake_matcher']);
+        }
     }
 
     private function urlMatchesServer(string $requestUrl, string $baseUrl): bool
