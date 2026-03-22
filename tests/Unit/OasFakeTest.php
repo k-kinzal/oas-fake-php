@@ -20,7 +20,7 @@ final class OasFakeTest extends TestCase
     public function testStartWithServerInstance(): void
     {
         $server = $this->createMock(Server::class);
-        $server->expects(self::once())->method('start');
+        $server->expects(self::once())->method('buildInterceptor');
 
         $result = OasFake::start($server);
 
@@ -50,7 +50,7 @@ final class OasFakeTest extends TestCase
     public function testStopStopsServer(): void
     {
         $server = $this->createMock(Server::class);
-        $server->expects(self::once())->method('start');
+        $server->expects(self::once())->method('buildInterceptor');
         $server->expects(self::once())->method('stop');
 
         OasFake::start($server);
@@ -86,9 +86,9 @@ final class OasFakeTest extends TestCase
     public function testMultipleServersCanBeStarted(): void
     {
         $server1 = $this->createMock(Server::class);
-        $server1->expects(self::once())->method('start');
+        $server1->expects(self::once())->method('buildInterceptor');
         $server2 = $this->createMock(Server::class);
-        $server2->expects(self::once())->method('start');
+        $server2->expects(self::once())->method('buildInterceptor');
 
         $result1 = OasFake::start($server1);
         $result2 = OasFake::start($server2);

@@ -19,23 +19,30 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 use function strtolower;
 
+use VCR\Cassette;
+use VCR\Configuration;
 use VCR\Request as VcrRequest;
 use VCR\Response as VcrResponse;
-use VCR\VCR;
-use VCR\VCRFactory;
-use VCR\Videorecorder;
+use VCR\Storage\Json;
 
 /**
- * HTTP interceptor that bridges PHP-VCR with OpenAPI validation and fake response generation.
+ * Request handler with OpenAPI validation, fake response generation, and cassette management.
  *
  * Handles the full request lifecycle: conversion, validation, stub/faker resolution,
- * middleware execution, and response conversion.
+ * middleware execution, and response conversion. Manages cassettes for RECORD/REPLAY modes.
+ *
+ * VCR lifecycle (turnOn/turnOff, hook registration) is managed externally by Server or ServerRegistry.
  */
 final class Interceptor
 {
     private bool $running = false;
 
     private Converter $converter;
+
+    private ?Cassette $cassette = null;
+
+    /** @var array<string, int> */
+    private array $indexTable = [];
 
     /**
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $fakerOptions
@@ -51,15 +58,12 @@ final class Interceptor
         private bool $validateRequests,
         private bool $validateResponses,
         private array $middleware = [],
-        private bool $managed = false,
     ) {
         $this->converter = new Converter();
     }
 
     /**
-     * Activate the interceptor and configure PHP-VCR hooks.
-     *
-     * In managed mode, only marks the interceptor as running without touching VCR.
+     * Activate the interceptor and initialize cassette for RECORD/REPLAY modes.
      */
     public function start(): void
     {
@@ -67,27 +71,15 @@ final class Interceptor
             return;
         }
 
-        if ($this->managed) {
-            $this->running = true;
-
-            return;
-        }
-
-        $this->configureVcr();
-        VCR::turnOn();
-        $this->postStartSetup();
-
-        if ($this->mode === Mode::FAKE) {
-            $this->registerFakeHooks();
-        } elseif ($this->mode === Mode::REPLAY) {
-            $this->registerReplayHooks();
+        if ($this->mode === Mode::RECORD || $this->mode === Mode::REPLAY) {
+            $this->initCassette();
         }
 
         $this->running = true;
     }
 
     /**
-     * Deactivate the interceptor and turn off PHP-VCR.
+     * Deactivate the interceptor and release the cassette.
      */
     public function stop(): void
     {
@@ -95,10 +87,8 @@ final class Interceptor
             return;
         }
 
-        if (!$this->managed) {
-            VCR::turnOff();
-        }
-
+        $this->cassette = null;
+        $this->indexTable = [];
         $this->running = false;
     }
 
@@ -117,6 +107,7 @@ final class Interceptor
      *
      * Converts the VCR request to PSR-7, validates against the OpenAPI schema,
      * resolves a stub or generates a fake response, runs middleware, and converts back.
+     * In RECORD mode, the request/response pair is also written to the cassette.
      *
      * @param VcrRequest $vcrRequest The intercepted HTTP request from PHP-VCR
      *
@@ -171,88 +162,73 @@ final class Interceptor
             $this->validator->validateResponse($operation, $response);
         }
 
-        return $this->converter->psr7ToVcrResponse($response);
+        $vcrResponse = $this->converter->psr7ToVcrResponse($response);
+
+        if ($this->mode === Mode::RECORD) {
+            $this->recordToCassette($vcrRequest, $vcrResponse);
+        }
+
+        return $vcrResponse;
     }
 
-    private function configureVcr(): void
+    /**
+     * Replay a previously recorded response from the cassette.
+     *
+     * Looks up the request in the cassette and returns the matching response.
+     * Throws ReplayMismatchError if no matching recording is found.
+     *
+     * @param VcrRequest $request The intercepted HTTP request
+     *
+     * @throws ReplayMismatchError If no matching cassette recording exists
+     *
+     * @return VcrResponse The recorded response from the cassette
+     */
+    public function replay(VcrRequest $request): VcrResponse
     {
-        VCR::configure()
-            ->setCassettePath($this->cassettePath)
-            ->setStorage('json')
-            ->enableLibraryHooks(['curl', 'stream_wrapper']);
-
-        match ($this->mode) {
-            Mode::FAKE => $this->configureFakeMode(),
-            Mode::RECORD => $this->configureRecordMode(),
-            Mode::REPLAY => $this->configureReplayMode(),
-            default => $this->configureFakeMode(),
-        };
-    }
-
-    private function configureFakeMode(): void
-    {
-        VCR::configure()
-            ->setMode('none')
-            ->addRequestMatcher(
-                'fake_matcher',
-                static function (): bool {
-                    return true;
-                },
+        if ($this->cassette === null) {
+            throw ReplayMismatchError::forRequest(
+                $request,
+                new LogicException('No cassette loaded for replay'),
             );
-    }
-
-    private function configureRecordMode(): void
-    {
-        VCR::configure()->setMode('new_episodes');
-    }
-
-    private function configureReplayMode(): void
-    {
-        VCR::configure()
-            ->setMode('none')
-            ->enableRequestMatchers(['method', 'url', 'host', 'query_string', 'body', 'post_fields', 'headers']);
-    }
-
-    private function postStartSetup(): void
-    {
-        match ($this->mode) {
-            Mode::FAKE => VCR::insertCassette('fake'),
-            Mode::RECORD => VCR::insertCassette('recording'),
-            Mode::REPLAY => VCR::insertCassette('replay'),
-            default => VCR::insertCassette('fake'),
-        };
-    }
-
-    private function registerFakeHooks(): void
-    {
-        $handler = fn (VcrRequest $request): VcrResponse => $this->handle($request);
-
-        foreach (VCR::configure()->getLibraryHooks() as $hookClass) {
-            /** @var \VCR\LibraryHooks\LibraryHook $hook */
-            $hook = VCRFactory::get($hookClass);
-            $hook->disable();
-            $hook->enable($handler);
         }
+
+        $index = $this->nextIndex($request);
+        $response = $this->cassette->playback($request, $index);
+
+        if ($response === null) {
+            throw ReplayMismatchError::forRequest(
+                $request,
+                new LogicException('No matching cassette recording'),
+            );
+        }
+
+        return $response;
     }
 
-    private function registerReplayHooks(): void
+    private function initCassette(): void
     {
-        $handler = function (VcrRequest $request): VcrResponse {
-            /** @var Videorecorder $videorecorder */
-            $videorecorder = VCRFactory::get(Videorecorder::class);
-            try {
-                return $videorecorder->handleRequest($request);
-            } catch (LogicException $e) {
-                throw ReplayMismatchError::forRequest($request, $e);
-            }
-        };
+        $storage = new Json($this->cassettePath, 'recording');
+        $config = new Configuration();
+        $this->cassette = new Cassette('recording', $config, $storage);
+    }
 
-        foreach (VCR::configure()->getLibraryHooks() as $hookClass) {
-            /** @var \VCR\LibraryHooks\LibraryHook $hook */
-            $hook = VCRFactory::get($hookClass);
-            $hook->disable();
-            $hook->enable($handler);
+    private function recordToCassette(VcrRequest $request, VcrResponse $response): void
+    {
+        if ($this->cassette === null) {
+            return;
         }
+
+        $this->cassette->record($request, $response, $this->nextIndex($request));
+    }
+
+    private function nextIndex(VcrRequest $request): int
+    {
+        $key = $request->getMethod() . ' ' . ($request->getUrl() ?? '');
+        if (!isset($this->indexTable[$key])) {
+            $this->indexTable[$key] = -1;
+        }
+
+        return ++$this->indexTable[$key];
     }
 
     private function findMatchingPath(ServerRequestInterface $request): ?string

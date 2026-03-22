@@ -8,6 +8,10 @@ use OasFake\Exception\SchemaNotFoundException;
 use Psr\Http\Server\MiddlewareInterface;
 use ReflectionClass;
 use ReflectionMethod;
+use VCR\Request as VcrRequest;
+use VCR\Response as VcrResponse;
+use VCR\VCR;
+use VCR\VCRFactory;
 
 /**
  * Base server class providing fluent configuration, handler management, and lifecycle control.
@@ -52,6 +56,7 @@ class Server
     private HandlerMap $handlers;
     private ?Interceptor $interceptor = null;
     private ?Schema $resolvedSchema = null;
+    private bool $vcrStarted = false;
 
     public function __construct()
     {
@@ -84,7 +89,7 @@ class Server
     }
 
     /**
-     * Set the directory path for VCR cassette files.
+     * Set the directory path for cassette files.
      *
      * @param string $path Directory path for cassette storage
      */
@@ -202,11 +207,12 @@ class Server
     }
 
     /**
-     * Start the fake server and begin intercepting HTTP requests.
+     * Build the interceptor without starting VCR.
      *
-     * @param bool $managed When true, VCR lifecycle is managed externally by the registry
+     * Creates the Interceptor and initializes cassettes for RECORD/REPLAY modes.
+     * Used by ServerRegistry which manages VCR lifecycle externally.
      */
-    public function start(bool $managed = false): void
+    public function buildInterceptor(): void
     {
         if ($this->interceptor !== null && $this->interceptor->isRunning()) {
             return;
@@ -224,10 +230,18 @@ class Server
             validateRequests: $this->resolveValidateRequests(),
             validateResponses: $this->resolveValidateResponses(),
             middleware: $this->resolveMiddleware(),
-            managed: $managed,
         );
 
         $this->interceptor->start();
+    }
+
+    /**
+     * Start the fake server: build interceptor and activate HTTP hooks.
+     */
+    public function start(): void
+    {
+        $this->buildInterceptor();
+        $this->startVcr();
     }
 
     /**
@@ -238,6 +252,11 @@ class Server
         if ($this->interceptor !== null) {
             $this->interceptor->stop();
             $this->interceptor = null;
+        }
+
+        if ($this->vcrStarted) {
+            VCR::turnOff();
+            $this->vcrStarted = false;
         }
     }
 
@@ -308,6 +327,49 @@ class Server
         }
 
         return Mode::fromString(static::$MODE);
+    }
+
+    private function startVcr(): void
+    {
+        if ($this->vcrStarted) {
+            return;
+        }
+
+        $this->configureVcr();
+        VCR::turnOn();
+        VCR::insertCassette('oas-fake');
+        $this->registerHooks();
+        $this->vcrStarted = true;
+    }
+
+    private function configureVcr(): void
+    {
+        VCR::configure()
+            ->setCassettePath($this->resolveCassettePath())
+            ->setStorage('json')
+            ->setMode('none')
+            ->enableLibraryHooks(['curl', 'stream_wrapper']);
+    }
+
+    private function registerHooks(): void
+    {
+        $interceptor = $this->interceptor;
+        if ($interceptor === null) {
+            return;
+        }
+
+        $mode = $this->resolveMode();
+        $handler = match ($mode) {
+            Mode::REPLAY => fn (VcrRequest $req): VcrResponse => $interceptor->replay($req),
+            default => fn (VcrRequest $req): VcrResponse => $interceptor->handle($req),
+        };
+
+        foreach (VCR::configure()->getLibraryHooks() as $hookClass) {
+            /** @var \VCR\LibraryHooks\LibraryHook $hook */
+            $hook = VCRFactory::get($hookClass);
+            $hook->disable();
+            $hook->enable($handler);
+        }
     }
 
     private function resolveSchema(): Schema
@@ -423,7 +485,7 @@ class Server
         return [
             'start', 'stop', 'isRunning',
             'interceptor', 'serverUrls', 'resolveMode',
-            'schema', 'fakerOptions',
+            'schema', 'fakerOptions', 'buildInterceptor',
             'withSchema', 'withMode', 'withCassettePath',
             'withRequestValidation', 'withResponseValidation',
             'withFakerOptions', 'withMiddleware',

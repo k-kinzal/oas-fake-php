@@ -5,13 +5,10 @@ declare(strict_types=1);
 namespace OasFake;
 
 use GuzzleHttp\Psr7\Response;
-use LogicException;
-use OasFake\Exception\ReplayMismatchError;
 use VCR\Request as VcrRequest;
 use VCR\Response as VcrResponse;
 use VCR\VCR;
 use VCR\VCRFactory;
-use VCR\Videorecorder;
 
 /**
  * Registry that manages multiple Server instances with a shared VCR lifecycle.
@@ -21,7 +18,7 @@ use VCR\Videorecorder;
 final class ServerRegistry
 {
     /**
-     * @var array<string, Server> key=class名
+     * @var array<string, Server> key=class name
      */
     private array $servers = [];
 
@@ -40,7 +37,7 @@ final class ServerRegistry
     /**
      * Register a server under the given key, replacing any existing registration.
      *
-     * The server is started in managed mode where VCR lifecycle is controlled by the registry.
+     * The server's interceptor is built but VCR lifecycle is managed by the registry.
      *
      * @param string $key Unique identifier for the server (typically the class name)
      * @param Server $server The server instance to register
@@ -51,7 +48,7 @@ final class ServerRegistry
             $this->unregister($key);
         }
 
-        $server->start(managed: true);
+        $server->buildInterceptor();
 
         $this->servers[$key] = $server;
 
@@ -140,8 +137,7 @@ final class ServerRegistry
     /**
      * Dispatch an intercepted request to the matching server's interceptor.
      *
-     * In FAKE mode, delegates to the interceptor's handle method.
-     * In RECORD/REPLAY mode, delegates to VCR's Videorecorder.
+     * Routes to handle() for FAKE/RECORD modes, replay() for REPLAY mode.
      * Returns a 502 error if no server matches the request URL.
      *
      * @param VcrRequest $request The intercepted HTTP request
@@ -157,19 +153,11 @@ final class ServerRegistry
                 continue;
             }
 
-            if ($entry['mode'] === Mode::FAKE) {
-                return $entry['interceptor']->handle($request);
-            }
-
             if ($entry['mode'] === Mode::REPLAY) {
-                return $this->handleReplayRequest($request);
+                return $entry['interceptor']->replay($request);
             }
 
-            // RECORD mode
-            /** @var Videorecorder $videorecorder */
-            $videorecorder = VCRFactory::get(Videorecorder::class);
-
-            return $videorecorder->handleRequest($request);
+            return $entry['interceptor']->handle($request);
         }
 
         $converter = new Converter();
@@ -181,24 +169,6 @@ final class ServerRegistry
                 (string) json_encode(['error' => 'No OasFake server registered for: ' . $url]),
             ),
         );
-    }
-
-    private function handleReplayRequest(VcrRequest $request): VcrResponse
-    {
-        VCR::configure()->enableRequestMatchers(['method', 'url', 'host', 'query_string', 'body', 'post_fields', 'headers']);
-
-        try {
-            /** @var Videorecorder $videorecorder */
-            $videorecorder = VCRFactory::get(Videorecorder::class);
-
-            return $videorecorder->handleRequest($request);
-        } catch (LogicException $e) {
-            throw ReplayMismatchError::forRequest($request, $e);
-        } finally {
-            VCR::configure()
-                ->addRequestMatcher('fake_matcher', static fn (): bool => true)
-                ->enableRequestMatchers(['fake_matcher']);
-        }
     }
 
     private function urlMatchesServer(string $requestUrl, string $baseUrl): bool
@@ -240,13 +210,7 @@ final class ServerRegistry
             ->setCassettePath(sys_get_temp_dir())
             ->setStorage('json')
             ->setMode('none')
-            ->enableLibraryHooks(['curl', 'stream_wrapper'])
-            ->addRequestMatcher(
-                'fake_matcher',
-                static function (): bool {
-                    return true;
-                },
-            );
+            ->enableLibraryHooks(['curl', 'stream_wrapper']);
     }
 
     private function registerDispatchHook(): void
