@@ -355,6 +355,90 @@ final class InterceptorTest extends TestCase
         $replayer->stop();
     }
 
+    public function testReplayRejectsBodyMismatchOnSameUrl(): void
+    {
+        // RECORD: GET /pets without body
+        $recorder = $this->createInterceptor(
+            mode: Mode::RECORD,
+            validateRequests: false,
+            validateResponses: false,
+        );
+        $recorder->start();
+
+        $request = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
+        $request->setHeader('Host', 'api.petstore.example.com');
+        $recorder->handle($request);
+        $recorder->stop();
+
+        // REPLAY: GET /pets with body should not match
+        $replayer = $this->createInterceptor(
+            mode: Mode::REPLAY,
+            validateRequests: false,
+            validateResponses: false,
+        );
+        $replayer->start();
+
+        $this->expectException(ReplayMismatchError::class);
+
+        try {
+            $mismatch = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
+            $mismatch->setHeader('Host', 'api.petstore.example.com');
+            $mismatch->setBody('unexpected-body');
+            $replayer->replay($mismatch);
+        } finally {
+            $replayer->stop();
+        }
+    }
+
+    public function testRecordThenReplayWithDifferentBodiesSameUrl(): void
+    {
+        // RECORD: POST /pets body=A, POST /pets body=B
+        $recorder = $this->createInterceptor(
+            mode: Mode::RECORD,
+            validateRequests: false,
+            validateResponses: false,
+        );
+        $recorder->start();
+
+        $reqA = new VcrRequest('POST', 'https://api.petstore.example.com/pets', []);
+        $reqA->setHeader('Host', 'api.petstore.example.com');
+        $reqA->setHeader('Content-Type', 'application/json');
+        $reqA->setBody('{"name":"A"}');
+        $respA = $recorder->handle($reqA);
+
+        $reqB = new VcrRequest('POST', 'https://api.petstore.example.com/pets', []);
+        $reqB->setHeader('Host', 'api.petstore.example.com');
+        $reqB->setHeader('Content-Type', 'application/json');
+        $reqB->setBody('{"name":"B"}');
+        $respB = $recorder->handle($reqB);
+
+        $recorder->stop();
+
+        // REPLAY: same order should return matching responses
+        $replayer = $this->createInterceptor(
+            mode: Mode::REPLAY,
+            validateRequests: false,
+            validateResponses: false,
+        );
+        $replayer->start();
+
+        $replayA = new VcrRequest('POST', 'https://api.petstore.example.com/pets', []);
+        $replayA->setHeader('Host', 'api.petstore.example.com');
+        $replayA->setHeader('Content-Type', 'application/json');
+        $replayA->setBody('{"name":"A"}');
+        $resultA = $replayer->replay($replayA);
+        self::assertSame($respA->getBody(), $resultA->getBody());
+
+        $replayB = new VcrRequest('POST', 'https://api.petstore.example.com/pets', []);
+        $replayB->setHeader('Host', 'api.petstore.example.com');
+        $replayB->setHeader('Content-Type', 'application/json');
+        $replayB->setBody('{"name":"B"}');
+        $resultB = $replayer->replay($replayB);
+        self::assertSame($respB->getBody(), $resultB->getBody());
+
+        $replayer->stop();
+    }
+
     /**
      * @param list<MiddlewareInterface> $middleware
      */

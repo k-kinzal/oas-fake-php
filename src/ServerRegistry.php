@@ -18,7 +18,7 @@ use VCR\VCRFactory;
 final class ServerRegistry
 {
     /**
-     * @var array<string, Server> key=class名
+     * @var array<string, Server> key=class name
      */
     private array $servers = [];
 

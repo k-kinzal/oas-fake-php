@@ -331,6 +331,10 @@ class Server
 
     private function startVcr(): void
     {
+        if ($this->vcrStarted) {
+            return;
+        }
+
         $this->configureVcr();
         VCR::turnOn();
         VCR::insertCassette('oas-fake');

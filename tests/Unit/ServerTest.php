@@ -145,6 +145,26 @@ final class ServerTest extends TestCase
         self::assertFalse($server->isRunning());
     }
 
+    public function testStartCanBeCalledTwiceSafely(): void
+    {
+        $server = (new Server())
+            ->withSchema($this->petstorePath)
+            ->withCassettePath(sys_get_temp_dir() . '/oas-fake-test-cassettes')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false);
+
+        try {
+            $server->start();
+            $server->start();
+
+            self::assertTrue($server->isRunning());
+        } finally {
+            $server->stop();
+        }
+
+        self::assertFalse($server->isRunning());
+    }
+
     public function testStartThrowsWithoutSchema(): void
     {
         $server = new Server();
