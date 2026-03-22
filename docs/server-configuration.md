@@ -59,8 +59,8 @@ OasFake::start($server);
 | Static Property | Fluent Method | Description | Default |
 |---|---|---|---|
 | `$SCHEMA` | `withSchema(string)` | Path to OpenAPI JSON or YAML file | `''` (required) |
-| `$MODE` | `withMode(Mode)` | Operating mode | `'fake'` |
-| `$CASSETTE_PATH` | `withCassettePath(string)` | Directory for VCR cassette files | `'./cassettes'` |
+| `$MODE` | `withMode(string)` | Operating mode | `'fake'` |
+| `$CASSETTE_PATH` | `withCassettePath(string)` | Directory for cassette files | `'./cassettes'` |
 | `$VALIDATE_REQUESTS` | `withRequestValidation(bool)` | Validate requests against schema | `true` |
 | `$VALIDATE_RESPONSES` | `withResponseValidation(bool)` | Validate responses against schema | `true` |
 | `$FAKER_OPTIONS` | `withFakerOptions(array)` | Options for fake data generation | `[]` |
@@ -68,18 +68,18 @@ OasFake::start($server);
 
 ## Operating Modes
 
-The `OasFake\Mode` enum defines three operating modes:
+The `OasFake\Mode` class defines three operating modes:
 
 | Mode | Value | Description |
 |---|---|---|
 | `Mode::FAKE` | `'fake'` | Intercept requests and return generated/stubbed responses (default) |
-| `Mode::RECORD` | `'record'` | Forward requests to the real server and record responses as cassettes |
+| `Mode::RECORD` | `'record'` | Generate responses and record them as cassettes for later replay |
 | `Mode::REPLAY` | `'replay'` | Replay previously recorded cassette responses |
 
 ```php
 use OasFake\Mode;
 
-// Enum usage
+// Constants
 Mode::FAKE;
 Mode::RECORD;
 Mode::REPLAY;

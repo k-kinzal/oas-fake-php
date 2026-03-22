@@ -48,16 +48,16 @@ OasFake::stop();
 ## How It Works
 
 ```
-Your Code --> HTTP Request --> PHP-VCR Interception --> OasFake Processing --> Fake Response
-                                                            |
-                                                  1. Run PSR-15 middleware
-                                                  2. Validate request against schema
-                                                  3. Resolve handler or generate fake response
-                                                  4. Validate response against schema
-                                                  5. Return response to caller
+Your Code --> HTTP Request --> OasFake Interception --> Processing --> Fake Response
+                                                           |
+                                                 1. Validate request against schema
+                                                 2. Resolve handler or generate fake response
+                                                 3. Run PSR-15 middleware
+                                                 4. Validate response against schema
+                                                 5. Return response to caller
 ```
 
-OasFake intercepts HTTP requests via [PHP-VCR](https://github.com/php-vcr/php-vcr) hooks (curl and stream wrappers). Intercepted requests are matched against your OpenAPI schema, validated, and answered with either a custom handler response or an auto-generated fake response based on the schema definition.
+OasFake intercepts HTTP requests by hooking into curl and stream wrappers. Intercepted requests are matched against your OpenAPI schema, validated, and answered with either a custom handler response or an auto-generated fake response based on the schema definition.
 
 ## Next Steps
 

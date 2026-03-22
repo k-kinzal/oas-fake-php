@@ -7,7 +7,7 @@ Environment variables override both static properties and fluent API settings, m
 | Variable | Values | Default | Description |
 |---|---|---|---|
 | `OAS_FAKE_MODE` | `fake`, `record`, `replay` | `fake` | Operating mode |
-| `OAS_FAKE_CASSETTE_PATH` | directory path | `./cassettes` | Directory for VCR cassette files |
+| `OAS_FAKE_CASSETTE_PATH` | directory path | `./cassettes` | Directory for cassette files |
 | `OAS_FAKE_VALIDATE_REQUESTS` | `true`, `false` | `true` | Enable/disable request validation |
 | `OAS_FAKE_VALIDATE_RESPONSES` | `true`, `false` | `true` | Enable/disable response validation |
 

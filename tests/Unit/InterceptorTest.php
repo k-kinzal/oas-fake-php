@@ -44,6 +44,14 @@ final class InterceptorTest extends TestCase
         }
     }
 
+    protected function tearDown(): void
+    {
+        $recordingFile = $this->cassettePath . '/recording';
+        if (file_exists($recordingFile)) {
+            @unlink($recordingFile);
+        }
+    }
+
     public function testIsRunningReturnsFalseByDefault(): void
     {
         $interceptor = $this->createInterceptor();
@@ -212,7 +220,7 @@ final class InterceptorTest extends TestCase
         self::assertSame(201, $vcrResponse->getStatusCode());
     }
 
-    public function testReplayModeReturnsMatchingRecording(): void
+    public function testReplayReturnsMatchingRecording(): void
     {
         $interceptor = $this->createInterceptor(
             mode: Mode::REPLAY,
@@ -220,19 +228,39 @@ final class InterceptorTest extends TestCase
             validateRequests: false,
             validateResponses: false,
         );
+        $interceptor->start();
+
+        $request = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
+        $request->setHeader('Host', 'api.petstore.example.com');
+
+        $response = $interceptor->replay($request);
+
+        self::assertSame('[{"id":1,"name":"Buddy"}]', $response->getBody());
+        $interceptor->stop();
+    }
+
+    public function testReplayThrowsOnMismatch(): void
+    {
+        $interceptor = $this->createInterceptor(
+            mode: Mode::REPLAY,
+            cassettePath: __DIR__ . '/../Fixtures/cassettes',
+            validateRequests: false,
+            validateResponses: false,
+        );
+        $interceptor->start();
+
+        $this->expectException(ReplayMismatchError::class);
 
         try {
-            $interceptor->start();
-
-            $response = @file_get_contents('https://api.petstore.example.com/pets');
-
-            self::assertSame('[{"id":1,"name":"Buddy"}]', $response);
+            $request = new VcrRequest('POST', 'https://api.petstore.example.com/pets', []);
+            $request->setBody('unexpected-body');
+            $interceptor->replay($request);
         } finally {
             $interceptor->stop();
         }
     }
 
-    public function testReplayModeThrowsOnBodyMismatch(): void
+    public function testReplayThrowsOnQueryStringMismatch(): void
     {
         $interceptor = $this->createInterceptor(
             mode: Mode::REPLAY,
@@ -240,43 +268,91 @@ final class InterceptorTest extends TestCase
             validateRequests: false,
             validateResponses: false,
         );
+        $interceptor->start();
+
+        $this->expectException(ReplayMismatchError::class);
 
         try {
-            $interceptor->start();
-
-            $this->expectException(ReplayMismatchError::class);
-
-            $context = stream_context_create([
-                'http' => [
-                    'method' => 'GET',
-                    'content' => 'unexpected-body',
-                    'header' => "Host: api.petstore.example.com\r\n",
-                ],
-            ]);
-            @file_get_contents('https://api.petstore.example.com/pets', false, $context);
+            $request = new VcrRequest('GET', 'https://api.petstore.example.com/pets?limit=10', []);
+            $interceptor->replay($request);
         } finally {
             $interceptor->stop();
         }
     }
 
-    public function testReplayModeThrowsOnQueryStringMismatch(): void
+    public function testRecordModeGeneratesResponse(): void
     {
         $interceptor = $this->createInterceptor(
-            mode: Mode::REPLAY,
-            cassettePath: __DIR__ . '/../Fixtures/cassettes',
+            mode: Mode::RECORD,
             validateRequests: false,
             validateResponses: false,
         );
+        $interceptor->start();
 
-        try {
-            $interceptor->start();
+        $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
+        $vcrResponse = $interceptor->handle($vcrRequest);
 
-            $this->expectException(ReplayMismatchError::class);
+        self::assertSame(200, $vcrResponse->getStatusCode());
+        $body = json_decode($vcrResponse->getBody() ?? '', true);
+        self::assertIsArray($body);
 
-            @file_get_contents('https://api.petstore.example.com/pets?limit=10');
-        } finally {
-            $interceptor->stop();
-        }
+        $interceptor->stop();
+    }
+
+    public function testRecordModeWritesCassette(): void
+    {
+        $interceptor = $this->createInterceptor(
+            mode: Mode::RECORD,
+            validateRequests: false,
+            validateResponses: false,
+        );
+        $interceptor->start();
+
+        $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
+        $interceptor->handle($vcrRequest);
+        $interceptor->stop();
+
+        $cassetteFile = $this->cassettePath . '/recording';
+        self::assertFileExists($cassetteFile);
+
+        $recordings = json_decode((string) file_get_contents($cassetteFile), true);
+        self::assertIsArray($recordings);
+        self::assertCount(1, $recordings);
+        self::assertSame('GET', $recordings[0]['request']['method']);
+        self::assertStringContainsString('/pets', $recordings[0]['request']['url']);
+    }
+
+    public function testRecordThenReplayRoundTrip(): void
+    {
+        // Phase 1: Record
+        $recorder = $this->createInterceptor(
+            mode: Mode::RECORD,
+            validateRequests: false,
+            validateResponses: false,
+        );
+        $recorder->start();
+
+        $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
+        $vcrRequest->setHeader('Host', 'api.petstore.example.com');
+        $recordedResponse = $recorder->handle($vcrRequest);
+        $recorder->stop();
+
+        // Phase 2: Replay
+        $replayer = $this->createInterceptor(
+            mode: Mode::REPLAY,
+            validateRequests: false,
+            validateResponses: false,
+        );
+        $replayer->start();
+
+        $replayRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
+        $replayRequest->setHeader('Host', 'api.petstore.example.com');
+        $replayedResponse = $replayer->replay($replayRequest);
+
+        self::assertSame($recordedResponse->getBody(), $replayedResponse->getBody());
+        self::assertSame($recordedResponse->getStatusCode(), $replayedResponse->getStatusCode());
+
+        $replayer->stop();
     }
 
     /**
