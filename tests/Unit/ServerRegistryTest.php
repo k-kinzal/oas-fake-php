@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
-use OasFake\Handler;
 use OasFake\Server;
 use OasFake\ServerRegistry;
 use PHPUnit\Framework\Attributes\CoversClass;
