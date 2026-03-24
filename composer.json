@@ -22,18 +22,18 @@
     ],
     "require": {
         "php": "^8.0",
-        "canvural/php-openapi-faker": "^2.0",
-        "cebe/php-openapi": "1.7.0",
-        "guzzlehttp/psr7": "^2.6",
-        "league/openapi-psr7-validator": "^0.18",
-        "php-vcr/php-vcr": "^1.8"
+        "canvural/php-openapi-faker": "^2.1",
+        "devizzent/cebe-php-openapi": "^1.0",
+        "guzzlehttp/psr7": "^2.0",
+        "league/openapi-psr7-validator": ">=0.18, <1.0",
+        "php-vcr/php-vcr": "^1.7"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.6",
         "phpstan/phpstan": "^2.0",
         "phpstan/phpstan-strict-rules": "^2.0",
-        "friendsofphp/php-cs-fixer": "^3.64",
-        "guzzlehttp/guzzle": "^7.9",
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "guzzlehttp/guzzle": "^7.0",
         "phpstan/extension-installer": "^1.4"
     },
     "autoload": {
