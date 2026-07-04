@@ -162,4 +162,18 @@ final class ServerRegistryTest extends TestCase
 
         self::assertSame(502, $response->getStatusCode());
     }
+
+    public function testDispatchStripsServerBasePathForOperationLookup(): void
+    {
+        $server = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/versioned-petstore.yaml');
+
+        $this->registry->register('VersionedServer', $server);
+
+        $request = new VcrRequest('GET', 'https://api.versioned.example.com/v1/pets', []);
+        $response = $this->registry->dispatch($request);
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertIsArray(json_decode($response->getBody() ?? '', true));
+    }
 }
