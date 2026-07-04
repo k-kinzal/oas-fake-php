@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
+use cebe\openapi\spec\Schema as CebeSchema;
 use OasFake\FakeDataContext;
 use OasFake\Schema;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -51,5 +52,17 @@ final class FakeDataContextTest extends TestCase
         $context = new FakeDataContext($schema);
 
         self::assertIsArray($context->mockResponse('/pets', 'GET', 200));
+    }
+
+    public function testMockSchemaGeneratesData(): void
+    {
+        $schema = Schema::fromFile(__DIR__ . '/../Fixtures/openapi/petstore.yaml');
+        $context = new FakeDataContext($schema);
+        $valueSchema = new CebeSchema([
+            'type' => 'string',
+            'enum' => ['ok'],
+        ]);
+
+        self::assertSame('ok', $context->mockSchema($valueSchema));
     }
 }

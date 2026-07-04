@@ -89,6 +89,68 @@ final class FakeRequestTest extends TestCase
         self::assertArrayHasKey('name', $data);
     }
 
+    public function testForUsesTextPlainRequestMediaType(): void
+    {
+        $schema = Schema::fromString(<<<'YAML'
+            openapi: 3.0.0
+            info:
+              title: Text API
+              version: 1.0.0
+            paths:
+              /messages:
+                post:
+                  operationId: createMessage
+                  requestBody:
+                    required: true
+                    content:
+                      text/plain:
+                        schema:
+                          type: string
+                          enum: [hello]
+                  responses:
+                    '204':
+                      description: Created
+            YAML);
+
+        $request = FakeRequest::for($schema, 'createMessage');
+
+        self::assertSame('text/plain', $request->headers()['Content-Type']);
+        self::assertSame('hello', $request->body());
+    }
+
+    public function testForUsesFormUrlEncodedRequestMediaType(): void
+    {
+        $schema = Schema::fromString(<<<'YAML'
+            openapi: 3.0.0
+            info:
+              title: Form API
+              version: 1.0.0
+            paths:
+              /messages:
+                post:
+                  operationId: createFormMessage
+                  requestBody:
+                    required: true
+                    content:
+                      application/x-www-form-urlencoded:
+                        schema:
+                          type: object
+                          required: [message]
+                          properties:
+                            message:
+                              type: string
+                              enum: [hello]
+                  responses:
+                    '204':
+                      description: Created
+            YAML);
+
+        $request = FakeRequest::for($schema, 'createFormMessage');
+
+        self::assertSame('application/x-www-form-urlencoded', $request->headers()['Content-Type']);
+        self::assertSame('message=hello', $request->body());
+    }
+
     public function testForThrowsForUnknownOperation(): void
     {
         $this->expectException(OperationNotFoundException::class);

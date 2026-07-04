@@ -14,6 +14,7 @@ final class MyServer extends Server
     protected static string $SCHEMA = __DIR__ . '/openapi.yaml';
     protected static string $MODE = 'fake';
     protected static string $CASSETTE_PATH = __DIR__ . '/cassettes';
+    protected static string $CASSETTE_NAME = 'my-server';
     protected static bool $VALIDATE_REQUESTS = true;
     protected static bool $VALIDATE_RESPONSES = true;
     protected static array $FAKER_OPTIONS = [
@@ -63,6 +64,7 @@ Fluent configuration methods must be called before the server is started. Once a
 | `$SCHEMA` | `withSchema(string)` | Path to OpenAPI JSON or YAML file | `''` (required) |
 | `$MODE` | `withMode(string)` | Operating mode | `'fake'` |
 | `$CASSETTE_PATH` | `withCassettePath(string)` | Directory for cassette files | `'./cassettes'` |
+| `$CASSETTE_NAME` | `withCassetteName(string)` | Cassette file name for record/replay | Server class name |
 | `$VALIDATE_REQUESTS` | `withRequestValidation(bool)` | Validate requests against schema | `true` |
 | `$VALIDATE_RESPONSES` | `withResponseValidation(bool)` | Validate responses against schema | `true` |
 | `$FAKER_OPTIONS` | `withFakerOptions(array)` | Options for fake data generation | `[]` |

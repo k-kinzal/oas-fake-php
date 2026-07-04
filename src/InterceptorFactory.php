@@ -24,6 +24,7 @@ final class InterceptorFactory
             validateRequests: $options->validateRequests,
             validateResponses: $options->validateResponses,
             middleware: $options->middleware,
+            cassetteName: $options->cassetteName,
         );
     }
 }

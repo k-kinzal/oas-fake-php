@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OasFake\Tests\Unit;
 
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Uri;
 use OasFake\Exception\ReplayMismatchError;
 use OasFake\Exception\ValidationException;
 use OasFake\Handler;
@@ -46,9 +47,10 @@ final class InterceptorTest extends TestCase
 
     protected function tearDown(): void
     {
-        $recordingFile = $this->cassettePath . '/recording';
-        if (file_exists($recordingFile)) {
-            @unlink($recordingFile);
+        foreach (glob($this->cassettePath . '/*') ?: [] as $file) {
+            if (is_file($file)) {
+                @unlink($file);
+            }
         }
     }
 
@@ -157,6 +159,17 @@ final class InterceptorTest extends TestCase
         $interceptor->handle($vcrRequest);
     }
 
+    public function testHandleValidatesResponseWhenRequestValidationDisabled(): void
+    {
+        $this->handlers->forOperation('listPets', Handler::response(200, ['not' => 'an array']));
+        $interceptor = $this->createInterceptor(validateRequests: false, validateResponses: true);
+        $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets?limit=invalid', []);
+
+        $this->expectException(ValidationException::class);
+
+        $interceptor->handle($vcrRequest);
+    }
+
     public function testHandleReturns500WhenOperationCannotBeResolved(): void
     {
         $interceptor = $this->createInterceptor(validateRequests: false, validateResponses: false);
@@ -191,6 +204,28 @@ final class InterceptorTest extends TestCase
         $headers = $vcrResponse->getHeaders();
         self::assertArrayHasKey('X-Middleware', $headers);
         self::assertSame('applied', $headers['X-Middleware']);
+    }
+
+    public function testHandleLetsMiddlewareRewriteRequestBeforeOperationResolution(): void
+    {
+        $middleware = new class () implements MiddlewareInterface {
+            public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+            {
+                return $handler->handle($request->withUri(new Uri('https://api.petstore.example.com/pets')));
+            }
+        };
+
+        $interceptor = $this->createInterceptor(
+            validateRequests: false,
+            validateResponses: false,
+            middleware: [$middleware],
+        );
+        $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/rewritten', []);
+
+        $vcrResponse = $interceptor->handle($vcrRequest);
+
+        self::assertSame(200, $vcrResponse->getStatusCode());
+        self::assertIsArray(json_decode($vcrResponse->getBody() ?? '', true));
     }
 
     public function testHandleExecutesMiddlewareInCorrectOrder(): void
@@ -437,6 +472,23 @@ final class InterceptorTest extends TestCase
         self::assertStringContainsString('/pets', $recordings[0]['request']['url']);
     }
 
+    public function testRecordModeWritesConfiguredCassetteName(): void
+    {
+        $interceptor = $this->createInterceptor(
+            mode: Mode::RECORD,
+            validateRequests: false,
+            validateResponses: false,
+            cassetteName: 'petstore-recording',
+        );
+        $interceptor->start();
+
+        $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
+        $interceptor->handle($vcrRequest);
+        $interceptor->stop();
+
+        self::assertFileExists($this->cassettePath . '/petstore-recording');
+    }
+
     public function testRecordThenReplayRoundTrip(): void
     {
         // Phase 1: Record
@@ -563,6 +615,7 @@ final class InterceptorTest extends TestCase
         bool $validateRequests = true,
         bool $validateResponses = true,
         array $middleware = [],
+        string $cassetteName = 'recording',
     ): Interceptor {
         return new Interceptor(
             mode: $mode,
@@ -574,6 +627,7 @@ final class InterceptorTest extends TestCase
             validateRequests: $validateRequests,
             validateResponses: $validateResponses,
             middleware: $middleware,
+            cassetteName: $cassetteName,
         );
     }
 }

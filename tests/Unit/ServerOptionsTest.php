@@ -24,6 +24,7 @@ final class ServerOptionsTest extends TestCase
             validateResponses: false,
             fakerOptions: ['alwaysFakeOptionals' => true],
             middleware: [],
+            cassetteName: 'petstore',
         );
 
         self::assertSame($schema, $options->schema);
@@ -33,6 +34,7 @@ final class ServerOptionsTest extends TestCase
         self::assertFalse($options->validateResponses);
         self::assertSame(['alwaysFakeOptionals' => true], $options->fakerOptions);
         self::assertSame([], $options->middleware);
+        self::assertSame('petstore', $options->cassetteName);
     }
 
     public function testConstructorKeepsModeInstance(): void
@@ -51,5 +53,6 @@ final class ServerOptionsTest extends TestCase
         );
 
         self::assertSame($mode, $options->mode);
+        self::assertSame('recording', $options->cassetteName);
     }
 }

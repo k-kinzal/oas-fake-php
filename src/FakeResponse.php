@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace OasFake;
 
+use cebe\openapi\spec\MediaType;
+use cebe\openapi\spec\Response as CebeResponse;
+use cebe\openapi\spec\Schema as CebeSchema;
 use GuzzleHttp\Psr7\Response;
 
-use function is_array;
-use function is_scalar;
+use function is_int;
+use function is_string;
 use function json_decode;
-use function json_encode;
 
 use const JSON_THROW_ON_ERROR;
 
@@ -127,20 +129,16 @@ final class FakeResponse
     public static function generateResponse(Schema|FakeDataContext $source, string $path, string $method, int $statusCode = 200, array $options = []): ResponseInterface
     {
         $context = $source instanceof FakeDataContext ? $source : new FakeDataContext($source, $options);
-        $fakeData = $context->mockResponse($path, $method, $statusCode);
+        $operationInfo = $context->operationLookup()->findByPathAndMethod($path, $method);
+        $mediaType = $operationInfo === null ? 'application/json' : self::responseMediaType($operationInfo, $statusCode);
+        $fakeData = self::responseData($context, $operationInfo, $path, $method, $statusCode, $mediaType);
 
-        return self::buildResponse($fakeData, $statusCode);
+        return self::buildResponse($fakeData, $statusCode, $mediaType);
     }
 
-    private static function buildResponse(mixed $data, int $statusCode): ResponseInterface
+    private static function buildResponse(mixed $data, int $statusCode, string $mediaType): ResponseInterface
     {
-        if (is_array($data) || is_scalar($data) || $data === null) {
-            $body = json_encode($data, JSON_THROW_ON_ERROR);
-        } else {
-            $body = json_encode(null, JSON_THROW_ON_ERROR);
-        }
-
-        return new Response($statusCode, ['Content-Type' => 'application/json'], $body);
+        return new Response($statusCode, ['Content-Type' => $mediaType], PayloadSerializer::serialize($data, $mediaType));
     }
 
     private static function fromPsr7(ResponseInterface $response): self
@@ -173,6 +171,77 @@ final class FakeResponse
         }
 
         return 200;
+    }
+
+    private static function responseMediaType(OperationInfo $operationInfo, int $statusCode): string
+    {
+        $response = self::responseForStatus($operationInfo, $statusCode);
+
+        if ($response === null || $response->content === null || $response->content === []) {
+            return 'application/json';
+        }
+
+        $mediaTypes = [];
+        foreach ($response->content as $mediaType => $_content) {
+            if (is_int($mediaType) || is_string($mediaType)) {
+                $mediaTypes[] = (string) $mediaType;
+            }
+        }
+
+        return PayloadSerializer::preferredMediaType($mediaTypes);
+    }
+
+    private static function responseData(
+        FakeDataContext $context,
+        ?OperationInfo $operationInfo,
+        string $path,
+        string $method,
+        int $statusCode,
+        string $mediaType,
+    ): mixed {
+        $schema = $operationInfo === null ? null : self::responseSchema($operationInfo, $statusCode, $mediaType);
+        if ($schema instanceof CebeSchema && !PayloadSerializer::isJsonMediaType($mediaType)) {
+            return $context->mockSchema($schema);
+        }
+
+        return $context->mockResponse($path, $method, $statusCode);
+    }
+
+    private static function responseSchema(OperationInfo $operationInfo, int $statusCode, string $mediaType): ?CebeSchema
+    {
+        $response = self::responseForStatus($operationInfo, $statusCode);
+        if ($response === null || $response->content === null) {
+            return null;
+        }
+
+        foreach ($response->content as $candidateMediaType => $content) {
+            if ((!is_int($candidateMediaType) && !is_string($candidateMediaType)) || (string) $candidateMediaType !== $mediaType || !$content instanceof MediaType) {
+                continue;
+            }
+
+            return $content->schema instanceof CebeSchema ? $content->schema : null;
+        }
+
+        return null;
+    }
+
+    private static function responseForStatus(OperationInfo $operationInfo, int $statusCode): ?CebeResponse
+    {
+        if ($operationInfo->operation->responses === null) {
+            return null;
+        }
+
+        foreach ($operationInfo->operation->responses as $code => $response) {
+            if (!is_int($code) && !is_string($code)) {
+                continue;
+            }
+
+            if ((string) $code === (string) $statusCode && $response instanceof CebeResponse) {
+                return $response;
+            }
+        }
+
+        return null;
     }
 
     /**

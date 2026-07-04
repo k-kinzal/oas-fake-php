@@ -31,6 +31,7 @@ final class ServerTest extends TestCase
         // Clean up env vars
         putenv('OAS_FAKE_MODE');
         putenv('OAS_FAKE_CASSETTE_PATH');
+        putenv('OAS_FAKE_CASSETTE_NAME');
         putenv('OAS_FAKE_VALIDATE_REQUESTS');
         putenv('OAS_FAKE_VALIDATE_RESPONSES');
     }
@@ -39,6 +40,7 @@ final class ServerTest extends TestCase
     {
         putenv('OAS_FAKE_MODE');
         putenv('OAS_FAKE_CASSETTE_PATH');
+        putenv('OAS_FAKE_CASSETTE_NAME');
         putenv('OAS_FAKE_VALIDATE_REQUESTS');
         putenv('OAS_FAKE_VALIDATE_RESPONSES');
     }
@@ -81,6 +83,14 @@ final class ServerTest extends TestCase
     {
         $server = new Server();
         $result = $server->withCassettePath('/tmp/cassettes');
+
+        self::assertSame($server, $result);
+    }
+
+    public function testWithCassetteNameReturnsStatic(): void
+    {
+        $server = new Server();
+        $result = $server->withCassetteName('petstore');
 
         self::assertSame($server, $result);
     }
@@ -220,6 +230,55 @@ final class ServerTest extends TestCase
         }
     }
 
+    public function testBuildInterceptorUsesServerSpecificCassetteName(): void
+    {
+        $cassettePath = sys_get_temp_dir() . '/oas-fake-server-cassettes-' . uniqid('', true);
+        mkdir($cassettePath, 0777, true);
+
+        $server = (new CassetteNameTestServer())
+            ->withMode(Mode::RECORD)
+            ->withCassettePath($cassettePath);
+
+        try {
+            $server->buildInterceptor();
+
+            self::assertFileExists($cassettePath . '/oasfake-tests-unit-cassettenametestserver');
+        } finally {
+            $server->stop();
+            foreach (glob($cassettePath . '/*') ?: [] as $file) {
+                if (is_file($file)) {
+                    @unlink($file);
+                }
+            }
+            @rmdir($cassettePath);
+        }
+    }
+
+    public function testBuildInterceptorUsesConfiguredCassetteName(): void
+    {
+        $cassettePath = sys_get_temp_dir() . '/oas-fake-server-cassettes-' . uniqid('', true);
+        mkdir($cassettePath, 0777, true);
+
+        $server = (new CassetteNameTestServer())
+            ->withMode(Mode::RECORD)
+            ->withCassettePath($cassettePath)
+            ->withCassetteName('Custom Cassette');
+
+        try {
+            $server->buildInterceptor();
+
+            self::assertFileExists($cassettePath . '/custom-cassette');
+        } finally {
+            $server->stop();
+            foreach (glob($cassettePath . '/*') ?: [] as $file) {
+                if (is_file($file)) {
+                    @unlink($file);
+                }
+            }
+            @rmdir($cassettePath);
+        }
+    }
+
     public function testConfigurationCannotChangeWhileRunning(): void
     {
         $server = (new Server())
@@ -241,6 +300,7 @@ final class ServerTest extends TestCase
                 'schema' => static fn () => $server->withSchema(__DIR__ . '/../Fixtures/openapi/bookstore.yaml'),
                 'mode' => static fn () => $server->withMode(Mode::RECORD),
                 'cassettePath' => static fn () => $server->withCassettePath('/tmp/other-cassettes'),
+                'cassetteName' => static fn () => $server->withCassetteName('other'),
                 'requestValidation' => static fn () => $server->withRequestValidation(true),
                 'responseValidation' => static fn () => $server->withResponseValidation(true),
                 'fakerOptions' => static fn () => $server->withFakerOptions(['alwaysFakeOptionals' => true]),
@@ -506,6 +566,11 @@ class RouteTestServer extends Server
     {
         return new \GuzzleHttp\Psr7\Response(204);
     }
+}
+
+class CassetteNameTestServer extends Server
+{
+    protected static string $SCHEMA = './tests/Fixtures/openapi/petstore.yaml';
 }
 
 class InvalidSignatureOperationIdServer extends Server

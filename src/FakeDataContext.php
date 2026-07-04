@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace OasFake;
 
+use cebe\openapi\spec\Schema as CebeSchema;
+
 use function strtoupper;
 
 use Vural\OpenAPIFaker\OpenAPIFaker;
+use Vural\OpenAPIFaker\Options;
+use Vural\OpenAPIFaker\SchemaFaker\SchemaFaker;
 
 /**
  * Shared fake-data generation context for one schema and faker option set.
@@ -70,5 +74,27 @@ final class FakeDataContext
     public function mockResponse(string $path, string $method, int $statusCode): mixed
     {
         return $this->openApiFaker->mockResponse($path, strtoupper($method), (string) $statusCode);
+    }
+
+    /**
+     * Generate fake data directly from a schema object.
+     */
+    public function mockSchema(CebeSchema $schema): mixed
+    {
+        $options = new Options();
+
+        if (isset($this->fakerOptions['alwaysFakeOptionals'])) {
+            $options->setAlwaysFakeOptionals($this->fakerOptions['alwaysFakeOptionals']);
+        }
+
+        if (isset($this->fakerOptions['minItems'])) {
+            $options->setMinItems($this->fakerOptions['minItems']);
+        }
+
+        if (isset($this->fakerOptions['maxItems'])) {
+            $options->setMaxItems($this->fakerOptions['maxItems']);
+        }
+
+        return (new SchemaFaker($schema, $options))->generate();
     }
 }
