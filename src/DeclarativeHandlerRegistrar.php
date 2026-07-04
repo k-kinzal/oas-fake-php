@@ -23,9 +23,10 @@ final class DeclarativeHandlerRegistrar
     /**
      * Register operationId and Route attribute handlers from the given server.
      */
-    public function register(Server $server, HandlerMap $handlers): void
+    public function register(Server $server, HandlerMap $handlers, ?Schema $schema = null): void
     {
         $reflection = new ReflectionClass($server);
+        $operationLookup = $schema === null ? null : new OperationLookup($schema);
 
         foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             if (!$this->isDeclarativeHandlerCandidate($method)) {
@@ -39,12 +40,20 @@ final class DeclarativeHandlerRegistrar
 
             $routeAttr = $this->getRouteAttribute($method);
             if ($routeAttr !== null) {
+                if ($operationLookup !== null && $operationLookup->findByPathAndMethod($routeAttr->path, $routeAttr->method) === null) {
+                    continue;
+                }
+
                 $handlers->forPath(
                     $routeAttr->path,
                     $routeAttr->method,
                     Handler::callback($closure),
                 );
 
+                continue;
+            }
+
+            if ($operationLookup !== null && $operationLookup->findByOperationId($method->getName()) === null) {
                 continue;
             }
 
