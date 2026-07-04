@@ -34,6 +34,8 @@ final class Interceptor
 
     private ?Cassette $cassette = null;
 
+    private FakeDataContext $fakeDataContext;
+
     private OperationLookup $operationLookup;
 
     /** @var array<string, int> */
@@ -48,14 +50,15 @@ final class Interceptor
         private string $cassettePath,
         private Schema $schema,
         private Validator $validator,
-        private array $fakerOptions,
+        array $fakerOptions,
         private HandlerMap $handlers,
         private bool $validateRequests,
         private bool $validateResponses,
         private array $middleware = [],
     ) {
         $this->converter = new Converter();
-        $this->operationLookup = new OperationLookup($schema);
+        $this->fakeDataContext = new FakeDataContext($schema, $fakerOptions);
+        $this->operationLookup = $this->fakeDataContext->operationLookup();
     }
 
     /**
@@ -127,12 +130,12 @@ final class Interceptor
         if ($handler !== null) {
             $fakerDefault = null;
             if ($operationInfo !== null && $this->hasResponseBody($operationInfo)) {
-                $fakerDefault = FakeResponse::generateResponse($this->schema, $operationInfo->pathPattern, $method, $statusCode, $this->fakerOptions);
+                $fakerDefault = FakeResponse::generateResponse($this->fakeDataContext, $operationInfo->pathPattern, $method, $statusCode);
             }
             $response = $handler->resolve($psrRequest, $fakerDefault);
         } elseif ($operationInfo !== null) {
             if ($this->hasResponseBody($operationInfo)) {
-                $response = FakeResponse::generateResponse($this->schema, $operationInfo->pathPattern, $method, $statusCode, $this->fakerOptions);
+                $response = FakeResponse::generateResponse($this->fakeDataContext, $operationInfo->pathPattern, $method, $statusCode);
             } else {
                 $response = new \GuzzleHttp\Psr7\Response($statusCode);
             }

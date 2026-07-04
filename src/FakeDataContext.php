@@ -1,0 +1,74 @@
+<?php
+
+declare(strict_types=1);
+
+namespace OasFake;
+
+use function strtoupper;
+
+use Vural\OpenAPIFaker\OpenAPIFaker;
+
+/**
+ * Shared fake-data generation context for one schema and faker option set.
+ */
+final class FakeDataContext
+{
+    private OperationLookup $operationLookup;
+
+    private OpenAPIFaker $openApiFaker;
+
+    /**
+     * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $fakerOptions
+     */
+    public function __construct(private Schema $schema, private array $fakerOptions = [])
+    {
+        $this->operationLookup = new OperationLookup($schema);
+        $this->openApiFaker = OpenAPIFaker::createFromSchema($schema->openApi());
+
+        if ($fakerOptions !== []) {
+            $this->openApiFaker->setOptions($fakerOptions);
+        }
+    }
+
+    /**
+     * Return the schema used by this context.
+     */
+    public function schema(): Schema
+    {
+        return $this->schema;
+    }
+
+    /**
+     * Return the operation lookup index for this schema.
+     */
+    public function operationLookup(): OperationLookup
+    {
+        return $this->operationLookup;
+    }
+
+    /**
+     * Return the faker options used by this context.
+     *
+     * @return array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int}
+     */
+    public function fakerOptions(): array
+    {
+        return $this->fakerOptions;
+    }
+
+    /**
+     * Generate fake request data for an operation path and method.
+     */
+    public function mockRequest(string $path, string $method): mixed
+    {
+        return $this->openApiFaker->mockRequest($path, strtoupper($method));
+    }
+
+    /**
+     * Generate fake response data for an operation path, method, and status.
+     */
+    public function mockResponse(string $path, string $method, int $statusCode): mixed
+    {
+        return $this->openApiFaker->mockResponse($path, strtoupper($method), (string) $statusCode);
+    }
+}

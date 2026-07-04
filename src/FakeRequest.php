@@ -19,8 +19,6 @@ use Psr\Http\Message\ServerRequestInterface;
 use function str_replace;
 use function strtoupper;
 
-use Vural\OpenAPIFaker\OpenAPIFaker;
-
 /**
  * Generates fake HTTP requests from an OpenAPI schema definition.
  */
@@ -45,33 +43,31 @@ final class FakeRequest
     /**
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      */
-    public static function for(Server|Schema $source, string $operationId, array $options = []): self
+    public static function for(Server|Schema|FakeDataContext $source, string $operationId, array $options = []): self
     {
-        [$schema, $fakerOptions] = self::resolveSource($source, $options);
-        $lookup = new OperationLookup($schema);
-        $info = $lookup->findByOperationId($operationId);
+        $context = self::resolveSource($source, $options);
+        $info = $context->operationLookup()->findByOperationId($operationId);
 
         if ($info === null) {
             throw OperationNotFoundException::forOperationId($operationId);
         }
 
-        return self::buildFromInfo($schema, $info, $fakerOptions);
+        return self::buildFromInfo($context, $info);
     }
 
     /**
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      */
-    public static function forPath(Server|Schema $source, string $path, string $method, array $options = []): self
+    public static function forPath(Server|Schema|FakeDataContext $source, string $path, string $method, array $options = []): self
     {
-        [$schema, $fakerOptions] = self::resolveSource($source, $options);
-        $lookup = new OperationLookup($schema);
-        $info = $lookup->findByPathAndMethod($path, $method);
+        $context = self::resolveSource($source, $options);
+        $info = $context->operationLookup()->findByPathAndMethod($path, $method);
 
         if ($info === null) {
             throw OperationNotFoundException::forPathAndMethod($path, $method);
         }
 
-        return self::buildFromInfo($schema, $info, $fakerOptions);
+        return self::buildFromInfo($context, $info);
     }
 
     /**
@@ -241,24 +237,16 @@ final class FakeRequest
         ];
     }
 
-    /**
-     * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $fakerOptions
-     */
-    private static function buildFromInfo(Schema $schema, OperationInfo $info, array $fakerOptions): self
+    private static function buildFromInfo(FakeDataContext $context, OperationInfo $info): self
     {
-        $paramFaker = new ParameterFaker($fakerOptions);
+        $paramFaker = new ParameterFaker($context->fakerOptions());
         $params = $paramFaker->generate($info->parameters);
 
         $body = null;
         $headers = $params['header'];
 
         if ($info->operation->requestBody !== null) {
-            $openApiFaker = OpenAPIFaker::createFromSchema($schema->openApi());
-            if ($fakerOptions !== []) {
-                $openApiFaker->setOptions($fakerOptions);
-            }
-
-            $fakeData = $openApiFaker->mockRequest($info->pathPattern, strtoupper($info->method));
+            $fakeData = $context->mockRequest($info->pathPattern, $info->method);
 
             if (is_array($fakeData) || $fakeData !== null) {
                 $body = json_encode($fakeData, JSON_THROW_ON_ERROR);
@@ -266,7 +254,7 @@ final class FakeRequest
             }
         }
 
-        $serverUrls = $schema->serverUrls();
+        $serverUrls = $context->schema()->serverUrls();
         $baseUrl = $serverUrls[0] ?? '/';
 
         return new self(
@@ -282,18 +270,20 @@ final class FakeRequest
 
     /**
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
-     *
-     * @return array{Schema, array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int}}
      */
-    private static function resolveSource(Server|Schema $source, array $options): array
+    private static function resolveSource(Server|Schema|FakeDataContext $source, array $options): FakeDataContext
     {
+        if ($source instanceof FakeDataContext) {
+            return $source;
+        }
+
         if ($source instanceof Server) {
             $schema = $source->schema();
             $fakerOptions = $options !== [] ? $options : $source->fakerOptions();
 
-            return [$schema, $fakerOptions];
+            return new FakeDataContext($schema, $fakerOptions);
         }
 
-        return [$source, $options];
+        return new FakeDataContext($source, $options);
     }
 }
