@@ -21,7 +21,8 @@
         }
     ],
     "require": {
-        "php": "^8.0",
+        "php": ">=8.0 <8.6",
+        "ext-curl": "*",
         "canvural/php-openapi-faker": "^2.1",
         "devizzent/cebe-php-openapi": "^1.1.5",
         "guzzlehttp/psr7": "^2.0",
