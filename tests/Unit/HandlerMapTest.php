@@ -58,6 +58,17 @@ final class HandlerMapTest extends TestCase
         self::assertSame($pathHandler, $found);
     }
 
+    public function testFindFallsBackToPathPatternWhenRequestPathDiffers(): void
+    {
+        $map = new HandlerMap();
+        $pathHandler = Handler::status(200);
+
+        $map->forPath('/pets/{petId}', 'GET', $pathHandler);
+
+        $found = $map->find('', '/pets/123', 'GET', '/pets/{petId}');
+        self::assertSame($pathHandler, $found);
+    }
+
     public function testFindReturnsNullWhenNotFound(): void
     {
         $map = new HandlerMap();

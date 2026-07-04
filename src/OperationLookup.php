@@ -9,6 +9,9 @@ use cebe\openapi\spec\Parameter;
 use cebe\openapi\spec\PathItem;
 
 use function is_string;
+use function preg_match;
+use function preg_quote;
+use function preg_replace;
 use function strtolower;
 
 /**
@@ -55,6 +58,35 @@ final class OperationLookup
         $key = strtolower($method) . ':' . $path;
 
         return $this->byPathMethod[$key] ?? null;
+    }
+
+    /**
+     * Find an operation by an actual request path and HTTP method.
+     *
+     * Exact OpenAPI paths are preferred before templated paths.
+     *
+     * @param string $path The request path, for example "/pets/123"
+     * @param string $method The HTTP method (case-insensitive)
+     */
+    public function findByRequestPathAndMethod(string $path, string $method): ?OperationInfo
+    {
+        $normalizedMethod = strtolower($method);
+        $exact = $this->findByPathAndMethod($path, $normalizedMethod);
+        if ($exact !== null) {
+            return $exact;
+        }
+
+        foreach ($this->byPathMethod as $key => $info) {
+            if (!str_starts_with($key, $normalizedMethod . ':')) {
+                continue;
+            }
+
+            if ($this->pathMatches($info->pathPattern, $path)) {
+                return $info;
+            }
+        }
+
+        return null;
     }
 
     private function index(Schema $schema): void
@@ -177,6 +209,17 @@ final class OperationLookup
             'trace' => $pathItem->trace,
             default => null,
         };
+    }
+
+    private function pathMatches(string $pattern, string $path): bool
+    {
+        $quoted = preg_quote($pattern, '#');
+        $regex = preg_replace('#\\\\\{[^}/]+\\\\\}#', '[^/]+', $quoted);
+        if ($regex === null) {
+            return false;
+        }
+
+        return preg_match('#^' . $regex . '$#', $path) === 1;
     }
 
     /**

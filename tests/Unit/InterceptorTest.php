@@ -133,6 +133,20 @@ final class InterceptorTest extends TestCase
         self::assertSame($stubBody, $vcrResponse->getBody());
     }
 
+    public function testHandleUsesTemplatedPathStubOverFaker(): void
+    {
+        $stubBody = json_encode(['id' => 77, 'name' => 'Template Path Stub'], JSON_THROW_ON_ERROR);
+        $this->handlers->forPath('/pets/{petId}', 'GET', Handler::response(200, $stubBody));
+
+        $interceptor = $this->createInterceptor(validateRequests: false, validateResponses: false);
+        $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets/123', []);
+
+        $vcrResponse = $interceptor->handle($vcrRequest);
+
+        self::assertSame(200, $vcrResponse->getStatusCode());
+        self::assertSame($stubBody, $vcrResponse->getBody());
+    }
+
     public function testHandleValidatesRequestWhenEnabled(): void
     {
         $interceptor = $this->createInterceptor(validateRequests: true, validateResponses: false);
