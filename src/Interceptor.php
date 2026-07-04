@@ -61,6 +61,7 @@ final class Interceptor
         private bool $validateRequests,
         private bool $validateResponses,
         array $middleware = [],
+        private string $cassetteName = 'recording',
     ) {
         $this->mode = Mode::from($mode);
         $this->converter = new Converter();
@@ -245,9 +246,9 @@ final class Interceptor
 
     private function initCassette(): void
     {
-        $storage = new Json($this->cassettePath, 'recording');
+        $storage = new Json($this->cassettePath, $this->cassetteName);
         $config = new Configuration();
-        $this->cassette = new Cassette('recording', $config, $storage);
+        $this->cassette = new Cassette($this->cassetteName, $config, $storage);
     }
 
     private function recordToCassette(VcrRequest $request, VcrResponse $response): void

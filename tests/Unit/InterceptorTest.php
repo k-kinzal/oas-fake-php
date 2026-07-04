@@ -47,9 +47,10 @@ final class InterceptorTest extends TestCase
 
     protected function tearDown(): void
     {
-        $recordingFile = $this->cassettePath . '/recording';
-        if (file_exists($recordingFile)) {
-            @unlink($recordingFile);
+        foreach (glob($this->cassettePath . '/*') ?: [] as $file) {
+            if (is_file($file)) {
+                @unlink($file);
+            }
         }
     }
 
@@ -471,6 +472,23 @@ final class InterceptorTest extends TestCase
         self::assertStringContainsString('/pets', $recordings[0]['request']['url']);
     }
 
+    public function testRecordModeWritesConfiguredCassetteName(): void
+    {
+        $interceptor = $this->createInterceptor(
+            mode: Mode::RECORD,
+            validateRequests: false,
+            validateResponses: false,
+            cassetteName: 'petstore-recording',
+        );
+        $interceptor->start();
+
+        $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
+        $interceptor->handle($vcrRequest);
+        $interceptor->stop();
+
+        self::assertFileExists($this->cassettePath . '/petstore-recording');
+    }
+
     public function testRecordThenReplayRoundTrip(): void
     {
         // Phase 1: Record
@@ -597,6 +615,7 @@ final class InterceptorTest extends TestCase
         bool $validateRequests = true,
         bool $validateResponses = true,
         array $middleware = [],
+        string $cassetteName = 'recording',
     ): Interceptor {
         return new Interceptor(
             mode: $mode,
@@ -608,6 +627,7 @@ final class InterceptorTest extends TestCase
             validateRequests: $validateRequests,
             validateResponses: $validateResponses,
             middleware: $middleware,
+            cassetteName: $cassetteName,
         );
     }
 }

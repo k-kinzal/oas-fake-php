@@ -119,6 +119,7 @@ use OasFake\Mode;
 $server = OasFake::start(PetStoreServer::class, fn ($s) => $s
     ->withMode(Mode::RECORD)  // or ->withMode('record')
     ->withCassettePath('./fixtures/cassettes')
+    ->withCassetteName('petstore')
     ->withRequestValidation(false)
     ->withResponseValidation(false)
     ->withFakerOptions(['alwaysFakeOptionals' => true, 'minItems' => 2, 'maxItems' => 5])
