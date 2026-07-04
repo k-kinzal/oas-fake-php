@@ -66,7 +66,8 @@ final class Handler
      * Resolve the handler into a PSR-7 response.
      *
      * For callback handlers, invokes the callback with the request and an optional default response.
-     * For response handlers, returns the configured body or falls back to the default.
+     * For response handlers, returns the configured body.
+     * For status handlers, returns an empty response with the configured status.
      *
      * @param ServerRequestInterface $request The incoming request
      * @param ResponseInterface|null $default An optional faker-generated default response
@@ -83,10 +84,6 @@ final class Handler
         $headers = $this->headers;
 
         if ($this->body === null) {
-            if ($default !== null) {
-                return $default->withStatus($statusCode);
-            }
-
             return new Response($statusCode, $headers);
         }
 
