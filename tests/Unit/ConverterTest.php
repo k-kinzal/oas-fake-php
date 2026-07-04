@@ -50,6 +50,25 @@ final class ConverterTest extends TestCase
         self::assertSame(['limit' => '10', 'offset' => '20'], $psr7->getQueryParams());
     }
 
+    public function testRequestToPsr7PreservesRepeatedQueryParams(): void
+    {
+        $vcrRequest = new VcrRequest(
+            'GET',
+            'http://example.com/pets?tag=friendly&tag=small&name=Buddy+Jr&include',
+        );
+
+        $psr7 = $this->converter->requestToPsr7($vcrRequest);
+
+        self::assertSame(
+            [
+                'tag' => ['friendly', 'small'],
+                'name' => 'Buddy Jr',
+                'include' => null,
+            ],
+            $psr7->getQueryParams(),
+        );
+    }
+
     public function testRequestToPsr7HandlesNoQueryParams(): void
     {
         $vcrRequest = new VcrRequest(
