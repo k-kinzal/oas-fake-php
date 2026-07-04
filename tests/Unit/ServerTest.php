@@ -14,6 +14,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use VCR\Request as VcrRequest;
 
 #[CoversClass(Server::class)]
 final class ServerTest extends TestCase
@@ -331,6 +332,28 @@ final class ServerTest extends TestCase
         self::assertSame($server, $result);
     }
 
+    public function testPublicMethodsWithoutHandlerSignatureAreNotAutoRegistered(): void
+    {
+        $server = (new InvalidSignatureOperationIdServer())
+            ->withSchema($this->petstorePath)
+            ->withRequestValidation(false)
+            ->withResponseValidation(false);
+
+        try {
+            $server->buildInterceptor();
+            $interceptor = $server->interceptor();
+
+            self::assertNotNull($interceptor);
+
+            $response = $interceptor->handle(new VcrRequest('GET', 'https://api.petstore.example.com/pets', []));
+
+            self::assertSame(200, $response->getStatusCode());
+            self::assertIsArray(json_decode($response->getBody() ?? '', true));
+        } finally {
+            $server->stop();
+        }
+    }
+
     public function testFluentChaining(): void
     {
         $server = new Server();
@@ -378,5 +401,13 @@ class RouteTestServer extends Server
     public function removePet(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
     {
         return new \GuzzleHttp\Psr7\Response(204);
+    }
+}
+
+class InvalidSignatureOperationIdServer extends Server
+{
+    public function listPets(): string
+    {
+        return 'not a response';
     }
 }

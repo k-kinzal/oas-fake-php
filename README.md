@@ -75,7 +75,7 @@ $server = OasFake::start(PetStoreServer::class, fn ($s) => $s
 
 ### Declarative Server
 
-Public methods on a `Server` subclass are automatically registered as handlers, matched by `operationId`:
+Public handler methods on a `Server` subclass are automatically registered, matched by `operationId`:
 
 ```php
 use OasFake\Server;
@@ -101,6 +101,8 @@ final class PetStoreServer extends Server
     }
 }
 ```
+
+Declarative handler methods should accept `ServerRequestInterface` as their first parameter and return a `ResponseInterface`. Public helper methods without that handler signature are ignored.
 
 ### Configuration
 

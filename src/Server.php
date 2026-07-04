@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace OasFake;
 
 use OasFake\Exception\SchemaNotFoundException;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use ReflectionClass;
 use ReflectionMethod;
+use ReflectionNamedType;
+use ReflectionType;
 use VCR\Request as VcrRequest;
 use VCR\Response as VcrResponse;
 use VCR\VCR;
@@ -453,6 +457,10 @@ class Server
             }
 
             $routeAttr = $this->getRouteAttribute($method);
+            if ($routeAttr === null && !$this->hasHandlerSignature($method)) {
+                continue;
+            }
+
             $closure = $method->getClosure($this);
             if ($closure === null) {
                 continue;
@@ -481,6 +489,31 @@ class Server
         }
 
         return $attributes[0]->newInstance();
+    }
+
+    private function hasHandlerSignature(ReflectionMethod $method): bool
+    {
+        $parameters = $method->getParameters();
+        if ($parameters === []) {
+            return false;
+        }
+
+        if (!$this->typeAllows($parameters[0]->getType(), ServerRequestInterface::class)) {
+            return false;
+        }
+
+        $returnType = $method->getReturnType();
+
+        return $returnType === null || $this->typeAllows($returnType, ResponseInterface::class);
+    }
+
+    private function typeAllows(?ReflectionType $type, string $expected): bool
+    {
+        if (!$type instanceof ReflectionNamedType || $type->isBuiltin()) {
+            return false;
+        }
+
+        return is_a($type->getName(), $expected, true);
     }
 
     /**

@@ -84,7 +84,7 @@ $server->withCallback('listPets', function ($request, $response) {
 
 ## Declarative Server Methods
 
-Public methods on a `Server` subclass are automatically registered as handlers. Methods are matched by name to `operationId`:
+Public handler methods on a `Server` subclass are automatically registered. Methods are matched by name to `operationId`:
 
 ```php
 use OasFake\Server;
@@ -113,6 +113,8 @@ final class PetStoreServer extends Server
     }
 }
 ```
+
+Operation ID methods should accept `ServerRequestInterface` as their first parameter and return `ResponseInterface`. Public helper methods without that handler signature are ignored. `#[Route]` remains an explicit route mapping.
 
 ## Route Attribute
 
