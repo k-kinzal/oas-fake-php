@@ -238,6 +238,7 @@ final class InterceptorTest extends TestCase
         $vcrResponse = $interceptor->handle($vcrRequest);
 
         self::assertSame(201, $vcrResponse->getStatusCode());
+        self::assertSame('', $vcrResponse->getBody());
     }
 
     public function testReplayReturnsMatchingRecording(): void

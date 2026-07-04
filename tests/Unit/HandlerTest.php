@@ -94,7 +94,7 @@ final class HandlerTest extends TestCase
         self::assertSame('', (string) $response->getBody());
     }
 
-    public function testStatusHandlerUsesDefaultResponseBodyWhenAvailable(): void
+    public function testStatusHandlerIgnoresDefaultResponseBody(): void
     {
         $handler = Handler::status(201);
         $request = new ServerRequest('GET', 'http://example.com/test');
@@ -103,8 +103,8 @@ final class HandlerTest extends TestCase
         $response = $handler->resolve($request, $defaultResponse);
 
         self::assertSame(201, $response->getStatusCode());
-        self::assertSame('{"default":true}', (string) $response->getBody());
-        self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
+        self::assertSame('', (string) $response->getBody());
+        self::assertSame('', $response->getHeaderLine('Content-Type'));
     }
 
     public function testResolveWithStaticResponseIgnoresDefault(): void
