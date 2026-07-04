@@ -24,7 +24,7 @@ final class ServerRegistry
     private array $servers = [];
 
     /**
-     * @var array<string, list<array{key: string, interceptor: Interceptor, mode: string}>> key=baseUrl
+     * @var array<string, list<array{key: string, interceptor: Interceptor, mode: Mode}>> key=baseUrl
      */
     private array $interceptors = [];
 
@@ -181,7 +181,7 @@ final class ServerRegistry
 
         if ($match !== null) {
             $entry = $match['entry'];
-            if ($entry['mode'] === Mode::REPLAY) {
+            if ($entry['mode']->isReplay()) {
                 return $entry['interceptor']->replay($request);
             }
 

@@ -30,6 +30,8 @@ final class Interceptor
 {
     private bool $running = false;
 
+    private Mode $mode;
+
     private Converter $converter;
 
     private ?Cassette $cassette = null;
@@ -44,7 +46,7 @@ final class Interceptor
      * @param list<MiddlewareInterface> $middleware
      */
     public function __construct(
-        private string $mode,
+        string|Mode $mode,
         private string $cassettePath,
         private Schema $schema,
         private Validator $validator,
@@ -54,6 +56,7 @@ final class Interceptor
         private bool $validateResponses,
         private array $middleware = [],
     ) {
+        $this->mode = Mode::from($mode);
         $this->converter = new Converter();
         $this->operationLookup = new OperationLookup($schema);
     }
@@ -67,7 +70,7 @@ final class Interceptor
             return;
         }
 
-        if ($this->mode === Mode::RECORD || $this->mode === Mode::REPLAY) {
+        if ($this->mode->isRecord() || $this->mode->isReplay()) {
             $this->initCassette();
         }
 
@@ -150,7 +153,7 @@ final class Interceptor
 
         $vcrResponse = $this->converter->psr7ToVcrResponse($response);
 
-        if ($this->mode === Mode::RECORD) {
+        if ($this->mode->isRecord()) {
             $this->recordToCassette($vcrRequest, $vcrResponse);
         }
 
