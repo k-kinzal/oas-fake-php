@@ -18,6 +18,7 @@ use function is_string;
 use OasFake\Exception\OperationNotFoundException;
 use Psr\Http\Message\ServerRequestInterface;
 
+use function rawurlencode;
 use function str_replace;
 use function strtoupper;
 
@@ -87,7 +88,7 @@ final class FakeRequest
     {
         $path = $this->pathPattern;
         foreach ($this->pathParams as $name => $value) {
-            $path = str_replace('{' . $name . '}', $value, $path);
+            $path = str_replace('{' . $name . '}', rawurlencode($value), $path);
         }
 
         $url = rtrim($this->baseUrl, '/') . $path;
@@ -213,17 +214,22 @@ final class FakeRequest
             $parts[] = '-X ' . $method;
         }
 
-        $parts[] = "'" . $this->url() . "'";
+        $parts[] = self::shellQuote($this->url());
 
         foreach ($this->headerParams as $name => $value) {
-            $parts[] = "-H '" . $name . ': ' . $value . "'";
+            $parts[] = '-H ' . self::shellQuote($name . ': ' . $value);
         }
 
         if ($this->rawBody !== null) {
-            $parts[] = "-d '" . $this->rawBody . "'";
+            $parts[] = '-d ' . self::shellQuote($this->rawBody);
         }
 
         return implode(" \\\n  ", $parts);
+    }
+
+    private static function shellQuote(string $value): string
+    {
+        return "'" . str_replace("'", "'\\''", $value) . "'";
     }
 
     /**

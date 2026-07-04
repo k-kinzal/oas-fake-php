@@ -172,6 +172,14 @@ final class FakeRequestTest extends TestCase
         self::assertSame('https://api.petstore.example.com/pets/123', $request->url());
     }
 
+    public function testUrlEncodesPathParametersAsPathSegments(): void
+    {
+        $request = FakeRequest::for($this->schema, 'getPetById')->withPathParam('petId', "A/B pet's");
+
+        self::assertSame('https://api.petstore.example.com/pets/A%2FB%20pet%27s', $request->url());
+        self::assertSame('/pets/A%2FB%20pet%27s', $request->toPsr7()->getUri()->getPath());
+    }
+
     public function testBodyReturnsRawBody(): void
     {
         $request = FakeRequest::for($this->schema, 'createPet')->withBody('{"name":"Buddy"}');
@@ -219,6 +227,14 @@ final class FakeRequestTest extends TestCase
 
         self::assertSame('10', $modified->queryParams()['limit']);
         self::assertStringContainsString('limit=10', $modified->url());
+    }
+
+    public function testUrlEncodesQueryParameterValues(): void
+    {
+        $request = FakeRequest::for($this->schema, 'listPets')->withQueryParam('filter', 'friendly pets & cats');
+
+        self::assertStringContainsString('filter=friendly%20pets%20%26%20cats', $request->url());
+        self::assertSame('friendly pets & cats', $request->toPsr7()->getQueryParams()['filter']);
     }
 
     public function testQueryParamsReturnsQueryParameters(): void
@@ -279,6 +295,20 @@ final class FakeRequestTest extends TestCase
         self::assertStringContainsString('-X POST', $curl);
         self::assertStringContainsString('https://api.petstore.example.com/pets', $curl);
         self::assertStringContainsString("-d '", $curl);
+    }
+
+    public function testToCurlShellQuotesSingleQuotes(): void
+    {
+        $request = FakeRequest::for($this->schema, 'getPetById')
+            ->withPathParam('petId', "Bob's pet")
+            ->withHeader('X-Owner', "O'Reilly")
+            ->withBody('{"name":"Bob\'s pet"}');
+
+        $curl = $request->toCurl();
+
+        self::assertStringContainsString("'https://api.petstore.example.com/pets/Bob%27s%20pet'", $curl);
+        self::assertStringContainsString("-H 'X-Owner: O'\\''Reilly'", $curl);
+        self::assertStringContainsString("-d '{\"name\":\"Bob'\\''s pet\"}'", $curl);
     }
 
     public function testToCurlGetOmitsMethodFlag(): void
