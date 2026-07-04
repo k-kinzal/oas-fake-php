@@ -78,6 +78,32 @@ final class ConverterTest extends TestCase
         self::assertSame('{"id":1}', $vcrResponse->getBody());
     }
 
+    public function testPsr7ToVcrResponsePreservesMultipleHeaderValues(): void
+    {
+        $psrResponse = new Response(
+            200,
+            [
+                'Set-Cookie' => [
+                    'session=abc; Path=/; HttpOnly',
+                    'theme=dark; Path=/',
+                ],
+            ],
+            'ok',
+        );
+
+        $vcrResponse = $this->converter->psr7ToVcrResponse($psrResponse);
+        $restored = $this->converter->vcrResponseToPsr7($vcrResponse);
+
+        self::assertSame(
+            ['session=abc; Path=/; HttpOnly', 'theme=dark; Path=/'],
+            $vcrResponse->getHeaders()['Set-Cookie'],
+        );
+        self::assertSame(
+            ['session=abc; Path=/; HttpOnly', 'theme=dark; Path=/'],
+            $restored->getHeader('Set-Cookie'),
+        );
+    }
+
     public function testVcrResponseToPsr7ConvertsStatusHeadersAndBody(): void
     {
         // @phpstan-ignore argument.type

@@ -9,6 +9,7 @@ use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use ReflectionProperty;
 use VCR\Request as VcrRequest;
 use VCR\Response as VcrResponse;
 
@@ -60,15 +61,22 @@ final class Converter
     {
         $statusCode = $psrResponse->getStatusCode();
 
-        /** @var array<string, string> $flatHeaders */
-        $flatHeaders = [];
+        /** @var array<string, list<string>|string> $headers */
+        $headers = [];
+        /** @var array<string, string> $constructorHeaders */
+        $constructorHeaders = [];
         foreach ($psrResponse->getHeaders() as $name => $values) {
-            $flatHeaders[(string) $name] = implode(', ', $values);
+            $headerName = (string) $name;
+            $headers[$headerName] = count($values) === 1 ? $values[0] : array_values($values);
+            $constructorHeaders[$headerName] = implode(', ', $values);
         }
 
         $body = (string) $psrResponse->getBody();
 
-        return new VcrResponse((string) $statusCode, $flatHeaders, $body);
+        $vcrResponse = new VcrResponse((string) $statusCode, $constructorHeaders, $body);
+        $this->replaceVcrResponseHeaders($vcrResponse, $headers);
+
+        return $vcrResponse;
     }
 
     /**
@@ -85,5 +93,17 @@ final class Converter
             $vcrResponse->getHeaders(),
             $vcrResponse->getBody(),
         );
+    }
+
+    /**
+     * PHP-VCR's formatter supports repeated headers stored as arrays, but its
+     * constructor phpdoc only accepts string header values.
+     *
+     * @param array<string, list<string>|string> $headers
+     */
+    private function replaceVcrResponseHeaders(VcrResponse $response, array $headers): void
+    {
+        $headersProperty = new ReflectionProperty(VcrResponse::class, 'headers');
+        $headersProperty->setValue($response, $headers);
     }
 }
