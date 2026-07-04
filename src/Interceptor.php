@@ -122,7 +122,7 @@ final class Interceptor
             }
         }
 
-        $path = $psrRequest->getUri()->getPath();
+        $path = $this->operationPathForRequest($psrRequest);
         $method = $psrRequest->getMethod();
         $operationInfo = $this->operationLookup->findByRequestPathAndMethod($path, $method);
         $operationId = $operationInfo?->operationId;
@@ -256,6 +256,96 @@ final class Interceptor
         }
 
         return 200;
+    }
+
+    private function operationPathForRequest(ServerRequestInterface $request): string
+    {
+        $path = $this->normalizePath($request->getUri()->getPath());
+
+        foreach ($this->schema->serverUrls() as $serverUrl) {
+            $base = parse_url($serverUrl);
+            if (!is_array($base) || !$this->serverUrlMatchesRequest($request, $base)) {
+                continue;
+            }
+
+            $basePath = $this->normalizePath((string) ($base['path'] ?? '/'));
+            if ($basePath === '/') {
+                return $path;
+            }
+
+            if ($path === $basePath) {
+                return '/';
+            }
+
+            if (str_starts_with($path, $basePath . '/')) {
+                $operationPath = substr($path, strlen($basePath));
+
+                return $operationPath === '' ? '/' : $operationPath;
+            }
+        }
+
+        return $path;
+    }
+
+    /**
+     * @param array{scheme?: string, host?: string, port?: int|string, path?: string} $base
+     */
+    private function serverUrlMatchesRequest(ServerRequestInterface $request, array $base): bool
+    {
+        $uri = $request->getUri();
+
+        if (isset($base['scheme']) && strtolower($uri->getScheme()) !== strtolower((string) $base['scheme'])) {
+            return false;
+        }
+
+        if (isset($base['host']) && strtolower($uri->getHost()) !== strtolower((string) $base['host'])) {
+            return false;
+        }
+
+        $basePort = $this->effectivePort($base);
+        if ($basePort !== null && $this->effectiveRequestPort($request) !== $basePort) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param array{scheme?: string, port?: int|string} $url
+     */
+    private function effectivePort(array $url): ?int
+    {
+        if (isset($url['port'])) {
+            return (int) $url['port'];
+        }
+
+        return match (strtolower((string) ($url['scheme'] ?? ''))) {
+            'http' => 80,
+            'https' => 443,
+            default => null,
+        };
+    }
+
+    private function effectiveRequestPort(ServerRequestInterface $request): ?int
+    {
+        $uri = $request->getUri();
+        if ($uri->getPort() !== null) {
+            return $uri->getPort();
+        }
+
+        return match (strtolower($uri->getScheme())) {
+            'http' => 80,
+            'https' => 443,
+            default => null,
+        };
+    }
+
+    private function normalizePath(string $path): string
+    {
+        $normalized = '/' . ltrim($path, '/');
+        $normalized = rtrim($normalized, '/');
+
+        return $normalized === '' ? '/' : $normalized;
     }
 
     private function runMiddleware(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
