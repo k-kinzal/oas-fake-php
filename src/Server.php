@@ -41,7 +41,7 @@ class Server
     }
 
     private ?string $schema = null;
-    private ?string $mode = null;
+    private ?Mode $mode = null;
     private ?string $cassettePath = null;
     private ?bool $validateRequests = null;
     private ?bool $validateResponses = null;
@@ -85,12 +85,12 @@ class Server
     /**
      * Set the operating mode.
      *
-     * @param string $mode The mode to use (FAKE, RECORD, or REPLAY)
+     * @param Mode|string $mode The mode to use (FAKE, RECORD, or REPLAY)
      */
-    public function withMode(string $mode): static
+    public function withMode(string|Mode $mode): static
     {
         $this->assertNotRunning();
-        $this->mode = $mode;
+        $this->mode = Mode::from($mode);
 
         return $this;
     }
@@ -331,7 +331,7 @@ class Server
     /**
      * Resolve the active mode from environment, fluent override, or static defaults.
      */
-    public function resolveMode(): string
+    public function resolveMode(): Mode
     {
         $env = getenv('OAS_FAKE_MODE');
         if ($env !== false && $env !== '') {

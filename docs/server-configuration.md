@@ -86,8 +86,9 @@ Mode::FAKE;
 Mode::RECORD;
 Mode::REPLAY;
 
-// Parse from string (case-insensitive)
-Mode::fromString('record'); // Mode::RECORD
+// Parse from string (case-insensitive) into a normalized Mode instance
+$mode = Mode::fromString('record');
+$mode->value(); // 'record'
 
 // Resolve from OAS_FAKE_MODE env var (falls back to FAKE)
 Mode::fromEnvironment();
