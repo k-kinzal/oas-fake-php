@@ -59,6 +59,26 @@ final class InterceptorTest extends TestCase
         self::assertFalse($interceptor->isRunning());
     }
 
+    public function testStartMarksInterceptorRunning(): void
+    {
+        $interceptor = $this->createInterceptor();
+
+        $interceptor->start();
+
+        self::assertTrue($interceptor->isRunning());
+        $interceptor->stop();
+    }
+
+    public function testStopMarksInterceptorStopped(): void
+    {
+        $interceptor = $this->createInterceptor();
+        $interceptor->start();
+
+        $interceptor->stop();
+
+        self::assertFalse($interceptor->isRunning());
+    }
+
     public function testHandleReturnsFakeResponseForValidRequest(): void
     {
         $interceptor = $this->createInterceptor(validateRequests: false, validateResponses: false);

@@ -22,6 +22,9 @@ final class Validator
 
     private LeagueResponseValidator $responseValidator;
 
+    /**
+     * Create request and response validators from the OpenAPI schema.
+     */
     public function __construct(Schema $schema)
     {
         $builder = (new ValidatorBuilder())->fromSchema($schema->openApi());
