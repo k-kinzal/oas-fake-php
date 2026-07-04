@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OasFake;
 
 use GuzzleHttp\Psr7\Response;
+use Throwable;
 use VCR\Request as VcrRequest;
 use VCR\Response as VcrResponse;
 use VCR\VCR;
@@ -48,7 +49,15 @@ final class ServerRegistry
             $this->unregister($key);
         }
 
-        $server->buildInterceptor();
+        $server->registerInRegistry($this, $key);
+
+        try {
+            $server->buildInterceptor();
+        } catch (Throwable $exception) {
+            $server->unregisterFromRegistry($this, $key);
+
+            throw $exception;
+        }
 
         $this->servers[$key] = $server;
 
@@ -82,7 +91,7 @@ final class ServerRegistry
             return;
         }
 
-        $this->servers[$key]->stop();
+        $this->servers[$key]->unregisterFromRegistry($this, $key);
 
         if (isset($this->urlsByKey[$key])) {
             foreach ($this->urlsByKey[$key] as $url) {
@@ -104,7 +113,7 @@ final class ServerRegistry
     public function unregisterAll(): void
     {
         foreach (array_keys($this->servers) as $key) {
-            $this->servers[$key]->stop();
+            $this->servers[$key]->unregisterFromRegistry($this, $key);
         }
 
         $this->servers = [];

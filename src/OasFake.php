@@ -47,13 +47,21 @@ final class OasFake
     }
 
     /**
-     * Stop all running fake servers and clean up the registry.
+     * Stop one fake server, or all running fake servers when omitted.
      */
-    public static function stop(): void
+    public static function stop(?Server $server = null): void
     {
-        if (self::$registry !== null) {
-            self::$registry->unregisterAll();
+        if (self::$registry === null) {
+            return;
         }
+
+        if ($server !== null) {
+            self::$registry->unregister(self::serverKey($server));
+
+            return;
+        }
+
+        self::$registry->unregisterAll();
     }
 
     private static function registry(): ServerRegistry

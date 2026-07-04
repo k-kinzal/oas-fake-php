@@ -13,10 +13,6 @@ use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionType;
-use VCR\Request as VcrRequest;
-use VCR\Response as VcrResponse;
-use VCR\VCR;
-use VCR\VCRFactory;
 
 /**
  * Base server class providing fluent configuration, handler management, and lifecycle control.
@@ -61,7 +57,8 @@ class Server
     private HandlerMap $handlers;
     private ?Interceptor $interceptor = null;
     private ?Schema $resolvedSchema = null;
-    private bool $vcrStarted = false;
+    private ?ServerRegistry $registry = null;
+    private ?string $registryKey = null;
 
     /**
      * Create a server instance and register declarative handler methods.
@@ -254,12 +251,11 @@ class Server
     }
 
     /**
-     * Start the fake server: build interceptor and activate HTTP hooks.
+     * Start the fake server through the shared OasFake registry.
      */
     public function start(): void
     {
-        $this->buildInterceptor();
-        $this->startVcr();
+        OasFake::start($this);
     }
 
     /**
@@ -267,15 +263,13 @@ class Server
      */
     public function stop(): void
     {
-        if ($this->interceptor !== null) {
-            $this->interceptor->stop();
-            $this->interceptor = null;
+        if ($this->registry !== null && $this->registryKey !== null) {
+            $this->registry->unregister($this->registryKey);
+
+            return;
         }
 
-        if ($this->vcrStarted) {
-            VCR::turnOff();
-            $this->vcrStarted = false;
-        }
+        $this->stopInterceptor();
     }
 
     /**
@@ -350,17 +344,21 @@ class Server
         return Mode::fromString(static::$MODE);
     }
 
-    private function startVcr(): void
+    /**
+     * @internal ServerRegistry owns the global VCR lifecycle.
+     */
+    public function registerInRegistry(ServerRegistry $registry, string $key): void
     {
-        if ($this->vcrStarted) {
+        if ($this->registry === $registry && $this->registryKey === $key) {
             return;
         }
 
-        $this->configureVcr();
-        VCR::turnOn();
-        VCR::insertCassette('oas-fake');
-        $this->registerHooks();
-        $this->vcrStarted = true;
+        if ($this->registry !== null) {
+            throw new LogicException('Server is already registered in another ServerRegistry. Stop it before registering it again.');
+        }
+
+        $this->registry = $registry;
+        $this->registryKey = $key;
     }
 
     private function assertNotRunning(): void
@@ -370,34 +368,17 @@ class Server
         }
     }
 
-    private function configureVcr(): void
+    /**
+     * @internal ServerRegistry owns the global VCR lifecycle.
+     */
+    public function unregisterFromRegistry(ServerRegistry $registry, string $key): void
     {
-        VCR::configure()
-            ->setCassettePath($this->resolveCassettePath())
-            ->setStorage('json')
-            ->setMode('none')
-            ->enableLibraryHooks(['curl', 'stream_wrapper']);
-    }
-
-    private function registerHooks(): void
-    {
-        $interceptor = $this->interceptor;
-        if ($interceptor === null) {
-            return;
+        if ($this->registry === $registry && $this->registryKey === $key) {
+            $this->registry = null;
+            $this->registryKey = null;
         }
 
-        $mode = $this->resolveMode();
-        $handler = match ($mode) {
-            Mode::REPLAY => fn (VcrRequest $req): VcrResponse => $interceptor->replay($req),
-            default => fn (VcrRequest $req): VcrResponse => $interceptor->handle($req),
-        };
-
-        foreach (VCR::configure()->getLibraryHooks() as $hookClass) {
-            /** @var \VCR\LibraryHooks\LibraryHook $hook */
-            $hook = VCRFactory::get($hookClass);
-            $hook->disable();
-            $hook->enable($handler);
-        }
+        $this->stopInterceptor();
     }
 
     private function resolveSchema(): Schema
@@ -446,6 +427,14 @@ class Server
     private function resolveFakerOptions(): array
     {
         return $this->fakerOptions ?? static::$FAKER_OPTIONS;
+    }
+
+    private function stopInterceptor(): void
+    {
+        if ($this->interceptor !== null) {
+            $this->interceptor->stop();
+            $this->interceptor = null;
+        }
     }
 
     /**
@@ -543,6 +532,7 @@ class Server
             'start', 'stop', 'isRunning',
             'interceptor', 'serverUrls', 'resolveMode',
             'schema', 'fakerOptions', 'buildInterceptor',
+            'registerInRegistry', 'unregisterFromRegistry',
             'withSchema', 'withMode', 'withCassettePath',
             'withRequestValidation', 'withResponseValidation',
             'withFakerOptions', 'withMiddleware',

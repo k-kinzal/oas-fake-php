@@ -45,6 +45,8 @@ $response = $client->get('/pets/1');
 OasFake::stop();
 ```
 
+`OasFake::stop()` stops all running fake servers. When a test starts multiple servers, use `OasFake::stop($server)` or `$server->stop()` to stop only that server.
+
 ## How It Works
 
 ```
