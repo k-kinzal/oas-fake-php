@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
+use LogicException;
 use OasFake\Server;
 use OasFake\ServerRegistry;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -48,7 +49,7 @@ final class ServerRegistryTest extends TestCase
     public function testUnregister(): void
     {
         $server = $this->createMock(Server::class);
-        $server->expects(self::once())->method('stop');
+        $server->expects(self::once())->method('unregisterFromRegistry');
 
         $this->registry->register('TestServer', $server);
         $this->registry->unregister('TestServer');
@@ -66,9 +67,9 @@ final class ServerRegistryTest extends TestCase
     public function testUnregisterAll(): void
     {
         $server1 = $this->createMock(Server::class);
-        $server1->expects(self::once())->method('stop');
+        $server1->expects(self::once())->method('unregisterFromRegistry');
         $server2 = $this->createMock(Server::class);
-        $server2->expects(self::once())->method('stop');
+        $server2->expects(self::once())->method('unregisterFromRegistry');
 
         $this->registry->register('Server1', $server1);
         $this->registry->register('Server2', $server2);
@@ -81,7 +82,7 @@ final class ServerRegistryTest extends TestCase
     public function testReRegisterSameKeyReplacesServer(): void
     {
         $server1 = $this->createMock(Server::class);
-        $server1->expects(self::once())->method('stop');
+        $server1->expects(self::once())->method('unregisterFromRegistry');
         $server2 = $this->createMock(Server::class);
 
         $this->registry->register('TestServer', $server1);
@@ -190,6 +191,52 @@ final class ServerRegistryTest extends TestCase
 
         self::assertSame(200, $response->getStatusCode());
         self::assertStringContainsString('First', $response->getBody());
+    }
+
+    public function testServerStopUnregistersFromOwningRegistry(): void
+    {
+        $first = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false)
+            ->withResponse('listPets', 200, [['id' => 1, 'name' => 'First']]);
+
+        $second = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false)
+            ->withResponse('listPets', 200, [['id' => 2, 'name' => 'Second']]);
+
+        $this->registry->register('FirstServer', $first);
+        $this->registry->register('SecondServer', $second);
+
+        $second->stop();
+
+        $request = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
+        $response = $this->registry->dispatch($request);
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertStringContainsString('First', $response->getBody());
+    }
+
+    public function testServerCannotBeRegisteredInTwoRegistriesAtOnce(): void
+    {
+        $server = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false);
+        $otherRegistry = new ServerRegistry();
+
+        $this->registry->register('PetServer', $server);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('already registered');
+
+        try {
+            $otherRegistry->register('PetServer', $server);
+        } finally {
+            $otherRegistry->unregisterAll();
+        }
     }
 
     public function testDispatchReturns502ForUnknownUrl(): void

@@ -51,7 +51,7 @@ final class OasFakeTest extends TestCase
     {
         $server = $this->createMock(Server::class);
         $server->expects(self::once())->method('buildInterceptor');
-        $server->expects(self::once())->method('stop');
+        $server->expects(self::once())->method('unregisterFromRegistry');
 
         OasFake::start($server);
         OasFake::stop();
@@ -76,7 +76,7 @@ final class OasFakeTest extends TestCase
     public function testStopIsIdempotent(): void
     {
         $server = $this->createMock(Server::class);
-        $server->expects(self::once())->method('stop');
+        $server->expects(self::once())->method('unregisterFromRegistry');
 
         OasFake::start($server);
         OasFake::stop();
@@ -100,9 +100,9 @@ final class OasFakeTest extends TestCase
     public function testStopStopsAllServers(): void
     {
         $server1 = $this->createMock(Server::class);
-        $server1->expects(self::once())->method('stop');
+        $server1->expects(self::once())->method('unregisterFromRegistry');
         $server2 = $this->createMock(Server::class);
-        $server2->expects(self::once())->method('stop');
+        $server2->expects(self::once())->method('unregisterFromRegistry');
 
         OasFake::start($server1);
         OasFake::start($server2);
@@ -144,6 +144,11 @@ class SameClassStartServer extends Server
     }
 
     public function stop(): void
+    {
+        $this->stopped = true;
+    }
+
+    public function unregisterFromRegistry(\OasFake\ServerRegistry $registry, string $key): void
     {
         $this->stopped = true;
     }

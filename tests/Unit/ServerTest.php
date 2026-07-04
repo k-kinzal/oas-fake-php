@@ -9,6 +9,7 @@ use OasFake\Handler;
 use OasFake\Mode;
 use OasFake\Route;
 use OasFake\Server;
+use OasFake\ServerRegistry;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -291,6 +292,44 @@ final class ServerTest extends TestCase
         $this->expectException(\OasFake\Exception\SchemaNotFoundException::class);
         $this->expectExceptionMessage('No schema configured');
         $server->start();
+    }
+
+    public function testRegisterInRegistryRejectsDifferentOwner(): void
+    {
+        $server = (new Server())->withSchema($this->petstorePath);
+        $registry = new ServerRegistry();
+
+        $server->registerInRegistry($registry, 'PetServer');
+
+        try {
+            $server->registerInRegistry(new ServerRegistry(), 'OtherServer');
+        } catch (LogicException $exception) {
+            self::assertStringContainsString('already registered', $exception->getMessage());
+
+            return;
+        } finally {
+            $server->unregisterFromRegistry($registry, 'PetServer');
+        }
+
+        self::fail('Expected LogicException was not thrown.');
+    }
+
+    public function testUnregisterFromRegistryStopsInterceptor(): void
+    {
+        $server = (new Server())
+            ->withSchema($this->petstorePath)
+            ->withRequestValidation(false)
+            ->withResponseValidation(false);
+        $registry = new ServerRegistry();
+
+        $server->registerInRegistry($registry, 'PetServer');
+        $server->buildInterceptor();
+
+        self::assertTrue($server->isRunning());
+
+        $server->unregisterFromRegistry($registry, 'PetServer');
+
+        self::assertFalse($server->isRunning());
     }
 
     public function testDeclarativeSubclassConfiguresStaticProperties(): void

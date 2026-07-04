@@ -56,6 +56,8 @@ $response = $client->get('/pets/1');
 OasFake::stop();
 ```
 
+`OasFake::stop()` stops every running fake server. To stop only one server while leaving other registered servers active, pass the server instance: `OasFake::stop($server)` or `$server->stop()`.
+
 ### Custom Responses
 
 Override responses for specific operations using the configure callback:
