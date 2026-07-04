@@ -26,6 +26,9 @@ final class OperationLookup
      */
     private array $byPathMethod = [];
 
+    /**
+     * Build lookup indexes for every operation in the schema.
+     */
     public function __construct(Schema $schema)
     {
         $this->index($schema);

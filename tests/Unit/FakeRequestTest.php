@@ -60,6 +60,27 @@ final class FakeRequestTest extends TestCase
         FakeRequest::for($this->schema, 'nonexistent');
     }
 
+    public function testMethodReturnsUppercaseMethod(): void
+    {
+        $request = FakeRequest::for($this->schema, 'listPets');
+
+        self::assertSame('GET', $request->method());
+    }
+
+    public function testUrlReturnsFullUrl(): void
+    {
+        $request = FakeRequest::for($this->schema, 'getPetById')->withPathParam('petId', '123');
+
+        self::assertSame('https://api.petstore.example.com/pets/123', $request->url());
+    }
+
+    public function testBodyReturnsRawBody(): void
+    {
+        $request = FakeRequest::for($this->schema, 'createPet')->withBody('{"name":"Buddy"}');
+
+        self::assertSame('{"name":"Buddy"}', $request->body());
+    }
+
     public function testForPathCreatesRequest(): void
     {
         $request = FakeRequest::forPath($this->schema, '/pets', 'GET');
@@ -86,6 +107,13 @@ final class FakeRequestTest extends TestCase
         self::assertNotSame($request->pathParams()['petId'], '99');
     }
 
+    public function testPathParamsReturnsPathParameters(): void
+    {
+        $request = FakeRequest::for($this->schema, 'getPetById')->withPathParam('petId', '99');
+
+        self::assertSame(['petId' => '99'], $request->pathParams());
+    }
+
     public function testWithQueryParamAddsParam(): void
     {
         $request = FakeRequest::for($this->schema, 'listPets');
@@ -93,6 +121,13 @@ final class FakeRequestTest extends TestCase
 
         self::assertSame('10', $modified->queryParams()['limit']);
         self::assertStringContainsString('limit=10', $modified->url());
+    }
+
+    public function testQueryParamsReturnsQueryParameters(): void
+    {
+        $request = FakeRequest::for($this->schema, 'listPets')->withQueryParam('limit', '10');
+
+        self::assertSame(['limit' => '10'], $request->queryParams());
     }
 
     public function testWithHeaderAddsHeader(): void

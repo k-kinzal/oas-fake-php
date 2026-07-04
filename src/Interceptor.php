@@ -124,7 +124,6 @@ final class Interceptor
             try {
                 $operation = $this->validator->validateRequest($psrRequest);
             } catch (ValidationException) {
-                // Validation disabled: silently ignore invalid requests
             }
         }
 

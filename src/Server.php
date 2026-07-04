@@ -58,6 +58,9 @@ class Server
     private ?Schema $resolvedSchema = null;
     private bool $vcrStarted = false;
 
+    /**
+     * Create a server instance and register declarative handler methods.
+     */
     public function __construct()
     {
         $this->handlers = new HandlerMap();
@@ -316,6 +319,9 @@ class Server
         return $this->resolveSchema()->serverUrls();
     }
 
+    /**
+     * Resolve the active mode from environment, fluent override, or static defaults.
+     */
     public function resolveMode(): string
     {
         $env = getenv('OAS_FAKE_MODE');

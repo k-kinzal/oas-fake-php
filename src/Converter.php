@@ -68,8 +68,7 @@ final class Converter
 
         $body = (string) $psrResponse->getBody();
 
-        // @phpstan-ignore argument.type
-        return new VcrResponse(['code' => $statusCode, 'message' => ''], $flatHeaders, $body);
+        return new VcrResponse((string) $statusCode, $flatHeaders, $body);
     }
 
     /**

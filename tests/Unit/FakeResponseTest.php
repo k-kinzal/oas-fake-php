@@ -63,6 +63,27 @@ final class FakeResponseTest extends TestCase
         FakeResponse::for($this->schema, 'nonexistent');
     }
 
+    public function testStatusCodeReturnsHttpStatus(): void
+    {
+        $response = FakeResponse::for($this->schema, 'createPet', 201);
+
+        self::assertSame(201, $response->statusCode());
+    }
+
+    public function testHeadersReturnsResponseHeaders(): void
+    {
+        $response = FakeResponse::for($this->schema, 'listPets');
+
+        self::assertSame('application/json', $response->headers()['Content-Type']);
+    }
+
+    public function testJsonDecodesResponseBody(): void
+    {
+        $response = FakeResponse::for($this->schema, 'listPets');
+
+        self::assertIsArray($response->json());
+    }
+
     public function testToPsr7ReturnsResponseInterface(): void
     {
         $response = FakeResponse::for($this->schema, 'listPets');

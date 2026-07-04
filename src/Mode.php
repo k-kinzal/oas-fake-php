@@ -11,8 +11,19 @@ use InvalidArgumentException;
  */
 final class Mode
 {
+    /**
+     * Generate schema-compliant fake responses in-process.
+     */
     public const FAKE = 'fake';
+
+    /**
+     * Record generated request/response pairs to a cassette.
+     */
     public const RECORD = 'record';
+
+    /**
+     * Replay responses from a previously recorded cassette.
+     */
     public const REPLAY = 'replay';
 
     private const ENV_VAR = 'OAS_FAKE_MODE';

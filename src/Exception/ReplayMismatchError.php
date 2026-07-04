@@ -15,6 +15,12 @@ use VCR\Request as VcrRequest;
  */
 final class ReplayMismatchError extends AssertionError
 {
+    /**
+     * Create an assertion-style error for an unmatched replay request.
+     *
+     * @param VcrRequest $request The request that could not be matched
+     * @param LogicException $previous The original cassette lookup failure
+     */
     public static function forRequest(VcrRequest $request, LogicException $previous): self
     {
         $method = $request->getMethod();

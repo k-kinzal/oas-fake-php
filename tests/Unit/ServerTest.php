@@ -12,6 +12,8 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
 #[CoversClass(Server::class)]
 final class ServerTest extends TestCase
@@ -81,6 +83,21 @@ final class ServerTest extends TestCase
     {
         $server = new Server();
         $result = $server->withFakerOptions(['alwaysFakeOptionals' => true]);
+
+        self::assertSame($server, $result);
+    }
+
+    public function testWithMiddlewareReturnsStatic(): void
+    {
+        $server = new Server();
+        $middleware = new class () implements MiddlewareInterface {
+            public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+            {
+                return $handler->handle($request);
+            }
+        };
+
+        $result = $server->withMiddleware($middleware);
 
         self::assertSame($server, $result);
     }
@@ -165,6 +182,61 @@ final class ServerTest extends TestCase
         self::assertFalse($server->isRunning());
     }
 
+    public function testBuildInterceptorStartsInterceptor(): void
+    {
+        $server = (new Server())
+            ->withSchema($this->petstorePath)
+            ->withRequestValidation(false)
+            ->withResponseValidation(false);
+
+        try {
+            $server->buildInterceptor();
+
+            self::assertTrue($server->isRunning());
+        } finally {
+            $server->stop();
+        }
+    }
+
+    public function testInterceptorReturnsActiveInterceptor(): void
+    {
+        $server = (new Server())
+            ->withSchema($this->petstorePath)
+            ->withRequestValidation(false)
+            ->withResponseValidation(false);
+
+        try {
+            self::assertNull($server->interceptor());
+
+            $server->buildInterceptor();
+
+            self::assertNotNull($server->interceptor());
+        } finally {
+            $server->stop();
+        }
+    }
+
+    public function testSchemaReturnsResolvedSchema(): void
+    {
+        $server = (new Server())->withSchema($this->petstorePath);
+
+        self::assertSame(['https://api.petstore.example.com'], $server->schema()->serverUrls());
+    }
+
+    public function testFakerOptionsReturnsConfiguredOptions(): void
+    {
+        $server = (new Server())->withFakerOptions(['alwaysFakeOptionals' => true]);
+
+        self::assertSame(['alwaysFakeOptionals' => true], $server->fakerOptions());
+    }
+
+    public function testServerUrlsReturnsSchemaUrls(): void
+    {
+        $server = (new Server())->withSchema($this->petstorePath);
+
+        self::assertSame(['https://api.petstore.example.com'], $server->serverUrls());
+    }
+
     public function testStartThrowsWithoutSchema(): void
     {
         $server = new Server();
@@ -203,6 +275,19 @@ final class ServerTest extends TestCase
         $server->withCassettePath('/fluent/cassettes');
 
         self::assertSame('/env/cassettes', getenv('OAS_FAKE_CASSETTE_PATH'));
+    }
+
+    public function testResolveModeUsesEnvironmentVariable(): void
+    {
+        putenv('OAS_FAKE_MODE=record');
+
+        try {
+            $server = (new Server())->withMode(Mode::FAKE);
+
+            self::assertSame(Mode::RECORD, $server->resolveMode());
+        } finally {
+            putenv('OAS_FAKE_MODE');
+        }
     }
 
     public function testEnvVarOverridesValidateRequests(): void
