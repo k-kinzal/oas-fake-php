@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace OasFake;
 
+use cebe\openapi\spec\MediaType;
+use cebe\openapi\spec\RequestBody as CebeRequestBody;
+use cebe\openapi\spec\Schema as CebeSchema;
 use GuzzleHttp\Psr7\Query;
 use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Uri;
 
 use function is_array;
-use function json_encode;
-
-use const JSON_THROW_ON_ERROR;
+use function is_int;
+use function is_string;
 
 use OasFake\Exception\OperationNotFoundException;
 use Psr\Http\Message\ServerRequestInterface;
@@ -246,11 +248,15 @@ final class FakeRequest
         $headers = $params['header'];
 
         if ($info->operation->requestBody !== null) {
-            $fakeData = $context->mockRequest($info->pathPattern, $info->method);
+            $mediaType = self::requestMediaType($info);
+            $schema = self::requestSchema($info, $mediaType);
+            $fakeData = $schema instanceof CebeSchema && !PayloadSerializer::isJsonMediaType($mediaType)
+                ? $context->mockSchema($schema)
+                : $context->mockRequest($info->pathPattern, $info->method);
 
             if (is_array($fakeData) || $fakeData !== null) {
-                $body = json_encode($fakeData, JSON_THROW_ON_ERROR);
-                $headers['Content-Type'] ??= 'application/json';
+                $body = PayloadSerializer::serialize($fakeData, $mediaType);
+                $headers['Content-Type'] ??= $mediaType;
             }
         }
 
@@ -266,6 +272,42 @@ final class FakeRequest
             headerParams: $headers,
             rawBody: $body,
         );
+    }
+
+    private static function requestMediaType(OperationInfo $info): string
+    {
+        $requestBody = $info->operation->requestBody;
+        if (!$requestBody instanceof CebeRequestBody || $requestBody->content === null || $requestBody->content === []) {
+            return 'application/json';
+        }
+
+        $mediaTypes = [];
+        foreach ($requestBody->content as $mediaType => $_content) {
+            if (!is_int($mediaType) && !is_string($mediaType)) {
+                continue;
+            }
+            $mediaTypes[] = (string) $mediaType;
+        }
+
+        return PayloadSerializer::preferredMediaType($mediaTypes);
+    }
+
+    private static function requestSchema(OperationInfo $info, string $mediaType): ?CebeSchema
+    {
+        $requestBody = $info->operation->requestBody;
+        if (!$requestBody instanceof CebeRequestBody || $requestBody->content === null) {
+            return null;
+        }
+
+        foreach ($requestBody->content as $candidateMediaType => $content) {
+            if ((!is_int($candidateMediaType) && !is_string($candidateMediaType)) || (string) $candidateMediaType !== $mediaType || !$content instanceof MediaType) {
+                continue;
+            }
+
+            return $content->schema instanceof CebeSchema ? $content->schema : null;
+        }
+
+        return null;
     }
 
     /**
