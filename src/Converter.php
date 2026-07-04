@@ -104,6 +104,7 @@ final class Converter
     private function replaceVcrResponseHeaders(VcrResponse $response, array $headers): void
     {
         $headersProperty = new ReflectionProperty(VcrResponse::class, 'headers');
+        $headersProperty->setAccessible(true);
         $headersProperty->setValue($response, $headers);
     }
 }
