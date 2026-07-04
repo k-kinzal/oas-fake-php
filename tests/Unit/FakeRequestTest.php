@@ -31,6 +31,33 @@ final class FakeRequestTest extends TestCase
         self::assertNull($request->body());
     }
 
+    public function testForUsesOperationLevelServerUrl(): void
+    {
+        $schema = Schema::fromString(<<<'YAML'
+            openapi: 3.0.0
+            info:
+              title: Operation Server API
+              version: 1.0.0
+            servers:
+              - url: https://root.example.com
+            paths:
+              /pets:
+                servers:
+                  - url: https://path.example.com/v1
+                get:
+                  operationId: listPets
+                  servers:
+                    - url: https://operation.example.com/v2
+                  responses:
+                    '200':
+                      description: OK
+            YAML);
+
+        $request = FakeRequest::for($schema, 'listPets');
+
+        self::assertSame('https://operation.example.com/v2/pets', $request->url());
+    }
+
     public function testForAcceptsFakeDataContext(): void
     {
         $request = FakeRequest::for(new FakeDataContext($this->schema), 'listPets');

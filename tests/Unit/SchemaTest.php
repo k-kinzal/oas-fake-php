@@ -128,4 +128,64 @@ final class SchemaTest extends TestCase
 
         self::assertSame(['https://api.example.com'], $urls);
     }
+
+    public function testServerUrlsUsesPathLevelServersForPathOperations(): void
+    {
+        $schema = Schema::fromString(<<<'YAML'
+            openapi: 3.0.0
+            info:
+              title: Path Server API
+              version: 1.0.0
+            servers:
+              - url: https://root.example.com
+            paths:
+              /pets:
+                servers:
+                  - url: https://pets.example.com/v1
+                get:
+                  operationId: listPets
+                  responses:
+                    '200':
+                      description: OK
+              /orders:
+                get:
+                  operationId: listOrders
+                  responses:
+                    '200':
+                      description: OK
+            YAML);
+
+        self::assertSame(['https://pets.example.com/v1', 'https://root.example.com'], $schema->serverUrls());
+    }
+
+    public function testEffectiveServerUrlsUsesOperationLevelBeforePathAndRoot(): void
+    {
+        $schema = Schema::fromString(<<<'YAML'
+            openapi: 3.0.0
+            info:
+              title: Operation Server API
+              version: 1.0.0
+            servers:
+              - url: https://root.example.com
+            paths:
+              /pets:
+                servers:
+                  - url: https://path.example.com/v1
+                get:
+                  operationId: listPets
+                  servers:
+                    - url: https://operation.example.com/v2
+                  responses:
+                    '200':
+                      description: OK
+            YAML);
+
+        $operation = $schema->openApi()->paths['/pets']->get;
+
+        self::assertSame(
+            ['https://operation.example.com/v2'],
+            $schema->effectiveServerUrls($schema->openApi()->paths['/pets'], $operation),
+        );
+        self::assertSame(['https://operation.example.com/v2'], $schema->serverUrls());
+    }
 }

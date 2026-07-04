@@ -26,7 +26,19 @@ final class OperationPathResolver
      */
     public function resolve(Schema $schema, ServerRequestInterface $request): string
     {
+        return $this->resolveWithServerUrl($schema, $request)['path'];
+    }
+
+    /**
+     * Return the operation path and the server URL that was used to resolve it.
+     *
+     * @return array{path: string, serverUrl: string|null}
+     */
+    public function resolveWithServerUrl(Schema $schema, ServerRequestInterface $request): array
+    {
         $path = $this->normalizePath($request->getUri()->getPath());
+        /** @var array{specificity: int, path: string, serverUrl: string}|null $match */
+        $match = null;
 
         foreach ($schema->serverUrls() as $serverUrl) {
             $base = parse_url($serverUrl);
@@ -35,22 +47,32 @@ final class OperationPathResolver
             }
 
             $basePath = $this->normalizePath((string) ($base['path'] ?? '/'));
-            if ($basePath === '/') {
-                return $path;
+            $operationPath = $this->stripBasePath($path, $basePath);
+            if ($operationPath === null) {
+                continue;
             }
 
-            if ($path === $basePath) {
-                return '/';
-            }
-
-            if (str_starts_with($path, $basePath . '/')) {
-                $operationPath = substr($path, strlen($basePath));
-
-                return $operationPath === '' ? '/' : $operationPath;
+            $specificity = $basePath === '/' ? 0 : strlen($basePath);
+            if ($match === null || $specificity > $match['specificity']) {
+                $match = [
+                    'specificity' => $specificity,
+                    'path' => $operationPath,
+                    'serverUrl' => $serverUrl,
+                ];
             }
         }
 
-        return $path;
+        if ($match === null) {
+            return [
+                'path' => $path,
+                'serverUrl' => null,
+            ];
+        }
+
+        return [
+            'path' => $match['path'],
+            'serverUrl' => $match['serverUrl'],
+        ];
     }
 
     /**
@@ -104,6 +126,25 @@ final class OperationPathResolver
             'https' => 443,
             default => null,
         };
+    }
+
+    private function stripBasePath(string $path, string $basePath): ?string
+    {
+        if ($basePath === '/') {
+            return $path;
+        }
+
+        if ($path === $basePath) {
+            return '/';
+        }
+
+        if (!str_starts_with($path, $basePath . '/')) {
+            return null;
+        }
+
+        $operationPath = substr($path, strlen($basePath));
+
+        return $operationPath === '' ? '/' : $operationPath;
     }
 
     private function normalizePath(string $path): string

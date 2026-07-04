@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace OasFake;
 
 use Closure;
+
+use function in_array;
+
 use League\OpenAPIValidation\PSR7\OperationAddress;
 use LogicException;
 use OasFake\Exception\ReplayMismatchError;
@@ -142,9 +145,14 @@ final class Interceptor
 
     private function respondTo(ServerRequestInterface $psrRequest): ResponseInterface
     {
-        $path = $this->operationPathResolver->resolve($this->schema, $psrRequest);
+        $resolvedPath = $this->operationPathResolver->resolveWithServerUrl($this->schema, $psrRequest);
+        $path = $resolvedPath['path'];
         $method = $psrRequest->getMethod();
         $operationInfo = $this->operationLookup->findByRequestPathAndMethod($path, $method);
+        if ($operationInfo !== null && !$this->operationMatchesServer($operationInfo, $resolvedPath['serverUrl'])) {
+            $operationInfo = null;
+        }
+
         $operation = $this->resolveOperation($psrRequest, $operationInfo);
         $response = $this->operationResponder->respond($psrRequest, $path, $method, $operationInfo);
 
@@ -170,8 +178,12 @@ final class Interceptor
     public function replay(VcrRequest $request): VcrResponse
     {
         $psrRequest = $this->converter->requestToPsr7($request);
-        $path = $this->operationPathResolver->resolve($this->schema, $psrRequest);
-        $operationInfo = $this->operationLookup->findByRequestPathAndMethod($path, $psrRequest->getMethod());
+        $resolvedPath = $this->operationPathResolver->resolveWithServerUrl($this->schema, $psrRequest);
+        $operationInfo = $this->operationLookup->findByRequestPathAndMethod($resolvedPath['path'], $psrRequest->getMethod());
+        if ($operationInfo !== null && !$this->operationMatchesServer($operationInfo, $resolvedPath['serverUrl'])) {
+            $operationInfo = null;
+        }
+
         $operation = $this->resolveOperation($psrRequest, $operationInfo);
         $response = $this->converter->vcrResponseToPsr7($this->playback($request));
         $response = $this->middlewarePipeline->process($psrRequest, $response);
@@ -181,6 +193,11 @@ final class Interceptor
         }
 
         return $this->converter->psr7ToVcrResponse($response);
+    }
+
+    private function operationMatchesServer(OperationInfo $operationInfo, ?string $serverUrl): bool
+    {
+        return $serverUrl === null || in_array($serverUrl, $operationInfo->serverUrls, true);
     }
 
     private function playback(VcrRequest $request): VcrResponse

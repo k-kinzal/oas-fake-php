@@ -322,4 +322,58 @@ final class ServerRegistryTest extends TestCase
         self::assertSame(200, $response->getStatusCode());
         self::assertIsArray(json_decode($response->getBody() ?? '', true));
     }
+
+    public function testDispatchRoutesPathLevelServerUrl(): void
+    {
+        $server = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/path-server-petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false)
+            ->withResponse('listPets', 200, [['id' => 1, 'name' => 'Path Server']]);
+
+        $this->registry->register('PathServer', $server);
+
+        $request = new VcrRequest('GET', 'https://api.path-petstore.example.com/v1/pets', []);
+        $response = $this->registry->dispatch($request);
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertStringContainsString('Path Server', $response->getBody());
+    }
+
+    public function testDispatchDoesNotMatchRootServerOverriddenByPathServer(): void
+    {
+        $server = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/path-server-petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false);
+
+        $this->registry->register('PathServer', $server);
+
+        $request = new VcrRequest('GET', 'https://root.petstore.example.com/pets', []);
+        $response = $this->registry->dispatch($request);
+
+        self::assertSame(502, $response->getStatusCode());
+    }
+
+    public function testDispatchDoesNotServePathLevelOperationThroughRootServer(): void
+    {
+        $server = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/mixed-server-petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false)
+            ->withResponse('listPets', 200, [['id' => 1, 'name' => 'Path Server']])
+            ->withResponse('listOrders', 200, [['id' => 10]]);
+
+        $this->registry->register('MixedServer', $server);
+
+        $rootOrders = new VcrRequest('GET', 'https://root.petstore.example.com/orders', []);
+        $ordersResponse = $this->registry->dispatch($rootOrders);
+        self::assertSame(200, $ordersResponse->getStatusCode());
+
+        $rootPets = new VcrRequest('GET', 'https://root.petstore.example.com/pets', []);
+        $petsResponse = $this->registry->dispatch($rootPets);
+
+        self::assertSame(500, $petsResponse->getStatusCode());
+        self::assertStringNotContainsString('Path Server', $petsResponse->getBody());
+    }
 }
