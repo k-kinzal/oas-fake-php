@@ -17,7 +17,7 @@ OpenAPI schema-driven fake API server for PHP testing. Define your API contract 
 
 ## Public API Surface
 
-The supported user-facing API is `OasFake`, `Server`, `Schema`, `FakeDataContext`, `FakeRequest`, `FakeResponse`, `Handler`, `Route`, `Mode`, the documented exception types, and `Validator` for standalone validation. Lower-level pipeline classes such as `Interceptor`, `ServerRegistry`, `Converter`, `OperationLookup`, `HandlerMap`, and `ParameterFaker` are internal and may change between minor versions.
+The primary user-facing entry points are `OasFake`, `Server`, `Schema`, `FakeDataContext`, `FakeRequest`, `FakeResponse`, `Handler`, `Route`, `Mode`, the documented exception types, and `Validator` for standalone validation. Pipeline and support classes such as `Interceptor`, `ServerRegistry`, `Converter`, `OperationLookup`, `HandlerMap`, and `ParameterFaker` are available under the same namespace for advanced use.
 
 ## Requirements
 

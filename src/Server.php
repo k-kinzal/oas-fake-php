@@ -329,7 +329,7 @@ class Server
     }
 
     /**
-     * @internal ServerRegistry owns the global VCR lifecycle.
+     * Register this server with a registry that owns the shared VCR lifecycle.
      */
     public function registerInRegistry(ServerRegistry $registry, string $key): void
     {
@@ -353,7 +353,7 @@ class Server
     }
 
     /**
-     * @internal ServerRegistry owns the global VCR lifecycle.
+     * Unregister this server from a registry and stop its interceptor.
      */
     public function unregisterFromRegistry(ServerRegistry $registry, string $key): void
     {
