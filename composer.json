@@ -55,9 +55,9 @@
         }
     },
     "scripts": {
-        "test": "phpunit",
-        "test:coverage": "XDEBUG_MODE=coverage phpunit --coverage-html coverage",
-        "test:unit": "phpunit tests/Unit/",
+        "test": "php -d error_reporting='E_ALL & ~E_DEPRECATED' vendor/bin/phpunit",
+        "test:coverage": "XDEBUG_MODE=coverage php -d error_reporting='E_ALL & ~E_DEPRECATED' vendor/bin/phpunit --coverage-html coverage",
+        "test:unit": "php -d error_reporting='E_ALL & ~E_DEPRECATED' vendor/bin/phpunit tests/Unit/",
         "lint": [
             "@format:check",
             "phpstan analyse --memory-limit=512M"
