@@ -88,9 +88,9 @@ final class VcrRecordingTest extends TestCase
 
     public function testModeFromString(): void
     {
-        self::assertSame(Mode::FAKE, Mode::fromString('fake'));
-        self::assertSame(Mode::RECORD, Mode::fromString('record'));
-        self::assertSame(Mode::REPLAY, Mode::fromString('replay'));
-        self::assertSame(Mode::FAKE, Mode::fromString('FAKE'));
+        self::assertSame(Mode::FAKE, Mode::fromString('fake')->value());
+        self::assertSame(Mode::RECORD, Mode::fromString('record')->value());
+        self::assertSame(Mode::REPLAY, Mode::fromString('replay')->value());
+        self::assertSame(Mode::FAKE, Mode::fromString('FAKE')->value());
     }
 }
