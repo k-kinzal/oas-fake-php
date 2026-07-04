@@ -1,0 +1,27 @@
+openapi: 3.0.0
+info:
+  title: Root Versioned Petstore API
+  version: 1.0.0
+servers:
+  - url: https://api.versioned.example.com
+paths:
+  /v1/pets:
+    get:
+      operationId: listRootPets
+      responses:
+        '200':
+          description: A list of pets from the root server
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - id
+                    - name
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string

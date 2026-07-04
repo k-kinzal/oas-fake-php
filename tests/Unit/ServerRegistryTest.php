@@ -284,6 +284,31 @@ final class ServerRegistryTest extends TestCase
         self::assertSame(502, $response->getStatusCode());
     }
 
+    public function testDispatchUsesMostSpecificMatchingServerUrl(): void
+    {
+        $rootServer = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/root-versioned-petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false)
+            ->withResponse('listRootPets', 200, [['id' => 1, 'name' => 'Root']]);
+
+        $versionedServer = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/versioned-petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false)
+            ->withResponse('listPets', 200, [['id' => 2, 'name' => 'Versioned']]);
+
+        $this->registry->register('RootServer', $rootServer);
+        $this->registry->register('VersionedServer', $versionedServer);
+
+        $request = new VcrRequest('GET', 'https://api.versioned.example.com/v1/pets', []);
+        $response = $this->registry->dispatch($request);
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertStringContainsString('Versioned', $response->getBody());
+        self::assertStringNotContainsString('Root', $response->getBody());
+    }
+
     public function testDispatchStripsServerBasePathForOperationLookup(): void
     {
         $server = (new Server())
