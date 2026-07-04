@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
+use cebe\openapi\spec\Parameter;
 use OasFake\OperationLookup;
 use OasFake\ParameterFaker;
 use OasFake\Schema;
@@ -61,6 +62,46 @@ final class ParameterFakerTest extends TestCase
         self::assertArrayHasKey('limit', $result['query']);
     }
 
+    public function testGeneratesFormExplodedQueryArray(): void
+    {
+        $faker = new ParameterFaker(['minItems' => 2, 'maxItems' => 2]);
+        $result = $faker->generate([
+            $this->arrayParameter('tags', 'query', 'form', true),
+        ]);
+
+        self::assertSame(['friendly', 'friendly'], $result['query']['tags']);
+    }
+
+    public function testGeneratesPipeDelimitedQueryArray(): void
+    {
+        $faker = new ParameterFaker(['minItems' => 2, 'maxItems' => 2]);
+        $result = $faker->generate([
+            $this->arrayParameter('tags', 'query', 'pipeDelimited', false),
+        ]);
+
+        self::assertSame('friendly|friendly', $result['query']['tags']);
+    }
+
+    public function testGeneratesSimpleHeaderArray(): void
+    {
+        $faker = new ParameterFaker(['minItems' => 2, 'maxItems' => 2]);
+        $result = $faker->generate([
+            $this->arrayParameter('X-Tags', 'header', 'simple', false),
+        ]);
+
+        self::assertSame('friendly,friendly', $result['header']['X-Tags']);
+    }
+
+    public function testGeneratesMatrixPathArray(): void
+    {
+        $faker = new ParameterFaker(['minItems' => 2, 'maxItems' => 2]);
+        $result = $faker->generate([
+            $this->arrayParameter('tags', 'path', 'matrix', true),
+        ]);
+
+        self::assertSame(';tags=friendly;tags=friendly', $result['path']['tags']);
+    }
+
     public function testGeneratesEmptyForNoParameters(): void
     {
         $faker = new ParameterFaker();
@@ -82,5 +123,25 @@ final class ParameterFakerTest extends TestCase
         foreach ($result['path'] as $value) {
             self::assertIsString($value);
         }
+    }
+
+    private function arrayParameter(string $name, string $in, string $style, bool $explode): Parameter
+    {
+        return new Parameter([
+            'name' => $name,
+            'in' => $in,
+            'required' => true,
+            'style' => $style,
+            'explode' => $explode,
+            'schema' => [
+                'type' => 'array',
+                'minItems' => 2,
+                'maxItems' => 2,
+                'items' => [
+                    'type' => 'string',
+                    'enum' => ['friendly'],
+                ],
+            ],
+        ]);
     }
 }

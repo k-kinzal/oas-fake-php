@@ -130,6 +130,20 @@ final class FakeRequestTest extends TestCase
         self::assertSame(['limit' => '10'], $request->queryParams());
     }
 
+    public function testUrlUsesRepeatedQueryParamsForGeneratedArrays(): void
+    {
+        $request = FakeRequest::for($this->schema, 'listPets', [
+            'alwaysFakeOptionals' => true,
+            'minItems' => 2,
+            'maxItems' => 2,
+        ]);
+
+        self::assertSame(['friendly', 'friendly'], $request->queryParams()['tags']);
+        self::assertStringContainsString('tags=friendly&tags=friendly', $request->url());
+        self::assertStringNotContainsString('tags%5B0%5D', $request->url());
+        self::assertSame(['friendly', 'friendly'], $request->toPsr7()->getQueryParams()['tags']);
+    }
+
     public function testWithHeaderAddsHeader(): void
     {
         $request = FakeRequest::for($this->schema, 'listPets');
