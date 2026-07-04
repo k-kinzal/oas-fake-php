@@ -8,7 +8,6 @@ use Closure;
 use League\OpenAPIValidation\PSR7\OperationAddress;
 use LogicException;
 use OasFake\Exception\ReplayMismatchError;
-use OasFake\Exception\ValidationException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -142,11 +141,10 @@ final class Interceptor
 
     private function respondTo(ServerRequestInterface $psrRequest): ResponseInterface
     {
-        $operation = $this->resolveOperation($psrRequest);
-
         $path = $this->operationPathResolver->resolve($this->schema, $psrRequest);
         $method = $psrRequest->getMethod();
         $operationInfo = $this->operationLookup->findByRequestPathAndMethod($path, $method);
+        $operation = $this->resolveOperation($psrRequest, $operationInfo);
         $response = $this->operationResponder->respond($psrRequest, $path, $method, $operationInfo);
 
         if ($this->validateResponses && $operation !== null) {
@@ -171,7 +169,9 @@ final class Interceptor
     public function replay(VcrRequest $request): VcrResponse
     {
         $psrRequest = $this->converter->requestToPsr7($request);
-        $operation = $this->resolveOperation($psrRequest);
+        $path = $this->operationPathResolver->resolve($this->schema, $psrRequest);
+        $operationInfo = $this->operationLookup->findByRequestPathAndMethod($path, $psrRequest->getMethod());
+        $operation = $this->resolveOperation($psrRequest, $operationInfo);
         $response = $this->converter->vcrResponseToPsr7($this->playback($request));
         $response = $this->middlewarePipeline->process($psrRequest, $response);
 
@@ -204,17 +204,17 @@ final class Interceptor
         return $response;
     }
 
-    private function resolveOperation(ServerRequestInterface $request): ?OperationAddress
+    private function resolveOperation(ServerRequestInterface $request, ?OperationInfo $operationInfo): ?OperationAddress
     {
         if ($this->validateRequests) {
             return $this->validator->validateRequest($request);
         }
 
-        try {
-            return $this->validator->validateRequest($request);
-        } catch (ValidationException) {
+        if ($operationInfo === null) {
             return null;
         }
+
+        return new OperationAddress($operationInfo->pathPattern, $operationInfo->method);
     }
 
     /**

@@ -158,6 +158,17 @@ final class InterceptorTest extends TestCase
         $interceptor->handle($vcrRequest);
     }
 
+    public function testHandleValidatesResponseWhenRequestValidationDisabled(): void
+    {
+        $this->handlers->forOperation('listPets', Handler::response(200, ['not' => 'an array']));
+        $interceptor = $this->createInterceptor(validateRequests: false, validateResponses: true);
+        $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets?limit=invalid', []);
+
+        $this->expectException(ValidationException::class);
+
+        $interceptor->handle($vcrRequest);
+    }
+
     public function testHandleReturns500WhenOperationCannotBeResolved(): void
     {
         $interceptor = $this->createInterceptor(validateRequests: false, validateResponses: false);
