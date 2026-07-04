@@ -32,10 +32,15 @@ final class Schema
             throw SchemaNotFoundException::forPath($path);
         }
 
-        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $resolvedPath = realpath($path);
+        if ($resolvedPath === false) {
+            throw SchemaNotFoundException::forPath($path);
+        }
+
+        $ext = strtolower(pathinfo($resolvedPath, PATHINFO_EXTENSION));
         $openApi = $ext === 'json'
-            ? Reader::readFromJsonFile($path, OpenApi::class, true)
-            : Reader::readFromYamlFile($path, OpenApi::class, true);
+            ? Reader::readFromJsonFile($resolvedPath, OpenApi::class, true)
+            : Reader::readFromYamlFile($resolvedPath, OpenApi::class, true);
 
         return new self($openApi);
     }

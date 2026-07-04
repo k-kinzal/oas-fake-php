@@ -28,6 +28,14 @@ final class SchemaTest extends TestCase
         self::assertSame('Petstore API', $schema->openApi()->info->title);
     }
 
+    public function testFromFileLoadsRelativePath(): void
+    {
+        $schema = Schema::fromFile('tests/Fixtures/openapi/petstore.yaml');
+
+        self::assertInstanceOf(OpenApi::class, $schema->openApi());
+        self::assertSame('Petstore API', $schema->openApi()->info->title);
+    }
+
     public function testFromFileThrowsForNonExistentFile(): void
     {
         $this->expectException(SchemaNotFoundException::class);
