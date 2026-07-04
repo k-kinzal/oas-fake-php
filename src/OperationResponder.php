@@ -19,12 +19,11 @@ use Psr\Http\Message\ServerRequestInterface;
 final class OperationResponder
 {
     /**
-     * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $fakerOptions
+     * Create a responder backed by the shared fake-data context.
      */
     public function __construct(
-        private Schema $schema,
+        private FakeDataContext $fakeDataContext,
         private HandlerMap $handlers,
-        private array $fakerOptions,
     ) {
     }
 
@@ -44,7 +43,7 @@ final class OperationResponder
         if ($handler !== null) {
             $fakerDefault = null;
             if ($operationInfo !== null && $this->hasResponseBody($operationInfo)) {
-                $fakerDefault = FakeResponse::generateResponse($this->schema, $operationInfo->pathPattern, $method, $statusCode, $this->fakerOptions);
+                $fakerDefault = FakeResponse::generateResponse($this->fakeDataContext, $operationInfo->pathPattern, $method, $statusCode);
             }
 
             return $handler->resolve($request, $fakerDefault);
@@ -52,7 +51,7 @@ final class OperationResponder
 
         if ($operationInfo !== null) {
             if ($this->hasResponseBody($operationInfo)) {
-                return FakeResponse::generateResponse($this->schema, $operationInfo->pathPattern, $method, $statusCode, $this->fakerOptions);
+                return FakeResponse::generateResponse($this->fakeDataContext, $operationInfo->pathPattern, $method, $statusCode);
             }
 
             return new Response($statusCode);

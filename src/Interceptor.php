@@ -62,9 +62,10 @@ final class Interceptor
     ) {
         $this->mode = Mode::from($mode);
         $this->converter = new Converter();
-        $this->operationLookup = new OperationLookup($schema);
+        $fakeDataContext = new FakeDataContext($schema, $fakerOptions);
+        $this->operationLookup = $fakeDataContext->operationLookup();
         $this->operationPathResolver = new OperationPathResolver();
-        $this->operationResponder = new OperationResponder($schema, $handlers, $fakerOptions);
+        $this->operationResponder = new OperationResponder($fakeDataContext, $handlers);
         $this->middlewarePipeline = new MiddlewarePipeline($middleware);
     }
 

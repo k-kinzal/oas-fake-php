@@ -16,10 +16,6 @@ use const JSON_THROW_ON_ERROR;
 use OasFake\Exception\OperationNotFoundException;
 use Psr\Http\Message\ResponseInterface;
 
-use function strtoupper;
-
-use Vural\OpenAPIFaker\OpenAPIFaker;
-
 /**
  * Generates fake HTTP responses from an OpenAPI schema definition.
  */
@@ -38,18 +34,17 @@ final class FakeResponse
     /**
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      */
-    public static function for(Server|Schema $source, string $operationId, ?int $statusCode = null, array $options = []): self
+    public static function for(Server|Schema|FakeDataContext $source, string $operationId, ?int $statusCode = null, array $options = []): self
     {
-        [$schema, $fakerOptions] = self::resolveSource($source, $options);
-        $lookup = new OperationLookup($schema);
-        $info = $lookup->findByOperationId($operationId);
+        $context = self::resolveSource($source, $options);
+        $info = $context->operationLookup()->findByOperationId($operationId);
 
         if ($info === null) {
             throw OperationNotFoundException::forOperationId($operationId);
         }
 
         $statusCode ??= self::defaultStatusCode($info);
-        $response = self::generateResponse($schema, $info->pathPattern, $info->method, $statusCode, $fakerOptions);
+        $response = self::generateResponse($context, $info->pathPattern, $info->method, $statusCode);
 
         return self::fromPsr7($response);
     }
@@ -57,18 +52,17 @@ final class FakeResponse
     /**
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      */
-    public static function forPath(Server|Schema $source, string $path, string $method, ?int $statusCode = null, array $options = []): self
+    public static function forPath(Server|Schema|FakeDataContext $source, string $path, string $method, ?int $statusCode = null, array $options = []): self
     {
-        [$schema, $fakerOptions] = self::resolveSource($source, $options);
-        $lookup = new OperationLookup($schema);
-        $info = $lookup->findByPathAndMethod($path, $method);
+        $context = self::resolveSource($source, $options);
+        $info = $context->operationLookup()->findByPathAndMethod($path, $method);
 
         if ($info === null) {
             throw OperationNotFoundException::forPathAndMethod($path, $method);
         }
 
         $statusCode ??= self::defaultStatusCode($info);
-        $response = self::generateResponse($schema, $info->pathPattern, $info->method, $statusCode, $fakerOptions);
+        $response = self::generateResponse($context, $info->pathPattern, $info->method, $statusCode);
 
         return self::fromPsr7($response);
     }
@@ -130,15 +124,10 @@ final class FakeResponse
     /**
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      */
-    public static function generateResponse(Schema $schema, string $path, string $method, int $statusCode = 200, array $options = []): ResponseInterface
+    public static function generateResponse(Schema|FakeDataContext $source, string $path, string $method, int $statusCode = 200, array $options = []): ResponseInterface
     {
-        $openApiFaker = OpenAPIFaker::createFromSchema($schema->openApi());
-
-        if ($options !== []) {
-            $openApiFaker->setOptions($options);
-        }
-
-        $fakeData = $openApiFaker->mockResponse($path, strtoupper($method), (string) $statusCode);
+        $context = $source instanceof FakeDataContext ? $source : new FakeDataContext($source, $options);
+        $fakeData = $context->mockResponse($path, $method, $statusCode);
 
         return self::buildResponse($fakeData, $statusCode);
     }
@@ -188,18 +177,20 @@ final class FakeResponse
 
     /**
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
-     *
-     * @return array{Schema, array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int}}
      */
-    private static function resolveSource(Server|Schema $source, array $options): array
+    private static function resolveSource(Server|Schema|FakeDataContext $source, array $options): FakeDataContext
     {
+        if ($source instanceof FakeDataContext) {
+            return $source;
+        }
+
         if ($source instanceof Server) {
             $schema = $source->schema();
             $fakerOptions = $options !== [] ? $options : $source->fakerOptions();
 
-            return [$schema, $fakerOptions];
+            return new FakeDataContext($schema, $fakerOptions);
         }
 
-        return [$source, $options];
+        return new FakeDataContext($source, $options);
     }
 }

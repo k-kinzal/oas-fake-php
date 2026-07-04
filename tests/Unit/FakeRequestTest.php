@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OasFake\Tests\Unit;
 
 use OasFake\Exception\OperationNotFoundException;
+use OasFake\FakeDataContext;
 use OasFake\FakeRequest;
 use OasFake\Schema;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -28,6 +29,14 @@ final class FakeRequestTest extends TestCase
         self::assertSame('GET', $request->method());
         self::assertStringStartsWith('https://api.petstore.example.com/pets', $request->url());
         self::assertNull($request->body());
+    }
+
+    public function testForAcceptsFakeDataContext(): void
+    {
+        $request = FakeRequest::for(new FakeDataContext($this->schema), 'listPets');
+
+        self::assertSame('GET', $request->method());
+        self::assertStringStartsWith('https://api.petstore.example.com/pets', $request->url());
     }
 
     public function testForCreatesRequestWithPathParams(): void

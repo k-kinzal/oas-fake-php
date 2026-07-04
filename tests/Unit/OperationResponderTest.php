@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OasFake\Tests\Unit;
 
 use GuzzleHttp\Psr7\ServerRequest;
+use OasFake\FakeDataContext;
 use OasFake\Handler;
 use OasFake\HandlerMap;
 use OasFake\OperationLookup;
@@ -23,7 +24,7 @@ final class OperationResponderTest extends TestCase
         $handlers = new HandlerMap();
         $handlers->forOperation('listPets', Handler::response(200, [['id' => 1, 'name' => 'Handled']]));
 
-        $response = (new OperationResponder($schema, $handlers, []))->respond(
+        $response = (new OperationResponder(new FakeDataContext($schema), $handlers))->respond(
             new ServerRequest('GET', 'https://api.petstore.example.com/pets'),
             '/pets',
             'GET',
@@ -38,7 +39,7 @@ final class OperationResponderTest extends TestCase
     {
         $schema = Schema::fromFile(__DIR__ . '/../Fixtures/openapi/petstore.yaml');
 
-        $response = (new OperationResponder($schema, new HandlerMap(), []))->respond(
+        $response = (new OperationResponder(new FakeDataContext($schema), new HandlerMap()))->respond(
             new ServerRequest('GET', 'https://api.petstore.example.com/unknown'),
             '/unknown',
             'GET',

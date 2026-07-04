@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OasFake\Tests\Unit;
 
 use OasFake\Exception\OperationNotFoundException;
+use OasFake\FakeDataContext;
 use OasFake\FakeResponse;
 use OasFake\Schema;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -30,6 +31,14 @@ final class FakeResponseTest extends TestCase
 
         $data = $response->json();
         self::assertIsArray($data);
+    }
+
+    public function testForAcceptsFakeDataContext(): void
+    {
+        $response = FakeResponse::for(new FakeDataContext($this->schema), 'listPets');
+
+        self::assertSame(200, $response->statusCode());
+        self::assertIsArray($response->json());
     }
 
     public function testForWithCustomStatusCode(): void
@@ -157,6 +166,14 @@ final class FakeResponseTest extends TestCase
     public function testGenerateResponseStaticMethod(): void
     {
         $psr7 = FakeResponse::generateResponse($this->schema, '/pets', 'GET', 200);
+
+        self::assertInstanceOf(ResponseInterface::class, $psr7);
+        self::assertSame(200, $psr7->getStatusCode());
+    }
+
+    public function testGenerateResponseAcceptsFakeDataContext(): void
+    {
+        $psr7 = FakeResponse::generateResponse(new FakeDataContext($this->schema), '/pets', 'GET', 200);
 
         self::assertInstanceOf(ResponseInterface::class, $psr7);
         self::assertSame(200, $psr7->getStatusCode());
