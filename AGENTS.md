@@ -28,7 +28,7 @@ ParameterFaker     # Generates fake path/query/header parameters
 
 Request flow: VCR intercept → Converter → Validator → HandlerMap → Handler/FakeResponse → Middleware → Validator → Converter → VCR response.
 
-Modes: `FAKE` (generate from schema), `RECORD` (capture real responses), `REPLAY` (playback from cassettes).
+Modes: `FAKE` (generate from schema), `RECORD` (generate responses and save them to cassettes), `REPLAY` (playback from cassettes).
 
 ## Public API
 
