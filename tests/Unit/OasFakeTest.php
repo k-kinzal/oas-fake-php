@@ -108,4 +108,43 @@ final class OasFakeTest extends TestCase
         OasFake::start($server2);
         OasFake::stop();
     }
+
+    public function testStartingSameServerClassTwiceKeepsFirstInstanceRegistered(): void
+    {
+        $server1 = new SameClassStartServer();
+        $server2 = new SameClassStartServer();
+
+        OasFake::start($server1);
+        OasFake::start($server2);
+
+        self::assertFalse($server1->stopped);
+        self::assertFalse($server2->stopped);
+
+        OasFake::stop();
+
+        self::assertTrue($server1->stopped);
+        self::assertTrue($server2->stopped);
+    }
+}
+
+class SameClassStartServer extends Server
+{
+    public bool $stopped = false;
+
+    public function buildInterceptor(): void
+    {
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function serverUrls(): array
+    {
+        return [];
+    }
+
+    public function stop(): void
+    {
+        $this->stopped = true;
+    }
 }

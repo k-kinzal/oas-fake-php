@@ -177,7 +177,63 @@ final class ServerRegistry
             return true;
         }
 
-        return str_starts_with($requestUrl, $baseUrl);
+        $request = parse_url($requestUrl);
+        $base = parse_url($baseUrl);
+        if (!is_array($request) || !is_array($base)) {
+            return false;
+        }
+
+        if (isset($base['scheme']) && strtolower((string) ($request['scheme'] ?? '')) !== strtolower((string) $base['scheme'])) {
+            return false;
+        }
+
+        if (isset($base['host']) && strtolower((string) ($request['host'] ?? '')) !== strtolower((string) $base['host'])) {
+            return false;
+        }
+
+        $basePort = $this->effectivePort($base);
+        if ($basePort !== null && $this->effectivePort($request) !== $basePort) {
+            return false;
+        }
+
+        return $this->pathPrefixMatches((string) ($request['path'] ?? '/'), (string) ($base['path'] ?? '/'));
+    }
+
+    /**
+     * @param array{scheme?: string, host?: string, port?: int|string, path?: string} $url
+     */
+    private function effectivePort(array $url): ?int
+    {
+        if (isset($url['port'])) {
+            return (int) $url['port'];
+        }
+
+        return match (strtolower((string) ($url['scheme'] ?? ''))) {
+            'http' => 80,
+            'https' => 443,
+            default => null,
+        };
+    }
+
+    private function pathPrefixMatches(string $requestPath, string $basePath): bool
+    {
+        $normalizedRequest = $this->normalizePath($requestPath);
+        $normalizedBase = $this->normalizePath($basePath);
+
+        if ($normalizedBase === '/') {
+            return true;
+        }
+
+        return $normalizedRequest === $normalizedBase
+            || str_starts_with($normalizedRequest, $normalizedBase . '/');
+    }
+
+    private function normalizePath(string $path): string
+    {
+        $normalized = '/' . ltrim($path, '/');
+        $normalized = rtrim($normalized, '/');
+
+        return $normalized === '' ? '/' : $normalized;
     }
 
     private function ensureVcrActive(): void
