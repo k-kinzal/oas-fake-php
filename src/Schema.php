@@ -6,6 +6,12 @@ namespace OasFake;
 
 use cebe\openapi\Reader;
 use cebe\openapi\spec\OpenApi;
+use cebe\openapi\spec\Operation;
+use cebe\openapi\spec\PathItem;
+use cebe\openapi\spec\Server as CebeServer;
+
+use function is_string;
+
 use OasFake\Exception\SchemaNotFoundException;
 
 /**
@@ -79,23 +85,81 @@ final class Schema
     }
 
     /**
-     * Return the server URLs defined in the schema, with variables substituted.
+     * Return the effective server URLs used by operations, with variables substituted.
      *
      * @return list<string>
      */
     public function serverUrls(): array
     {
         $urls = [];
-        if ($this->openApi->servers !== null) {
-            foreach ($this->openApi->servers as $server) {
-                $url = $server->url;
-                if ($server->variables !== null) {
-                    foreach ($server->variables as $name => $variable) {
-                        $url = str_replace('{' . $name . '}', $variable->default, $url);
+
+        if ($this->openApi->paths !== null) {
+            /** @var PathItem $pathItem */
+            foreach ($this->openApi->paths as $path => $pathItem) {
+                if (!is_string($path)) {
+                    continue;
+                }
+
+                foreach ($pathItem->getOperations() as $operation) {
+                    foreach ($this->effectiveServerUrls($pathItem, $operation) as $url) {
+                        $urls[$url] = true;
                     }
                 }
-                $urls[] = $url;
             }
+        }
+
+        if ($urls === []) {
+            return $this->effectiveServerUrls();
+        }
+
+        return array_keys($urls);
+    }
+
+    /**
+     * Return the server URLs that apply to one operation.
+     *
+     * Operation-level servers override path-level servers, which override root-level servers.
+     *
+     * @return list<string>
+     */
+    public function effectiveServerUrls(?PathItem $pathItem = null, ?Operation $operation = null): array
+    {
+        if ($operation !== null && $operation->servers !== null && $operation->servers !== []) {
+            return $this->resolveServerUrls($operation->servers);
+        }
+
+        if ($pathItem !== null && $pathItem->servers !== null && $pathItem->servers !== []) {
+            return $this->resolveServerUrls($pathItem->servers);
+        }
+
+        if ($this->openApi->servers !== null && $this->openApi->servers !== []) {
+            return $this->resolveServerUrls($this->openApi->servers);
+        }
+
+        return ['/'];
+    }
+
+    /**
+     * @param array<int|string, CebeServer> $servers
+     *
+     * @return list<string>
+     */
+    private function resolveServerUrls(array $servers): array
+    {
+        $urls = [];
+
+        foreach ($servers as $server) {
+            if (!$server instanceof CebeServer) {
+                continue;
+            }
+
+            $url = $server->url;
+            if ($server->variables !== null) {
+                foreach ($server->variables as $name => $variable) {
+                    $url = str_replace('{' . $name . '}', $variable->default, $url);
+                }
+            }
+            $urls[] = $url;
         }
 
         return $urls === [] ? ['/'] : $urls;

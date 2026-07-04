@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace OasFake;
 
+use function in_array;
+
 use League\OpenAPIValidation\PSR7\OperationAddress;
 use LogicException;
 use OasFake\Exception\ReplayMismatchError;
@@ -126,9 +128,13 @@ final class Interceptor
 
         $operation = $this->resolveOperation($psrRequest);
 
-        $path = $this->operationPathResolver->resolve($this->schema, $psrRequest);
+        $resolvedPath = $this->operationPathResolver->resolveWithServerUrl($this->schema, $psrRequest);
+        $path = $resolvedPath['path'];
         $method = $psrRequest->getMethod();
         $operationInfo = $this->operationLookup->findByRequestPathAndMethod($path, $method);
+        if ($operationInfo !== null && !$this->operationMatchesServer($operationInfo, $resolvedPath['serverUrl'])) {
+            $operationInfo = null;
+        }
         $response = $this->operationResponder->respond($psrRequest, $path, $method, $operationInfo);
         $response = $this->middlewarePipeline->process($psrRequest, $response);
 
@@ -169,6 +175,11 @@ final class Interceptor
         }
 
         return $this->converter->psr7ToVcrResponse($response);
+    }
+
+    private function operationMatchesServer(OperationInfo $operationInfo, ?string $serverUrl): bool
+    {
+        return $serverUrl === null || in_array($serverUrl, $operationInfo->serverUrls, true);
     }
 
     private function playback(VcrRequest $request): VcrResponse

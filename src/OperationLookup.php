@@ -113,6 +113,7 @@ final class OperationLookup
 
                 $mergedParams = $this->mergeParameters($pathLevelParams, $this->extractOperationParameters($operation));
                 $operationId = $operation->operationId ?? '';
+                $serverUrls = $schema->effectiveServerUrls($pathItem, $operation);
 
                 $info = new OperationInfo(
                     pathPattern: $pathPattern,
@@ -120,6 +121,7 @@ final class OperationLookup
                     operationId: $operationId,
                     operation: $operation,
                     parameters: $mergedParams,
+                    serverUrls: $serverUrls,
                 );
 
                 if ($operationId !== '') {

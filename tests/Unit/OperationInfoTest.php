@@ -31,5 +31,6 @@ final class OperationInfoTest extends TestCase
         self::assertSame('getPetById', $info->operationId);
         self::assertSame($operation, $info->operation);
         self::assertSame([$parameter], $info->parameters);
+        self::assertSame(['/'], $info->serverUrls);
     }
 }

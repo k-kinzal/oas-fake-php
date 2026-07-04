@@ -254,8 +254,7 @@ final class FakeRequest
             }
         }
 
-        $serverUrls = $context->schema()->serverUrls();
-        $baseUrl = $serverUrls[0] ?? '/';
+        $baseUrl = $info->serverUrls[0] ?? '/';
 
         return new self(
             method: $info->method,

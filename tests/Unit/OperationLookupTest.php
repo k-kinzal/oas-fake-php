@@ -101,6 +101,35 @@ final class OperationLookupTest extends TestCase
         self::assertSame('listPets', $info->operationId);
     }
 
+    public function testOperationInfoIncludesEffectiveServerUrls(): void
+    {
+        $schema = Schema::fromString(<<<'YAML'
+            openapi: 3.0.0
+            info:
+              title: Operation Server API
+              version: 1.0.0
+            servers:
+              - url: https://root.example.com
+            paths:
+              /pets:
+                servers:
+                  - url: https://path.example.com/v1
+                get:
+                  operationId: listPets
+                  servers:
+                    - url: https://operation.example.com/v2
+                  responses:
+                    '200':
+                      description: OK
+            YAML);
+
+        $lookup = new OperationLookup($schema);
+        $info = $lookup->findByOperationId('listPets');
+
+        self::assertNotNull($info);
+        self::assertSame(['https://operation.example.com/v2'], $info->serverUrls);
+    }
+
     public function testSchemaWithNoPaths(): void
     {
         $schema = Schema::fromString(<<<'YAML'

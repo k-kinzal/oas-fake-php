@@ -14,6 +14,7 @@ final class OperationInfo
 {
     /**
      * @param list<Parameter> $parameters
+     * @param list<string> $serverUrls
      */
     public function __construct(
         public string $pathPattern,
@@ -21,6 +22,7 @@ final class OperationInfo
         public string $operationId,
         public Operation $operation,
         public array $parameters,
+        public array $serverUrls = ['/'],
     ) {
     }
 }
