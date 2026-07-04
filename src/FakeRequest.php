@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace OasFake;
 
+use GuzzleHttp\Psr7\Query;
 use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Uri;
 
-use function http_build_query;
 use function is_array;
 use function json_encode;
 
@@ -28,7 +28,7 @@ final class FakeRequest
 {
     /**
      * @param array<string, string> $pathParams
-     * @param array<string, string> $queryParams
+     * @param array<string, list<string>|string> $queryParams
      * @param array<string, string> $headerParams
      */
     private function __construct(
@@ -95,7 +95,7 @@ final class FakeRequest
         $url = rtrim($this->baseUrl, '/') . $path;
 
         if ($this->queryParams !== []) {
-            $url .= '?' . http_build_query($this->queryParams);
+            $url .= '?' . Query::build($this->queryParams);
         }
 
         return $url;
@@ -132,7 +132,7 @@ final class FakeRequest
     /**
      * Return the query parameters.
      *
-     * @return array<string, string>
+     * @return array<string, list<string>|string>
      */
     public function queryParams(): array
     {
