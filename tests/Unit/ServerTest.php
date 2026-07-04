@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
+use LogicException;
 use OasFake\Handler;
 use OasFake\Mode;
 use OasFake\Route;
@@ -194,6 +195,51 @@ final class ServerTest extends TestCase
             $server->buildInterceptor();
 
             self::assertTrue($server->isRunning());
+        } finally {
+            $server->stop();
+        }
+    }
+
+    public function testConfigurationCannotChangeWhileRunning(): void
+    {
+        $server = (new Server())
+            ->withSchema($this->petstorePath)
+            ->withRequestValidation(false)
+            ->withResponseValidation(false);
+
+        $middleware = new class () implements MiddlewareInterface {
+            public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+            {
+                return $handler->handle($request);
+            }
+        };
+
+        try {
+            $server->buildInterceptor();
+
+            $cases = [
+                'schema' => static fn () => $server->withSchema(__DIR__ . '/../Fixtures/openapi/bookstore.yaml'),
+                'mode' => static fn () => $server->withMode(Mode::RECORD),
+                'cassettePath' => static fn () => $server->withCassettePath('/tmp/other-cassettes'),
+                'requestValidation' => static fn () => $server->withRequestValidation(true),
+                'responseValidation' => static fn () => $server->withResponseValidation(true),
+                'fakerOptions' => static fn () => $server->withFakerOptions(['alwaysFakeOptionals' => true]),
+                'middleware' => static fn () => $server->withMiddleware($middleware),
+                'handler' => static fn () => $server->withHandler('deletePet', Handler::status(204)),
+                'response' => static fn () => $server->withResponse('listPets', 200, []),
+                'callback' => static fn () => $server->withCallback('listPets', static fn (): ResponseInterface => new \GuzzleHttp\Psr7\Response(200)),
+                'pathResponse' => static fn () => $server->withPathResponse('/pets', 'GET', 200, []),
+                'pathCallback' => static fn () => $server->withPathCallback('/pets', 'GET', static fn (): ResponseInterface => new \GuzzleHttp\Psr7\Response(200)),
+            ];
+
+            foreach ($cases as $name => $mutate) {
+                try {
+                    $mutate();
+                    self::fail(sprintf('Expected LogicException for %s mutation while running.', $name));
+                } catch (LogicException $e) {
+                    self::assertStringContainsString('Cannot change server configuration while the server is running', $e->getMessage());
+                }
+            }
         } finally {
             $server->stop();
         }
