@@ -38,7 +38,7 @@ final class FakeResponse
     /**
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      */
-    public static function for(Server|Schema $source, string $operationId, int $statusCode = 200, array $options = []): self
+    public static function for(Server|Schema $source, string $operationId, ?int $statusCode = null, array $options = []): self
     {
         [$schema, $fakerOptions] = self::resolveSource($source, $options);
         $lookup = new OperationLookup($schema);
@@ -48,6 +48,7 @@ final class FakeResponse
             throw OperationNotFoundException::forOperationId($operationId);
         }
 
+        $statusCode ??= self::defaultStatusCode($info);
         $response = self::generateResponse($schema, $info->pathPattern, $info->method, $statusCode, $fakerOptions);
 
         return self::fromPsr7($response);
@@ -56,11 +57,18 @@ final class FakeResponse
     /**
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      */
-    public static function forPath(Server|Schema $source, string $path, string $method, int $statusCode = 200, array $options = []): self
+    public static function forPath(Server|Schema $source, string $path, string $method, ?int $statusCode = null, array $options = []): self
     {
         [$schema, $fakerOptions] = self::resolveSource($source, $options);
+        $lookup = new OperationLookup($schema);
+        $info = $lookup->findByPathAndMethod($path, $method);
 
-        $response = self::generateResponse($schema, $path, $method, $statusCode, $fakerOptions);
+        if ($info === null) {
+            throw OperationNotFoundException::forPathAndMethod($path, $method);
+        }
+
+        $statusCode ??= self::defaultStatusCode($info);
+        $response = self::generateResponse($schema, $info->pathPattern, $info->method, $statusCode, $fakerOptions);
 
         return self::fromPsr7($response);
     }
@@ -158,6 +166,24 @@ final class FakeResponse
             $headers,
             (string) $response->getBody(),
         );
+    }
+
+    private static function defaultStatusCode(OperationInfo $operationInfo): int
+    {
+        if ($operationInfo->operation->responses !== null) {
+            foreach ($operationInfo->operation->responses as $code => $response) {
+                if (!is_int($code) && !is_string($code)) {
+                    continue;
+                }
+
+                $numericCode = (int) $code;
+                if ($numericCode >= 200 && $numericCode < 300) {
+                    return $numericCode;
+                }
+            }
+        }
+
+        return 200;
     }
 
     /**

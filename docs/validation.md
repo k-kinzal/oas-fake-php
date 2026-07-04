@@ -144,7 +144,7 @@ $array = $request->toArray();  // ['method' => ..., 'url' => ..., 'headers' => .
 ```php
 use OasFake\FakeResponse;
 
-// By operation ID (default status 200)
+// By operation ID (default: first 2xx response status)
 $response = FakeResponse::for($server, 'listPets');
 $response = FakeResponse::for($schema, 'listPets', 404);
 
