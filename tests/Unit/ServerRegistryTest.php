@@ -132,4 +132,34 @@ final class ServerRegistryTest extends TestCase
 
         self::assertSame(502, $response->getStatusCode());
     }
+
+    public function testDispatchDoesNotMatchSimilarHostPrefix(): void
+    {
+        $server = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false);
+
+        $this->registry->register('PetServer', $server);
+
+        $request = new VcrRequest('GET', 'https://api.petstore.example.com.evil/pets', []);
+        $response = $this->registry->dispatch($request);
+
+        self::assertSame(502, $response->getStatusCode());
+    }
+
+    public function testDispatchDoesNotMatchPathPrefixWithoutSegmentBoundary(): void
+    {
+        $server = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/versioned-petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false);
+
+        $this->registry->register('VersionedServer', $server);
+
+        $request = new VcrRequest('GET', 'https://api.versioned.example.com/v10/pets', []);
+        $response = $this->registry->dispatch($request);
+
+        self::assertSame(502, $response->getStatusCode());
+    }
 }

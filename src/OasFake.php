@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OasFake;
 
 use function is_string;
+use function spl_object_id;
 
 /**
  * Main facade for starting and stopping fake API servers.
@@ -40,7 +41,7 @@ final class OasFake
             $server = $configure($server);
         }
 
-        self::registry()->register($server::class, $server);
+        self::registry()->register(self::serverKey($server), $server);
 
         return $server;
     }
@@ -58,5 +59,10 @@ final class OasFake
     private static function registry(): ServerRegistry
     {
         return self::$registry ??= new ServerRegistry();
+    }
+
+    private static function serverKey(Server $server): string
+    {
+        return $server::class . '#' . spl_object_id($server);
     }
 }
