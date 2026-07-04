@@ -23,7 +23,7 @@ final class ServerRegistry
     private array $servers = [];
 
     /**
-     * @var array<string, array{interceptor: Interceptor, mode: string}> key=baseUrl
+     * @var array<string, list<array{key: string, interceptor: Interceptor, mode: string}>> key=baseUrl
      */
     private array $interceptors = [];
 
@@ -59,7 +59,9 @@ final class ServerRegistry
         if ($interceptor !== null) {
             $mode = $server->resolveMode();
             foreach ($urls as $url) {
-                $this->interceptors[$url] = [
+                $this->interceptors[$url] ??= [];
+                $this->interceptors[$url][] = [
+                    'key' => $key,
                     'interceptor' => $interceptor,
                     'mode' => $mode,
                 ];
@@ -84,7 +86,7 @@ final class ServerRegistry
 
         if (isset($this->urlsByKey[$key])) {
             foreach ($this->urlsByKey[$key] as $url) {
-                unset($this->interceptors[$url]);
+                $this->removeInterceptorEntry($url, $key);
             }
             unset($this->urlsByKey[$key]);
         }
@@ -148,8 +150,13 @@ final class ServerRegistry
     {
         $url = $request->getUrl() ?? '';
 
-        foreach ($this->interceptors as $baseUrl => $entry) {
+        foreach ($this->interceptors as $baseUrl => $entries) {
             if (!$this->urlMatchesServer($url, $baseUrl)) {
+                continue;
+            }
+
+            $entry = $entries[count($entries) - 1] ?? null;
+            if ($entry === null) {
                 continue;
             }
 
@@ -169,6 +176,28 @@ final class ServerRegistry
                 (string) json_encode(['error' => 'No OasFake server registered for: ' . $url]),
             ),
         );
+    }
+
+    private function removeInterceptorEntry(string $url, string $key): void
+    {
+        if (!isset($this->interceptors[$url])) {
+            return;
+        }
+
+        $entries = [];
+        foreach ($this->interceptors[$url] as $entry) {
+            if ($entry['key'] !== $key) {
+                $entries[] = $entry;
+            }
+        }
+
+        if ($entries === []) {
+            unset($this->interceptors[$url]);
+
+            return;
+        }
+
+        $this->interceptors[$url] = $entries;
     }
 
     private function urlMatchesServer(string $requestUrl, string $baseUrl): bool

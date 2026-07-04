@@ -118,6 +118,80 @@ final class ServerRegistryTest extends TestCase
         self::assertStringContainsString('PHP in Action', $bookResponse->getBody());
     }
 
+    public function testDispatchUsesMostRecentServerForSameUrl(): void
+    {
+        $first = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false)
+            ->withResponse('listPets', 200, [['id' => 1, 'name' => 'First']]);
+
+        $second = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false)
+            ->withResponse('listPets', 200, [['id' => 2, 'name' => 'Second']]);
+
+        $this->registry->register('FirstServer', $first);
+        $this->registry->register('SecondServer', $second);
+
+        $request = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
+        $response = $this->registry->dispatch($request);
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertStringContainsString('Second', $response->getBody());
+    }
+
+    public function testUnregisterOlderServerKeepsNewerServerForSameUrl(): void
+    {
+        $first = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false)
+            ->withResponse('listPets', 200, [['id' => 1, 'name' => 'First']]);
+
+        $second = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false)
+            ->withResponse('listPets', 200, [['id' => 2, 'name' => 'Second']]);
+
+        $this->registry->register('FirstServer', $first);
+        $this->registry->register('SecondServer', $second);
+        $this->registry->unregister('FirstServer');
+
+        $request = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
+        $response = $this->registry->dispatch($request);
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertStringContainsString('Second', $response->getBody());
+    }
+
+    public function testUnregisterNewerServerRestoresOlderServerForSameUrl(): void
+    {
+        $first = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false)
+            ->withResponse('listPets', 200, [['id' => 1, 'name' => 'First']]);
+
+        $second = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false)
+            ->withResponse('listPets', 200, [['id' => 2, 'name' => 'Second']]);
+
+        $this->registry->register('FirstServer', $first);
+        $this->registry->register('SecondServer', $second);
+        $this->registry->unregister('SecondServer');
+
+        $request = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
+        $response = $this->registry->dispatch($request);
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertStringContainsString('First', $response->getBody());
+    }
+
     public function testDispatchReturns502ForUnknownUrl(): void
     {
         $server = (new Server())
