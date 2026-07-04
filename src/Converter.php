@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OasFake;
 
+use GuzzleHttp\Psr7\Query;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Uri;
@@ -42,8 +43,8 @@ final class Converter
 
         $queryString = $uri->getQuery();
         if ($queryString !== '') {
-            parse_str($queryString, $queryParams);
-            /** @var array<string, array<string>|string> $queryParams */
+            /** @var array<string, list<string|null>|string|null> $queryParams */
+            $queryParams = Query::parse($queryString);
             $request = $request->withQueryParams($queryParams);
         }
 
