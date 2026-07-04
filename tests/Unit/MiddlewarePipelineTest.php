@@ -25,6 +25,27 @@ final class MiddlewarePipelineTest extends TestCase
         self::assertSame($response, (new MiddlewarePipeline([]))->process($request, $response));
     }
 
+    public function testHandlePassesMiddlewareRequestToFinalHandler(): void
+    {
+        $middleware = new class () implements MiddlewareInterface {
+            public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+            {
+                return $handler->handle($request->withAttribute('rewritten', 'yes'));
+            }
+        };
+        $handler = new class () implements RequestHandlerInterface {
+            public function handle(ServerRequestInterface $request): ResponseInterface
+            {
+                return new Response(200, ['X-Rewritten' => (string) $request->getAttribute('rewritten')]);
+            }
+        };
+
+        $request = new ServerRequest('GET', '/pets');
+        $response = (new MiddlewarePipeline([$middleware]))->handle($request, $handler);
+
+        self::assertSame('yes', $response->getHeaderLine('X-Rewritten'));
+    }
+
     public function testProcessRunsMiddlewareInConfiguredOrder(): void
     {
         $first = new class () implements MiddlewareInterface {

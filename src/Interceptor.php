@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace OasFake;
 
+use Closure;
 use League\OpenAPIValidation\PSR7\OperationAddress;
 use LogicException;
 use OasFake\Exception\ReplayMismatchError;
 use OasFake\Exception\ValidationException;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use VCR\Cassette;
 use VCR\Configuration;
 use VCR\Request as VcrRequest;
@@ -123,18 +126,10 @@ final class Interceptor
     public function handle(VcrRequest $vcrRequest): VcrResponse
     {
         $psrRequest = $this->converter->requestToPsr7($vcrRequest);
-
-        $operation = $this->resolveOperation($psrRequest);
-
-        $path = $this->operationPathResolver->resolve($this->schema, $psrRequest);
-        $method = $psrRequest->getMethod();
-        $operationInfo = $this->operationLookup->findByRequestPathAndMethod($path, $method);
-        $response = $this->operationResponder->respond($psrRequest, $path, $method, $operationInfo);
-        $response = $this->middlewarePipeline->process($psrRequest, $response);
-
-        if ($this->validateResponses && $operation !== null) {
-            $this->validator->validateResponse($operation, $response);
-        }
+        $response = $this->middlewarePipeline->handle(
+            $psrRequest,
+            $this->requestHandler(fn (ServerRequestInterface $request): ResponseInterface => $this->respondTo($request)),
+        );
 
         $vcrResponse = $this->converter->psr7ToVcrResponse($response);
 
@@ -143,6 +138,22 @@ final class Interceptor
         }
 
         return $vcrResponse;
+    }
+
+    private function respondTo(ServerRequestInterface $psrRequest): ResponseInterface
+    {
+        $operation = $this->resolveOperation($psrRequest);
+
+        $path = $this->operationPathResolver->resolve($this->schema, $psrRequest);
+        $method = $psrRequest->getMethod();
+        $operationInfo = $this->operationLookup->findByRequestPathAndMethod($path, $method);
+        $response = $this->operationResponder->respond($psrRequest, $path, $method, $operationInfo);
+
+        if ($this->validateResponses && $operation !== null) {
+            $this->validator->validateResponse($operation, $response);
+        }
+
+        return $response;
     }
 
     /**
@@ -204,6 +215,32 @@ final class Interceptor
         } catch (ValidationException) {
             return null;
         }
+    }
+
+    /**
+     * @param callable(ServerRequestInterface): ResponseInterface $callback
+     */
+    private function requestHandler(callable $callback): RequestHandlerInterface
+    {
+        return new class ($callback) implements RequestHandlerInterface {
+            /**
+             * @var Closure(ServerRequestInterface): ResponseInterface
+             */
+            private Closure $callback;
+
+            /**
+             * @param callable(ServerRequestInterface): ResponseInterface $callback
+             */
+            public function __construct(callable $callback)
+            {
+                $this->callback = Closure::fromCallable($callback);
+            }
+
+            public function handle(ServerRequestInterface $request): ResponseInterface
+            {
+                return ($this->callback)($request);
+            }
+        };
     }
 
     private function initCassette(): void

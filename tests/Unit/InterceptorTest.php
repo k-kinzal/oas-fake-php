@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OasFake\Tests\Unit;
 
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Uri;
 use OasFake\Exception\ReplayMismatchError;
 use OasFake\Exception\ValidationException;
 use OasFake\Handler;
@@ -191,6 +192,28 @@ final class InterceptorTest extends TestCase
         $headers = $vcrResponse->getHeaders();
         self::assertArrayHasKey('X-Middleware', $headers);
         self::assertSame('applied', $headers['X-Middleware']);
+    }
+
+    public function testHandleLetsMiddlewareRewriteRequestBeforeOperationResolution(): void
+    {
+        $middleware = new class () implements MiddlewareInterface {
+            public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+            {
+                return $handler->handle($request->withUri(new Uri('https://api.petstore.example.com/pets')));
+            }
+        };
+
+        $interceptor = $this->createInterceptor(
+            validateRequests: false,
+            validateResponses: false,
+            middleware: [$middleware],
+        );
+        $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/rewritten', []);
+
+        $vcrResponse = $interceptor->handle($vcrRequest);
+
+        self::assertSame(200, $vcrResponse->getStatusCode());
+        self::assertIsArray(json_decode($vcrResponse->getBody() ?? '', true));
     }
 
     public function testHandleExecutesMiddlewareInCorrectOrder(): void
