@@ -28,19 +28,33 @@ final class Mode
 
     private const ENV_VAR = 'OAS_FAKE_MODE';
 
+    private function __construct(private string $value)
+    {
+    }
+
+    /**
+     * Return a normalized Mode instance from a string or existing Mode.
+     */
+    public static function from(string|self $value): self
+    {
+        if ($value instanceof self) {
+            return $value;
+        }
+
+        return self::fromString($value);
+    }
+
     /**
      * Resolve the mode from the OAS_FAKE_MODE environment variable.
      *
      * Falls back to FAKE if the variable is not set.
-     *
-     * @return string The resolved mode
      */
-    public static function fromEnvironment(): string
+    public static function fromEnvironment(): self
     {
         $value = getenv(self::ENV_VAR);
 
         if ($value === false || $value === '') {
-            return self::FAKE;
+            return new self(self::FAKE);
         }
 
         return self::fromString($value);
@@ -52,20 +66,42 @@ final class Mode
      * @param string $value The mode string (case-insensitive)
      *
      * @throws InvalidArgumentException If the value does not match a valid mode
-     *
-     * @return string The parsed mode
      */
-    public static function fromString(string $value): string
+    public static function fromString(string $value): self
     {
         $normalized = strtolower(trim($value));
 
         return match ($normalized) {
-            'fake' => self::FAKE,
-            'record' => self::RECORD,
-            'replay' => self::REPLAY,
+            'fake' => new self(self::FAKE),
+            'record' => new self(self::RECORD),
+            'replay' => new self(self::REPLAY),
             default => throw new InvalidArgumentException(
                 sprintf('Invalid mode "%s". Valid modes are: %s', $value, implode(', ', [self::FAKE, self::RECORD, self::REPLAY])),
             ),
         };
+    }
+
+    /**
+     * Return the canonical string value.
+     */
+    public function value(): string
+    {
+        return $this->value;
+    }
+
+    /**
+     * Check whether the mode records generated responses.
+     */
+    public function isRecord(): bool
+    {
+        return $this->value === self::RECORD;
+    }
+
+    /**
+     * Check whether the mode replays recorded responses.
+     */
+    public function isReplay(): bool
+    {
+        return $this->value === self::REPLAY;
     }
 }

@@ -17,7 +17,7 @@ OpenAPI schema-driven fake API server for PHP testing. Define your API contract 
 
 ## Public API Surface
 
-The primary user-facing entry points are `OasFake`, `Server`, `Schema`, `FakeRequest`, `FakeResponse`, `Handler`, `Route`, `Mode`, the documented exception types, and `Validator` for standalone validation. Pipeline and support classes such as `Interceptor`, `ServerRegistry`, `Converter`, `OperationLookup`, `HandlerMap`, and `ParameterFaker` are available under the same namespace for advanced use.
+The primary user-facing entry points are `OasFake`, `Server`, `Schema`, `FakeDataContext`, `FakeRequest`, `FakeResponse`, `Handler`, `Route`, `Mode`, the documented exception types, and `Validator` for standalone validation. Pipeline and support classes such as `Interceptor`, `ServerRegistry`, `Converter`, `OperationLookup`, `HandlerMap`, and `ParameterFaker` are available under the same namespace for advanced use.
 
 ## Requirements
 

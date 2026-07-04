@@ -104,7 +104,7 @@ $request = FakeRequest::forPath($server, '/pets/{petId}', 'GET');
 $request = FakeRequest::forPath($schema, '/pets', 'POST');
 ```
 
-The `$source` parameter accepts either a `Server` instance (uses its schema and faker options) or a `Schema` instance.
+The `$source` parameter accepts a `Server` instance (uses its schema and faker options), a `Schema` instance, or a reusable `FakeDataContext`.
 
 ### Fluent Overrides
 

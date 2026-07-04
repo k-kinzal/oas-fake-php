@@ -6,13 +6,7 @@ namespace OasFake;
 
 use LogicException;
 use OasFake\Exception\SchemaNotFoundException;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
-use ReflectionClass;
-use ReflectionMethod;
-use ReflectionNamedType;
-use ReflectionType;
 
 /**
  * Base server class providing fluent configuration, handler management, and lifecycle control.
@@ -41,7 +35,7 @@ class Server
     }
 
     private ?string $schema = null;
-    private ?string $mode = null;
+    private ?Mode $mode = null;
     private ?string $cassettePath = null;
     private ?bool $validateRequests = null;
     private ?bool $validateResponses = null;
@@ -66,7 +60,7 @@ class Server
     public function __construct()
     {
         $this->handlers = new HandlerMap();
-        $this->registerMethodHandlers();
+        (new DeclarativeHandlerRegistrar())->register($this, $this->handlers);
     }
 
     /**
@@ -85,12 +79,12 @@ class Server
     /**
      * Set the operating mode.
      *
-     * @param string $mode The mode to use (FAKE, RECORD, or REPLAY)
+     * @param Mode|string $mode The mode to use (FAKE, RECORD, or REPLAY)
      */
-    public function withMode(string $mode): static
+    public function withMode(string|Mode $mode): static
     {
         $this->assertNotRunning();
-        $this->mode = $mode;
+        $this->mode = Mode::from($mode);
 
         return $this;
     }
@@ -235,17 +229,7 @@ class Server
 
         $schema = $this->resolveSchema();
         $this->resolvedSchema = $schema;
-        $this->interceptor = new Interceptor(
-            mode: $this->resolveMode(),
-            cassettePath: $this->resolveCassettePath(),
-            schema: $schema,
-            validator: new Validator($schema),
-            fakerOptions: $this->resolveFakerOptions(),
-            handlers: $this->handlers,
-            validateRequests: $this->resolveValidateRequests(),
-            validateResponses: $this->resolveValidateResponses(),
-            middleware: $this->resolveMiddleware(),
-        );
+        $this->interceptor = (new InterceptorFactory())->create($this->options($schema), $this->handlers);
 
         $this->interceptor->start();
     }
@@ -331,7 +315,7 @@ class Server
     /**
      * Resolve the active mode from environment, fluent override, or static defaults.
      */
-    public function resolveMode(): string
+    public function resolveMode(): Mode
     {
         $env = getenv('OAS_FAKE_MODE');
         if ($env !== false && $env !== '') {
@@ -445,99 +429,16 @@ class Server
         return array_merge(static::middleware(), $this->additionalMiddleware);
     }
 
-    private function registerMethodHandlers(): void
+    private function options(Schema $schema): ServerOptions
     {
-        $reflection = new ReflectionClass($this);
-        $baseMethods = $this->getBaseMethods();
-
-        foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-            if ($method->isConstructor() || $method->isDestructor()) {
-                continue;
-            }
-
-            if ($method->isStatic()) {
-                continue;
-            }
-
-            if (in_array($method->getName(), $baseMethods, true)) {
-                continue;
-            }
-
-            $routeAttr = $this->getRouteAttribute($method);
-            if ($routeAttr === null && !$this->hasHandlerSignature($method)) {
-                continue;
-            }
-
-            $closure = $method->getClosure($this);
-            if ($closure === null) {
-                continue;
-            }
-
-            if ($routeAttr !== null) {
-                $this->handlers->forPath(
-                    $routeAttr->path,
-                    $routeAttr->method,
-                    Handler::callback($closure),
-                );
-            } else {
-                $this->handlers->forOperation(
-                    $method->getName(),
-                    Handler::callback($closure),
-                );
-            }
-        }
-    }
-
-    private function getRouteAttribute(ReflectionMethod $method): ?Route
-    {
-        $attributes = $method->getAttributes(Route::class);
-        if ($attributes === []) {
-            return null;
-        }
-
-        return $attributes[0]->newInstance();
-    }
-
-    private function hasHandlerSignature(ReflectionMethod $method): bool
-    {
-        $parameters = $method->getParameters();
-        if ($parameters === []) {
-            return false;
-        }
-
-        if (!$this->typeAllows($parameters[0]->getType(), ServerRequestInterface::class)) {
-            return false;
-        }
-
-        $returnType = $method->getReturnType();
-
-        return $returnType === null || $this->typeAllows($returnType, ResponseInterface::class);
-    }
-
-    private function typeAllows(?ReflectionType $type, string $expected): bool
-    {
-        if (!$type instanceof ReflectionNamedType || $type->isBuiltin()) {
-            return false;
-        }
-
-        return is_a($type->getName(), $expected, true);
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function getBaseMethods(): array
-    {
-        return [
-            'start', 'stop', 'isRunning',
-            'interceptor', 'serverUrls', 'resolveMode',
-            'schema', 'fakerOptions', 'buildInterceptor',
-            'registerInRegistry', 'unregisterFromRegistry',
-            'withSchema', 'withMode', 'withCassettePath',
-            'withRequestValidation', 'withResponseValidation',
-            'withFakerOptions', 'withMiddleware',
-            'withHandler', 'withResponse', 'withCallback',
-            'withPathResponse', 'withPathCallback',
-        ];
+        return new ServerOptions(
+            schema: $schema,
+            mode: $this->resolveMode(),
+            cassettePath: $this->resolveCassettePath(),
+            validateRequests: $this->resolveValidateRequests(),
+            validateResponses: $this->resolveValidateResponses(),
+            fakerOptions: $this->resolveFakerOptions(),
+            middleware: $this->resolveMiddleware(),
+        );
     }
 }

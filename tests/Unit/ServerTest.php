@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
+use InvalidArgumentException;
 use LogicException;
 use OasFake\Handler;
 use OasFake\Mode;
@@ -56,6 +57,24 @@ final class ServerTest extends TestCase
         $result = $server->withMode(Mode::RECORD);
 
         self::assertSame($server, $result);
+    }
+
+    public function testWithModeNormalizesFluentMode(): void
+    {
+        $server = new Server();
+
+        $server->withMode(' Record ');
+
+        self::assertSame(Mode::RECORD, $server->resolveMode()->value());
+    }
+
+    public function testWithModeRejectsInvalidMode(): void
+    {
+        $server = new Server();
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $server->withMode('invalid');
     }
 
     public function testWithCassettePathReturnsStatic(): void
@@ -370,7 +389,7 @@ final class ServerTest extends TestCase
         try {
             $server = (new Server())->withMode(Mode::FAKE);
 
-            self::assertSame(Mode::RECORD, $server->resolveMode());
+            self::assertSame(Mode::RECORD, $server->resolveMode()->value());
         } finally {
             putenv('OAS_FAKE_MODE');
         }

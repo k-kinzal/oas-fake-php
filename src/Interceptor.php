@@ -8,10 +8,8 @@ use League\OpenAPIValidation\PSR7\OperationAddress;
 use LogicException;
 use OasFake\Exception\ReplayMismatchError;
 use OasFake\Exception\ValidationException;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 use VCR\Cassette;
 use VCR\Configuration;
 use VCR\Request as VcrRequest;
@@ -30,11 +28,19 @@ final class Interceptor
 {
     private bool $running = false;
 
+    private Mode $mode;
+
     private Converter $converter;
 
     private ?Cassette $cassette = null;
 
     private OperationLookup $operationLookup;
+
+    private OperationPathResolver $operationPathResolver;
+
+    private OperationResponder $operationResponder;
+
+    private MiddlewarePipeline $middlewarePipeline;
 
     /** @var array<string, int> */
     private array $indexTable = [];
@@ -44,18 +50,23 @@ final class Interceptor
      * @param list<MiddlewareInterface> $middleware
      */
     public function __construct(
-        private string $mode,
+        string|Mode $mode,
         private string $cassettePath,
         private Schema $schema,
         private Validator $validator,
-        private array $fakerOptions,
-        private HandlerMap $handlers,
+        array $fakerOptions,
+        HandlerMap $handlers,
         private bool $validateRequests,
         private bool $validateResponses,
-        private array $middleware = [],
+        array $middleware = [],
     ) {
+        $this->mode = Mode::from($mode);
         $this->converter = new Converter();
-        $this->operationLookup = new OperationLookup($schema);
+        $fakeDataContext = new FakeDataContext($schema, $fakerOptions);
+        $this->operationLookup = $fakeDataContext->operationLookup();
+        $this->operationPathResolver = new OperationPathResolver();
+        $this->operationResponder = new OperationResponder($fakeDataContext, $handlers);
+        $this->middlewarePipeline = new MiddlewarePipeline($middleware);
     }
 
     /**
@@ -67,7 +78,7 @@ final class Interceptor
             return;
         }
 
-        if ($this->mode === Mode::RECORD || $this->mode === Mode::REPLAY) {
+        if ($this->mode->isRecord() || $this->mode->isReplay()) {
             $this->initCassette();
         }
 
@@ -115,34 +126,11 @@ final class Interceptor
 
         $operation = $this->resolveOperation($psrRequest);
 
-        $path = $this->operationPathForRequest($psrRequest);
+        $path = $this->operationPathResolver->resolve($this->schema, $psrRequest);
         $method = $psrRequest->getMethod();
         $operationInfo = $this->operationLookup->findByRequestPathAndMethod($path, $method);
-        $operationId = $operationInfo?->operationId;
-
-        $handler = $this->handlers->find($operationId ?? '', $path, $method, $operationInfo?->pathPattern);
-
-        $statusCode = $this->resolveStatusCode($operationInfo);
-
-        if ($handler !== null) {
-            $fakerDefault = null;
-            if ($operationInfo !== null && $this->hasResponseBody($operationInfo)) {
-                $fakerDefault = FakeResponse::generateResponse($this->schema, $operationInfo->pathPattern, $method, $statusCode, $this->fakerOptions);
-            }
-            $response = $handler->resolve($psrRequest, $fakerDefault);
-        } elseif ($operationInfo !== null) {
-            if ($this->hasResponseBody($operationInfo)) {
-                $response = FakeResponse::generateResponse($this->schema, $operationInfo->pathPattern, $method, $statusCode, $this->fakerOptions);
-            } else {
-                $response = new \GuzzleHttp\Psr7\Response($statusCode);
-            }
-        } else {
-            $response = new \GuzzleHttp\Psr7\Response(500, ['Content-Type' => 'application/json'], (string) json_encode([
-                'error' => 'Could not resolve operation from request',
-            ]));
-        }
-
-        $response = $this->runMiddleware($psrRequest, $response);
+        $response = $this->operationResponder->respond($psrRequest, $path, $method, $operationInfo);
+        $response = $this->middlewarePipeline->process($psrRequest, $response);
 
         if ($this->validateResponses && $operation !== null) {
             $this->validator->validateResponse($operation, $response);
@@ -150,7 +138,7 @@ final class Interceptor
 
         $vcrResponse = $this->converter->psr7ToVcrResponse($response);
 
-        if ($this->mode === Mode::RECORD) {
+        if ($this->mode->isRecord()) {
             $this->recordToCassette($vcrRequest, $vcrResponse);
         }
 
@@ -174,7 +162,7 @@ final class Interceptor
         $psrRequest = $this->converter->requestToPsr7($request);
         $operation = $this->resolveOperation($psrRequest);
         $response = $this->converter->vcrResponseToPsr7($this->playback($request));
-        $response = $this->runMiddleware($psrRequest, $response);
+        $response = $this->middlewarePipeline->process($psrRequest, $response);
 
         if ($this->validateResponses && $operation !== null) {
             $this->validator->validateResponse($operation, $response);
@@ -242,166 +230,5 @@ final class Interceptor
         }
 
         return ++$this->indexTable[$key];
-    }
-
-    private function hasResponseBody(OperationInfo $operationInfo): bool
-    {
-        if ($operationInfo->operation->responses !== null) {
-            foreach ($operationInfo->operation->responses as $code => $response) {
-                if (!is_int($code) && !is_string($code)) {
-                    continue;
-                }
-                $numericCode = (int) $code;
-                if ($numericCode >= 200 && $numericCode < 300) {
-                    return $response->content !== null && $response->content !== [];
-                }
-            }
-        }
-
-        return true;
-    }
-
-    private function resolveStatusCode(?OperationInfo $operationInfo): int
-    {
-        if ($operationInfo?->operation->responses !== null) {
-            foreach ($operationInfo->operation->responses as $code => $response) {
-                if (!is_int($code) && !is_string($code)) {
-                    continue;
-                }
-                $numericCode = (int) $code;
-                if ($numericCode >= 200 && $numericCode < 300) {
-                    return $numericCode;
-                }
-            }
-        }
-
-        return 200;
-    }
-
-    private function operationPathForRequest(ServerRequestInterface $request): string
-    {
-        $path = $this->normalizePath($request->getUri()->getPath());
-
-        foreach ($this->schema->serverUrls() as $serverUrl) {
-            $base = parse_url($serverUrl);
-            if (!is_array($base) || !$this->serverUrlMatchesRequest($request, $base)) {
-                continue;
-            }
-
-            $basePath = $this->normalizePath((string) ($base['path'] ?? '/'));
-            if ($basePath === '/') {
-                return $path;
-            }
-
-            if ($path === $basePath) {
-                return '/';
-            }
-
-            if (str_starts_with($path, $basePath . '/')) {
-                $operationPath = substr($path, strlen($basePath));
-
-                return $operationPath === '' ? '/' : $operationPath;
-            }
-        }
-
-        return $path;
-    }
-
-    /**
-     * @param array{scheme?: string, host?: string, port?: int|string, path?: string} $base
-     */
-    private function serverUrlMatchesRequest(ServerRequestInterface $request, array $base): bool
-    {
-        $uri = $request->getUri();
-
-        if (isset($base['scheme']) && strtolower($uri->getScheme()) !== strtolower((string) $base['scheme'])) {
-            return false;
-        }
-
-        if (isset($base['host']) && strtolower($uri->getHost()) !== strtolower((string) $base['host'])) {
-            return false;
-        }
-
-        $basePort = $this->effectivePort($base);
-        if ($basePort !== null && $this->effectiveRequestPort($request) !== $basePort) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @param array{scheme?: string, port?: int|string} $url
-     */
-    private function effectivePort(array $url): ?int
-    {
-        if (isset($url['port'])) {
-            return (int) $url['port'];
-        }
-
-        return match (strtolower((string) ($url['scheme'] ?? ''))) {
-            'http' => 80,
-            'https' => 443,
-            default => null,
-        };
-    }
-
-    private function effectiveRequestPort(ServerRequestInterface $request): ?int
-    {
-        $uri = $request->getUri();
-        if ($uri->getPort() !== null) {
-            return $uri->getPort();
-        }
-
-        return match (strtolower($uri->getScheme())) {
-            'http' => 80,
-            'https' => 443,
-            default => null,
-        };
-    }
-
-    private function normalizePath(string $path): string
-    {
-        $normalized = '/' . ltrim($path, '/');
-        $normalized = rtrim($normalized, '/');
-
-        return $normalized === '' ? '/' : $normalized;
-    }
-
-    private function runMiddleware(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
-    {
-        if ($this->middleware === []) {
-            return $response;
-        }
-
-        $handler = new class ($response) implements RequestHandlerInterface {
-            public function __construct(private ResponseInterface $response)
-            {
-            }
-
-            public function handle(ServerRequestInterface $request): ResponseInterface
-            {
-                return $this->response;
-            }
-        };
-
-        $chain = $handler;
-        foreach (array_reverse($this->middleware) as $middleware) {
-            $next = $chain;
-            $chain = new class ($middleware, $next) implements RequestHandlerInterface {
-                public function __construct(
-                    private MiddlewareInterface $middleware,
-                    private RequestHandlerInterface $next,
-                ) {
-                }
-
-                public function handle(ServerRequestInterface $request): ResponseInterface
-                {
-                    return $this->middleware->process($request, $this->next);
-                }
-            };
-        }
-
-        return $chain->handle($request);
     }
 }
