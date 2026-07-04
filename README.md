@@ -15,6 +15,10 @@ OpenAPI schema-driven fake API server for PHP testing. Define your API contract 
 - Three operating modes: FAKE, RECORD, REPLAY
 - PSR-15 middleware support
 
+## Public API Surface
+
+The supported user-facing API is `OasFake`, `Server`, `Schema`, `FakeRequest`, `FakeResponse`, `Handler`, `Route`, `Mode`, the documented exception types, and `Validator` for standalone validation. Lower-level pipeline classes such as `Interceptor`, `ServerRegistry`, `Converter`, `OperationLookup`, `HandlerMap`, and `ParameterFaker` are internal and may change between minor versions.
+
 ## Requirements
 
 - PHP 8.0 - 8.5
