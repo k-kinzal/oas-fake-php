@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/k-kinzal/oas-fake-php/actions/workflows/ci.yml/badge.svg)](https://github.com/k-kinzal/oas-fake-php/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PHP Version](https://img.shields.io/badge/PHP-8.0%2B-blue.svg)](https://www.php.net/)
+[![PHP Version](https://img.shields.io/badge/PHP-8.0--8.5-blue.svg)](https://www.php.net/)
 
 OpenAPI schema-driven fake API server for PHP testing. Define your API contract once, and automatically get a working fake server that generates valid responses, validates requests, and catches schema violations in your tests.
 
@@ -17,7 +17,7 @@ OpenAPI schema-driven fake API server for PHP testing. Define your API contract 
 
 ## Requirements
 
-- PHP 8.0+
+- PHP 8.0 - 8.5
 - ext-curl
 
 ## Installation
