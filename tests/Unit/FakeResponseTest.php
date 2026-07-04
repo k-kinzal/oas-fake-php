@@ -100,6 +100,64 @@ final class FakeResponseTest extends TestCase
         self::assertSame('application/json', $response->headers()['Content-Type']);
     }
 
+    public function testForUsesTextPlainResponseMediaType(): void
+    {
+        $schema = Schema::fromString(<<<'YAML'
+            openapi: 3.0.0
+            info:
+              title: Text API
+              version: 1.0.0
+            paths:
+              /status:
+                get:
+                  operationId: getStatus
+                  responses:
+                    '200':
+                      description: Status
+                      content:
+                        text/plain:
+                          schema:
+                            type: string
+                            enum: [ok]
+            YAML);
+
+        $response = FakeResponse::for($schema, 'getStatus');
+
+        self::assertSame('text/plain', $response->headers()['Content-Type']);
+        self::assertSame('ok', $response->body());
+    }
+
+    public function testForUsesFormUrlEncodedResponseMediaType(): void
+    {
+        $schema = Schema::fromString(<<<'YAML'
+            openapi: 3.0.0
+            info:
+              title: Form API
+              version: 1.0.0
+            paths:
+              /status:
+                get:
+                  operationId: getStatusForm
+                  responses:
+                    '200':
+                      description: Status
+                      content:
+                        application/x-www-form-urlencoded:
+                          schema:
+                            type: object
+                            required: [status]
+                            properties:
+                              status:
+                                type: string
+                                enum: [ok]
+            YAML);
+
+        $response = FakeResponse::for($schema, 'getStatusForm');
+
+        self::assertSame('application/x-www-form-urlencoded', $response->headers()['Content-Type']);
+        self::assertSame('status=ok', $response->body());
+    }
+
     public function testJsonDecodesResponseBody(): void
     {
         $response = FakeResponse::for($this->schema, 'listPets');
