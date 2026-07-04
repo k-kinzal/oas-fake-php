@@ -34,7 +34,7 @@ Modes: `FAKE` (generate from schema), `RECORD` (generate responses and save them
 
 Users interact with `OasFake`, `Server`, `Schema`, `FakeRequest`, `FakeResponse`, `Handler`, `Route`, `Mode`, and the documented exception types. `Validator` is also documented for standalone validation use.
 
-`ServerRegistry`, `Interceptor`, `Converter`, `OperationLookup`, `OperationInfo`, `HandlerMap`, and `ParameterFaker` are internal implementation details.
+Pipeline and support classes such as `ServerRegistry`, `Interceptor`, `Converter`, `OperationLookup`, `OperationInfo`, `HandlerMap`, and `ParameterFaker` are available for advanced use, though most tests should use the higher-level facade and server APIs.
 
 ### OasFake + Server — Fake server in tests
 
