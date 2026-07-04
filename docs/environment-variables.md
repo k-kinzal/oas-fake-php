@@ -23,7 +23,7 @@ For example, if `OAS_FAKE_MODE=record` is set, it overrides both `$MODE = 'fake'
 
 ## CI/CD Usage
 
-### Record cassettes in CI
+### Record generated cassettes in CI
 
 ```bash
 OAS_FAKE_MODE=record composer test

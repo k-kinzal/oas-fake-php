@@ -120,6 +120,8 @@ $server = OasFake::start(PetStoreServer::class, fn ($s) => $s
 );
 ```
 
+`Mode::RECORD` records OasFake's generated or custom responses to cassettes for deterministic replay. It does not proxy requests to a real upstream API.
+
 All settings can also be overridden via environment variables:
 
 ```bash
