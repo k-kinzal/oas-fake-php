@@ -56,15 +56,24 @@ final class HandlerMap
      *
      * @return Handler|null The matching handler, or null if none found
      */
-    public function find(string $operationId, string $path, string $method): ?Handler
+    public function find(string $operationId, string $path, string $method, ?string $pathPattern = null): ?Handler
     {
         if ($operationId !== '' && isset($this->byOperationId[$operationId])) {
             return $this->byOperationId[$operationId];
         }
 
         $key = strtoupper($method) . ':' . $path;
+        if (isset($this->byPathMethod[$key])) {
+            return $this->byPathMethod[$key];
+        }
 
-        return $this->byPathMethod[$key] ?? null;
+        if ($pathPattern === null) {
+            return null;
+        }
+
+        $patternKey = strtoupper($method) . ':' . $pathPattern;
+
+        return $this->byPathMethod[$patternKey] ?? null;
     }
 
     /**

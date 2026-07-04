@@ -83,6 +83,24 @@ final class OperationLookupTest extends TestCase
         self::assertSame('listPets', $info->operationId);
     }
 
+    public function testFindByRequestPathAndMethodMatchesTemplatedPath(): void
+    {
+        $info = $this->lookup->findByRequestPathAndMethod('/pets/123', 'GET');
+
+        self::assertNotNull($info);
+        self::assertSame('/pets/{petId}', $info->pathPattern);
+        self::assertSame('getPetById', $info->operationId);
+    }
+
+    public function testFindByRequestPathAndMethodPrefersExactPath(): void
+    {
+        $info = $this->lookup->findByRequestPathAndMethod('/pets', 'GET');
+
+        self::assertNotNull($info);
+        self::assertSame('/pets', $info->pathPattern);
+        self::assertSame('listPets', $info->operationId);
+    }
+
     public function testSchemaWithNoPaths(): void
     {
         $schema = Schema::fromString(<<<'YAML'

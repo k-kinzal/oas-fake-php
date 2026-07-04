@@ -4,11 +4,6 @@ declare(strict_types=1);
 
 namespace OasFake;
 
-use cebe\openapi\spec\Operation;
-use cebe\openapi\spec\PathItem;
-
-use function is_string;
-
 use LogicException;
 use OasFake\Exception\ReplayMismatchError;
 use OasFake\Exception\ValidationException;
@@ -16,9 +11,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-
-use function strtolower;
-
 use VCR\Cassette;
 use VCR\Configuration;
 use VCR\Request as VcrRequest;
@@ -41,6 +33,8 @@ final class Interceptor
 
     private ?Cassette $cassette = null;
 
+    private OperationLookup $operationLookup;
+
     /** @var array<string, int> */
     private array $indexTable = [];
 
@@ -60,6 +54,7 @@ final class Interceptor
         private array $middleware = [],
     ) {
         $this->converter = new Converter();
+        $this->operationLookup = new OperationLookup($schema);
     }
 
     /**
@@ -127,25 +122,24 @@ final class Interceptor
             }
         }
 
-        $operationId = $this->findOperationId($psrRequest);
         $path = $psrRequest->getUri()->getPath();
         $method = $psrRequest->getMethod();
+        $operationInfo = $this->operationLookup->findByRequestPathAndMethod($path, $method);
+        $operationId = $operationInfo?->operationId;
 
-        $handler = $this->handlers->find($operationId ?? '', $path, $method);
+        $handler = $this->handlers->find($operationId ?? '', $path, $method, $operationInfo?->pathPattern);
 
-        $statusCode = $this->resolveStatusCode($psrRequest);
-
-        $matchedPath = $this->findMatchingPath($psrRequest);
+        $statusCode = $this->resolveStatusCode($operationInfo);
 
         if ($handler !== null) {
             $fakerDefault = null;
-            if ($operation !== null && $this->hasResponseBody($psrRequest) && $matchedPath !== null) {
-                $fakerDefault = FakeResponse::generateResponse($this->schema, $matchedPath, $method, $statusCode, $this->fakerOptions);
+            if ($operationInfo !== null && $this->hasResponseBody($operationInfo)) {
+                $fakerDefault = FakeResponse::generateResponse($this->schema, $operationInfo->pathPattern, $method, $statusCode, $this->fakerOptions);
             }
             $response = $handler->resolve($psrRequest, $fakerDefault);
-        } elseif ($operation !== null) {
-            if ($this->hasResponseBody($psrRequest) && $matchedPath !== null) {
-                $response = FakeResponse::generateResponse($this->schema, $matchedPath, $method, $statusCode, $this->fakerOptions);
+        } elseif ($operationInfo !== null) {
+            if ($this->hasResponseBody($operationInfo)) {
+                $response = FakeResponse::generateResponse($this->schema, $operationInfo->pathPattern, $method, $statusCode, $this->fakerOptions);
             } else {
                 $response = new \GuzzleHttp\Psr7\Response($statusCode);
             }
@@ -230,85 +224,16 @@ final class Interceptor
         return ++$this->indexTable[$key];
     }
 
-    private function findMatchingPath(ServerRequestInterface $request): ?string
+    private function hasResponseBody(OperationInfo $operationInfo): bool
     {
-        $path = $request->getUri()->getPath();
-        $method = strtolower($request->getMethod());
-        $openApi = $this->schema->openApi();
-
-        if ($openApi->paths === null) {
-            return null;
-        }
-
-        /** @var PathItem $pathItem */
-        foreach ($openApi->paths as $pathPattern => $pathItem) {
-            if (!is_string($pathPattern)) {
-                continue;
-            }
-
-            if ($this->matchPath($pathPattern, $path)) {
-                $operation = $this->getOperationFromPathItem($pathItem, $method);
-                if ($operation !== null) {
-                    return $pathPattern;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private function findOperationId(ServerRequestInterface $request): ?string
-    {
-        $path = $request->getUri()->getPath();
-        $method = strtolower($request->getMethod());
-        $openApi = $this->schema->openApi();
-
-        if ($openApi->paths === null) {
-            return null;
-        }
-
-        /** @var PathItem $pathItem */
-        foreach ($openApi->paths as $pathPattern => $pathItem) {
-            if (!is_string($pathPattern)) {
-                continue;
-            }
-
-            if ($this->matchPath($pathPattern, $path)) {
-                $operation = $this->getOperationFromPathItem($pathItem, $method);
-                if ($operation !== null && $operation->operationId !== null) {
-                    return $operation->operationId;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private function hasResponseBody(ServerRequestInterface $request): bool
-    {
-        $path = $request->getUri()->getPath();
-        $method = strtolower($request->getMethod());
-        $openApi = $this->schema->openApi();
-
-        if ($openApi->paths !== null) {
-            foreach ($openApi->paths as $pathPattern => $pathItem) {
-                if (!is_string($pathPattern)) {
+        if ($operationInfo->operation->responses !== null) {
+            foreach ($operationInfo->operation->responses as $code => $response) {
+                if (!is_int($code) && !is_string($code)) {
                     continue;
                 }
-
-                if ($this->matchPath($pathPattern, $path)) {
-                    $operation = $this->getOperationFromPathItem($pathItem, $method);
-                    if ($operation !== null && $operation->responses !== null) {
-                        foreach ($operation->responses as $code => $response) {
-                            if (!is_int($code) && !is_string($code)) {
-                                continue;
-                            }
-                            $numericCode = (int) $code;
-                            if ($numericCode >= 200 && $numericCode < 300) {
-                                return $response->content !== null && $response->content !== [];
-                            }
-                        }
-                    }
+                $numericCode = (int) $code;
+                if ($numericCode >= 200 && $numericCode < 300) {
+                    return $response->content !== null && $response->content !== [];
                 }
             }
         }
@@ -316,63 +241,21 @@ final class Interceptor
         return true;
     }
 
-    private function resolveStatusCode(ServerRequestInterface $request): int
+    private function resolveStatusCode(?OperationInfo $operationInfo): int
     {
-        $path = $request->getUri()->getPath();
-        $method = strtolower($request->getMethod());
-        $openApi = $this->schema->openApi();
-
-        if ($openApi->paths !== null) {
-            foreach ($openApi->paths as $pathPattern => $pathItem) {
-                if (!is_string($pathPattern)) {
+        if ($operationInfo?->operation->responses !== null) {
+            foreach ($operationInfo->operation->responses as $code => $response) {
+                if (!is_int($code) && !is_string($code)) {
                     continue;
                 }
-
-                if ($this->matchPath($pathPattern, $path)) {
-                    $operation = $this->getOperationFromPathItem($pathItem, $method);
-                    if ($operation !== null && $operation->responses !== null) {
-                        foreach ($operation->responses as $code => $response) {
-                            if (!is_int($code) && !is_string($code)) {
-                                continue;
-                            }
-                            $numericCode = (int) $code;
-                            if ($numericCode >= 200 && $numericCode < 300) {
-                                return $numericCode;
-                            }
-                        }
-                    }
+                $numericCode = (int) $code;
+                if ($numericCode >= 200 && $numericCode < 300) {
+                    return $numericCode;
                 }
             }
         }
 
         return 200;
-    }
-
-    private function getOperationFromPathItem(PathItem $pathItem, string $method): ?Operation
-    {
-        return match ($method) {
-            'get' => $pathItem->get,
-            'post' => $pathItem->post,
-            'put' => $pathItem->put,
-            'delete' => $pathItem->delete,
-            'patch' => $pathItem->patch,
-            'options' => $pathItem->options,
-            'head' => $pathItem->head,
-            'trace' => $pathItem->trace,
-            default => null,
-        };
-    }
-
-    private function matchPath(string $pattern, string $path): bool
-    {
-        $regex = preg_replace('/\{[^}]+\}/', '[^/]+', $pattern);
-        if ($regex === null) {
-            return false;
-        }
-
-        $regex = '#^' . $regex . '$#';
-
-        return preg_match($regex, $path) === 1;
     }
 
     private function runMiddleware(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
