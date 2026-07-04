@@ -70,6 +70,20 @@ final class FakeResponseTest extends TestCase
         self::assertSame(201, $response->statusCode());
     }
 
+    public function testForDefaultsToFirstSuccessStatusCode(): void
+    {
+        $response = FakeResponse::for($this->schema, 'createPet');
+
+        self::assertSame(201, $response->statusCode());
+    }
+
+    public function testForPathDefaultsToFirstSuccessStatusCode(): void
+    {
+        $response = FakeResponse::forPath($this->schema, '/pets', 'POST');
+
+        self::assertSame(201, $response->statusCode());
+    }
+
     public function testHeadersReturnsResponseHeaders(): void
     {
         $response = FakeResponse::for($this->schema, 'listPets');
