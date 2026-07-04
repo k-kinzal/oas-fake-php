@@ -54,6 +54,8 @@ $server = (new Server())
 OasFake::start($server);
 ```
 
+Fluent configuration methods must be called before the server is started. Once a server is running, stop it and start a freshly configured instance to change schema, mode, validation, faker options, middleware, or handlers.
+
 ## Configuration Options
 
 | Static Property | Fluent Method | Description | Default |

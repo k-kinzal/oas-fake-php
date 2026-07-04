@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OasFake;
 
+use LogicException;
 use OasFake\Exception\SchemaNotFoundException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -78,6 +79,7 @@ class Server
      */
     public function withSchema(string $schemaPath): static
     {
+        $this->assertNotRunning();
         $this->schema = $schemaPath;
 
         return $this;
@@ -90,6 +92,7 @@ class Server
      */
     public function withMode(string $mode): static
     {
+        $this->assertNotRunning();
         $this->mode = $mode;
 
         return $this;
@@ -102,6 +105,7 @@ class Server
      */
     public function withCassettePath(string $path): static
     {
+        $this->assertNotRunning();
         $this->cassettePath = $path;
 
         return $this;
@@ -114,6 +118,7 @@ class Server
      */
     public function withRequestValidation(bool $enable = true): static
     {
+        $this->assertNotRunning();
         $this->validateRequests = $enable;
 
         return $this;
@@ -126,6 +131,7 @@ class Server
      */
     public function withResponseValidation(bool $enable = true): static
     {
+        $this->assertNotRunning();
         $this->validateResponses = $enable;
 
         return $this;
@@ -138,6 +144,7 @@ class Server
      */
     public function withFakerOptions(array $options): static
     {
+        $this->assertNotRunning();
         $this->fakerOptions = $options;
 
         return $this;
@@ -150,6 +157,7 @@ class Server
      */
     public function withMiddleware(MiddlewareInterface $middleware): static
     {
+        $this->assertNotRunning();
         $this->additionalMiddleware[] = $middleware;
 
         return $this;
@@ -163,6 +171,7 @@ class Server
      */
     public function withHandler(string $operationId, Handler $handler): static
     {
+        $this->assertNotRunning();
         $this->handlers->forOperation($operationId, $handler);
 
         return $this;
@@ -194,6 +203,7 @@ class Server
      */
     public function withPathResponse(string $path, string $method, int $status, array|string $body, array $headers = []): static
     {
+        $this->assertNotRunning();
         $this->handlers->forPath($path, $method, Handler::response($status, $body, $headers));
 
         return $this;
@@ -208,6 +218,7 @@ class Server
      */
     public function withPathCallback(string $path, string $method, callable $callback): static
     {
+        $this->assertNotRunning();
         $this->handlers->forPath($path, $method, Handler::callback($callback));
 
         return $this;
@@ -350,6 +361,13 @@ class Server
         VCR::insertCassette('oas-fake');
         $this->registerHooks();
         $this->vcrStarted = true;
+    }
+
+    private function assertNotRunning(): void
+    {
+        if ($this->isRunning()) {
+            throw new LogicException('Cannot change server configuration while the server is running. Configure the server before start().');
+        }
     }
 
     private function configureVcr(): void
