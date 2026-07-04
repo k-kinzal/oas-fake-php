@@ -496,6 +496,59 @@ final class ServerTest extends TestCase
         self::assertSame($server, $result);
     }
 
+    public function testSchemaAwareOperationIdMethodHandlesMatchingOperation(): void
+    {
+        $server = (new SchemaAwareOperationServer())
+            ->withRequestValidation(false)
+            ->withResponseValidation(false);
+
+        try {
+            $server->buildInterceptor();
+            $response = $server->interceptor()?->handle(new VcrRequest('GET', 'https://api.petstore.example.com/pets', []));
+
+            self::assertNotNull($response);
+            self::assertSame(200, $response->getStatusCode());
+            self::assertStringContainsString('Declarative operation', $response->getBody());
+        } finally {
+            $server->stop();
+        }
+    }
+
+    public function testSchemaAwareRouteMethodHandlesMatchingPath(): void
+    {
+        $server = (new SchemaAwareRouteServer())
+            ->withRequestValidation(false)
+            ->withResponseValidation(false);
+
+        try {
+            $server->buildInterceptor();
+            $response = $server->interceptor()?->handle(new VcrRequest('DELETE', 'https://api.petstore.example.com/pets/1', []));
+
+            self::assertNotNull($response);
+            self::assertSame(204, $response->getStatusCode());
+        } finally {
+            $server->stop();
+        }
+    }
+
+    public function testSchemaAwareRouteMethodSkipsPathOutsideSchema(): void
+    {
+        $server = (new UnknownRouteDeclarativeServer())
+            ->withRequestValidation(false)
+            ->withResponseValidation(false);
+
+        try {
+            $server->buildInterceptor();
+            $response = $server->interceptor()?->handle(new VcrRequest('GET', 'https://api.petstore.example.com/unknown', []));
+
+            self::assertNotNull($response);
+            self::assertSame(500, $response->getStatusCode());
+            self::assertStringNotContainsString('Unknown declarative route', $response->getBody());
+        } finally {
+            $server->stop();
+        }
+    }
+
     public function testPublicMethodsWithoutHandlerSignatureAreNotAutoRegistered(): void
     {
         $server = (new InvalidSignatureOperationIdServer())
@@ -578,5 +631,37 @@ class InvalidSignatureOperationIdServer extends Server
     public function listPets(): string
     {
         return 'not a response';
+    }
+}
+
+class SchemaAwareOperationServer extends Server
+{
+    protected static string $SCHEMA = './tests/Fixtures/openapi/petstore.yaml';
+
+    public function listPets(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
+    {
+        return new \GuzzleHttp\Psr7\Response(200, [], '[{"name":"Declarative operation"}]');
+    }
+}
+
+class SchemaAwareRouteServer extends Server
+{
+    protected static string $SCHEMA = './tests/Fixtures/openapi/petstore.yaml';
+
+    #[Route(method: 'DELETE', path: '/pets/{petId}')]
+    public function removePet(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
+    {
+        return new \GuzzleHttp\Psr7\Response(204);
+    }
+}
+
+class UnknownRouteDeclarativeServer extends Server
+{
+    protected static string $SCHEMA = './tests/Fixtures/openapi/petstore.yaml';
+
+    #[Route(method: 'GET', path: '/unknown')]
+    public function unknown(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
+    {
+        return new \GuzzleHttp\Psr7\Response(200, [], 'Unknown declarative route');
     }
 }

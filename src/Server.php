@@ -57,12 +57,11 @@ class Server
     private ?string $registryKey = null;
 
     /**
-     * Create a server instance and register declarative handler methods.
+     * Create a server instance.
      */
     public function __construct()
     {
         $this->handlers = new HandlerMap();
-        (new DeclarativeHandlerRegistrar())->register($this, $this->handlers);
     }
 
     /**
@@ -242,7 +241,10 @@ class Server
 
         $schema = $this->resolveSchema();
         $this->resolvedSchema = $schema;
-        $this->interceptor = (new InterceptorFactory())->create($this->options($schema), $this->handlers);
+        $handlers = clone $this->handlers;
+        (new DeclarativeHandlerRegistrar())->register($this, $handlers, $schema);
+
+        $this->interceptor = (new InterceptorFactory())->create($this->options($schema), $handlers);
 
         $this->interceptor->start();
     }
