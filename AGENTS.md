@@ -32,7 +32,9 @@ Modes: `FAKE` (generate from schema), `RECORD` (generate responses and save them
 
 ## Public API
 
-Users interact with `OasFake`, `Server`, `FakeRequest`, and `FakeResponse`. Everything else is internal.
+Users interact with `OasFake`, `Server`, `Schema`, `FakeRequest`, `FakeResponse`, `Handler`, `Route`, `Mode`, and the documented exception types. `Validator` is also documented for standalone validation use.
+
+`ServerRegistry`, `Interceptor`, `Converter`, `OperationLookup`, `OperationInfo`, `HandlerMap`, and `ParameterFaker` are internal implementation details.
 
 ### OasFake + Server — Fake server in tests
 
