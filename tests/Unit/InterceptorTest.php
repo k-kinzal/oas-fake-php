@@ -274,6 +274,86 @@ final class InterceptorTest extends TestCase
         $interceptor->stop();
     }
 
+    public function testReplayExecutesMiddleware(): void
+    {
+        $middleware = new class () implements MiddlewareInterface {
+            public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+            {
+                return $handler->handle($request)->withHeader('X-Replayed', 'yes');
+            }
+        };
+
+        $interceptor = $this->createInterceptor(
+            mode: Mode::REPLAY,
+            cassettePath: __DIR__ . '/../Fixtures/cassettes',
+            validateRequests: false,
+            validateResponses: false,
+            middleware: [$middleware],
+        );
+        $interceptor->start();
+
+        $request = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
+        $request->setHeader('Host', 'api.petstore.example.com');
+
+        $response = $interceptor->replay($request);
+
+        self::assertSame('yes', $response->getHeaders()['X-Replayed']);
+        $interceptor->stop();
+    }
+
+    public function testReplayValidatesRequestWhenEnabled(): void
+    {
+        $interceptor = $this->createInterceptor(
+            mode: Mode::REPLAY,
+            cassettePath: __DIR__ . '/../Fixtures/cassettes',
+            validateRequests: true,
+            validateResponses: false,
+        );
+        $interceptor->start();
+
+        $this->expectException(ValidationException::class);
+
+        try {
+            $interceptor->replay(new VcrRequest('GET', 'https://api.petstore.example.com/unknown', []));
+        } finally {
+            $interceptor->stop();
+        }
+    }
+
+    public function testReplayValidatesResponseWhenEnabled(): void
+    {
+        file_put_contents($this->cassettePath . '/recording', (string) json_encode([[
+            'request' => [
+                'method' => 'GET',
+                'url' => 'https://api.petstore.example.com/pets',
+                'headers' => ['Host' => 'api.petstore.example.com'],
+            ],
+            'response' => [
+                'status' => ['http_version' => '1.1', 'code' => '200', 'message' => 'OK'],
+                'headers' => ['Content-Type' => 'application/json'],
+                'body' => '{"not":"an array"}',
+            ],
+            'index' => 0,
+        ]], JSON_THROW_ON_ERROR));
+
+        $interceptor = $this->createInterceptor(
+            mode: Mode::REPLAY,
+            validateRequests: true,
+            validateResponses: true,
+        );
+        $interceptor->start();
+
+        $this->expectException(ValidationException::class);
+
+        try {
+            $request = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
+            $request->setHeader('Host', 'api.petstore.example.com');
+            $interceptor->replay($request);
+        } finally {
+            $interceptor->stop();
+        }
+    }
+
     public function testReplayThrowsOnMismatch(): void
     {
         $interceptor = $this->createInterceptor(

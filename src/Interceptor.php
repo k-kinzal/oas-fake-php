@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OasFake;
 
+use League\OpenAPIValidation\PSR7\OperationAddress;
 use LogicException;
 use OasFake\Exception\ReplayMismatchError;
 use OasFake\Exception\ValidationException;
@@ -112,15 +113,7 @@ final class Interceptor
     {
         $psrRequest = $this->converter->requestToPsr7($vcrRequest);
 
-        $operation = null;
-        if ($this->validateRequests) {
-            $operation = $this->validator->validateRequest($psrRequest);
-        } else {
-            try {
-                $operation = $this->validator->validateRequest($psrRequest);
-            } catch (ValidationException) {
-            }
-        }
+        $operation = $this->resolveOperation($psrRequest);
 
         $path = $this->operationPathForRequest($psrRequest);
         $method = $psrRequest->getMethod();
@@ -178,6 +171,20 @@ final class Interceptor
      */
     public function replay(VcrRequest $request): VcrResponse
     {
+        $psrRequest = $this->converter->requestToPsr7($request);
+        $operation = $this->resolveOperation($psrRequest);
+        $response = $this->converter->vcrResponseToPsr7($this->playback($request));
+        $response = $this->runMiddleware($psrRequest, $response);
+
+        if ($this->validateResponses && $operation !== null) {
+            $this->validator->validateResponse($operation, $response);
+        }
+
+        return $this->converter->psr7ToVcrResponse($response);
+    }
+
+    private function playback(VcrRequest $request): VcrResponse
+    {
         if ($this->cassette === null) {
             throw ReplayMismatchError::forRequest(
                 $request,
@@ -196,6 +203,19 @@ final class Interceptor
         }
 
         return $response;
+    }
+
+    private function resolveOperation(ServerRequestInterface $request): ?OperationAddress
+    {
+        if ($this->validateRequests) {
+            return $this->validator->validateRequest($request);
+        }
+
+        try {
+            return $this->validator->validateRequest($request);
+        } catch (ValidationException) {
+            return null;
+        }
     }
 
     private function initCassette(): void
