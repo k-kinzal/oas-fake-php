@@ -28,6 +28,7 @@ final class ServerOptions
         public bool $validateResponses,
         public array $fakerOptions,
         public array $middleware,
+        public string $cassetteName = 'recording',
     ) {
         $this->mode = Mode::from($mode);
     }

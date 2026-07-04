@@ -19,6 +19,7 @@ class Server
     protected static string $SCHEMA = '';
     protected static string $MODE = 'fake';
     protected static string $CASSETTE_PATH = './cassettes';
+    protected static string $CASSETTE_NAME = '';
     protected static bool $VALIDATE_REQUESTS = true;
     protected static bool $VALIDATE_RESPONSES = true;
     /**
@@ -37,6 +38,7 @@ class Server
     private ?string $schema = null;
     private ?Mode $mode = null;
     private ?string $cassettePath = null;
+    private ?string $cassetteName = null;
     private ?bool $validateRequests = null;
     private ?bool $validateResponses = null;
     /**
@@ -98,6 +100,17 @@ class Server
     {
         $this->assertNotRunning();
         $this->cassettePath = $path;
+
+        return $this;
+    }
+
+    /**
+     * Set the cassette file name used for RECORD and REPLAY modes.
+     */
+    public function withCassetteName(string $name): static
+    {
+        $this->assertNotRunning();
+        $this->cassetteName = $name;
 
         return $this;
     }
@@ -385,6 +398,24 @@ class Server
         return $this->cassettePath ?? static::$CASSETTE_PATH;
     }
 
+    private function resolveCassetteName(): string
+    {
+        $env = getenv('OAS_FAKE_CASSETTE_NAME');
+        if ($env !== false && $env !== '') {
+            return $this->sanitizeCassetteName($env);
+        }
+
+        if ($this->cassetteName !== null) {
+            return $this->sanitizeCassetteName($this->cassetteName);
+        }
+
+        if (static::$CASSETTE_NAME !== '') {
+            return $this->sanitizeCassetteName(static::$CASSETTE_NAME);
+        }
+
+        return $this->sanitizeCassetteName(static::class);
+    }
+
     private function resolveValidateRequests(): bool
     {
         return $this->resolveBoolEnv('OAS_FAKE_VALIDATE_REQUESTS', $this->validateRequests, static::$VALIDATE_REQUESTS);
@@ -413,6 +444,15 @@ class Server
         return $this->fakerOptions ?? static::$FAKER_OPTIONS;
     }
 
+    private function sanitizeCassetteName(string $name): string
+    {
+        $normalized = strtolower(str_replace('\\', '-', $name));
+        $normalized = preg_replace('/[^a-z0-9_.-]+/', '-', $normalized) ?? '';
+        $normalized = trim($normalized, '-');
+
+        return $normalized === '' ? 'recording' : $normalized;
+    }
+
     private function stopInterceptor(): void
     {
         if ($this->interceptor !== null) {
@@ -439,6 +479,7 @@ class Server
             validateResponses: $this->resolveValidateResponses(),
             fakerOptions: $this->resolveFakerOptions(),
             middleware: $this->resolveMiddleware(),
+            cassetteName: $this->resolveCassetteName(),
         );
     }
 }
