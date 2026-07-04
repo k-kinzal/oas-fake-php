@@ -158,9 +158,11 @@ final class ServerRegistry
     public function dispatch(VcrRequest $request): VcrResponse
     {
         $url = $request->getUrl() ?? '';
+        $match = null;
 
         foreach ($this->interceptors as $baseUrl => $entries) {
-            if (!$this->urlMatchesServer($url, $baseUrl)) {
+            $specificity = $this->urlMatchSpecificity($url, $baseUrl);
+            if ($specificity === null) {
                 continue;
             }
 
@@ -169,6 +171,16 @@ final class ServerRegistry
                 continue;
             }
 
+            if ($match === null || $specificity > $match['specificity']) {
+                $match = [
+                    'specificity' => $specificity,
+                    'entry' => $entry,
+                ];
+            }
+        }
+
+        if ($match !== null) {
+            $entry = $match['entry'];
             if ($entry['mode'] === Mode::REPLAY) {
                 return $entry['interceptor']->replay($request);
             }
@@ -209,32 +221,32 @@ final class ServerRegistry
         $this->interceptors[$url] = $entries;
     }
 
-    private function urlMatchesServer(string $requestUrl, string $baseUrl): bool
+    private function urlMatchSpecificity(string $requestUrl, string $baseUrl): ?int
     {
         if ($baseUrl === '/') {
-            return true;
+            return 0;
         }
 
         $request = parse_url($requestUrl);
         $base = parse_url($baseUrl);
         if (!is_array($request) || !is_array($base)) {
-            return false;
+            return null;
         }
 
         if (isset($base['scheme']) && strtolower((string) ($request['scheme'] ?? '')) !== strtolower((string) $base['scheme'])) {
-            return false;
+            return null;
         }
 
         if (isset($base['host']) && strtolower((string) ($request['host'] ?? '')) !== strtolower((string) $base['host'])) {
-            return false;
+            return null;
         }
 
         $basePort = $this->effectivePort($base);
         if ($basePort !== null && $this->effectivePort($request) !== $basePort) {
-            return false;
+            return null;
         }
 
-        return $this->pathPrefixMatches((string) ($request['path'] ?? '/'), (string) ($base['path'] ?? '/'));
+        return $this->pathPrefixSpecificity((string) ($request['path'] ?? '/'), (string) ($base['path'] ?? '/'));
     }
 
     /**
@@ -253,17 +265,20 @@ final class ServerRegistry
         };
     }
 
-    private function pathPrefixMatches(string $requestPath, string $basePath): bool
+    private function pathPrefixSpecificity(string $requestPath, string $basePath): ?int
     {
         $normalizedRequest = $this->normalizePath($requestPath);
         $normalizedBase = $this->normalizePath($basePath);
 
         if ($normalizedBase === '/') {
-            return true;
+            return 0;
         }
 
-        return $normalizedRequest === $normalizedBase
-            || str_starts_with($normalizedRequest, $normalizedBase . '/');
+        if ($normalizedRequest !== $normalizedBase && !str_starts_with($normalizedRequest, $normalizedBase . '/')) {
+            return null;
+        }
+
+        return strlen($normalizedBase);
     }
 
     private function normalizePath(string $path): string
