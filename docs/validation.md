@@ -194,18 +194,6 @@ $openApi = $schema->openApi();
 $urls = $schema->serverUrls(); // ['https://api.example.com']
 ```
 
-## Failure Contracts
-
-OasFake translates dependency-specific failures at its public boundaries so callers can handle failures by responsibility:
-
-- `SchemaNotFoundException` — the configured schema file does not exist.
-- `SchemaParseException` — JSON/YAML or OpenAPI parsing failed; `getPrevious()` retains the parser error.
-- `OperationNotFoundException` — a standalone fake request or response references an unknown operation.
-- `FakeGenerationException` — the schema faker or payload serializer could not generate data.
-- `HandlerRegistrationException` — a declarative server handler could not be inspected or registered.
-- `HandlerResolutionException` — a configured fixed response could not be encoded.
-- `ValidationException` — a request or response violates the OpenAPI contract.
-
 ## Related
 
 - [Server Configuration](server-configuration.md) - Enable/disable validation settings

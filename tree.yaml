@@ -13,40 +13,33 @@ exclude:
 rules:
   - path: '**'
     deny_dirs: ['scripts', 'Scripts']
-  - path: 'src'
+  - path: 'src/**'
     forbid_empty: true
     allow: ['*.php']
     file_case: pascal
     dir_case: pascal
-    max_files: 55
+    max_files: 15
     max_dirs: 20
-  - path: 'src/*/**'
+  - path: 'tests/Unit/**'
+    forbid_empty: true
+    allow: ['*Test.php']
+    file_case: pascal
+    dir_case: pascal
+    max_files: 15
+    max_dirs: 20
+  - path: 'tests/Testing/**'
     forbid_empty: true
     allow: ['*.php']
     file_case: pascal
     dir_case: pascal
-    max_files: 25
-    max_dirs: 20
-  - path: 'tests/Unit'
-    forbid_empty: true
-    allow: ['*Test.php']
-    file_case: pascal
-    dir_case: pascal
-    max_files: 60
-    max_dirs: 20
-  - path: 'tests/Unit/*/**'
-    forbid_empty: true
-    allow: ['*Test.php']
-    file_case: pascal
-    dir_case: pascal
-    max_files: 25
+    max_files: 15
     max_dirs: 20
   - path: 'tests/Doctest/**'
     forbid_empty: true
     allow: ['*Test.php']
     file_case: pascal
     dir_case: pascal
-    max_files: 25
+    max_files: 15
     max_dirs: 20
 
 report:

@@ -9,30 +9,20 @@ Fake API server library for PHP testing. Intercepts HTTP requests via PHP-VCR an
 ## Architecture
 
 ```
-OasFake (facade)
-  └─ ServerRegistry          # Multi-server lifecycle management
-       └─ Server             # Public fluent API
-            ├─ ServerConfiguration  # Mutable settings and environment policy
-            ├─ ServerLifecycle      # Registry/interceptor ownership
-            └─ Interceptor          # PHP-VCR hook, request/response pipeline
-                 ├─ OperationRequestResolver # URL → schema operation
-                 ├─ SchemaRequestHandler     # Validation and response selection
-                 ├─ HandlerMap               # operationId/path handler lookup
-                 │    └─ Handler              # Total response strategy closure
-                 ├─ MiddlewarePipeline        # PSR-15 chain
-                 ├─ Validator                 # OpenAPI validation
-                 └─ Converter                 # VCR ↔ PSR-7 bridge
-
-Schema                     # OpenAPI spec wrapper (file/string/object)
-OperationIndexBuilder      # Builds immutable operation metadata
-OperationLookup            # Queries indexed operations
-FakeDataSource             # Schema + faker policy contract
-FakeRequest/FakeResponse   # Standalone schema-based generation
-RequestBodyGenerator       # Request payload responsibility
-OperationResponseResolver  # Response status/media/schema responsibility
-ParameterFaker             # Generates values
-ParameterSerializer        # Applies OpenAPI wire styles
+Application    # Facades, server lifecycle/configuration, public fake request/response API
+  ↓
+Interception   # PHP-VCR boundary, cassette lifecycle, VCR ↔ PSR-7 conversion
+  ↓
+Handling       # Request resolution, handlers, validation pipeline, middleware chain
+  ↓
+Generation     # Schema-backed request/response data and wire serialization
+  ↓
+OpenApi        # Schema parsing, operation index, URL/path matching, validation
+  ↓
+Exception      # Stable project exception contracts
 ```
+
+Dependency direction is enforced from the physical directories above; lower layers must never call back into higher layers. PHP namespaces remain unchanged to preserve the published API.
 
 Request flow: VCR intercept → Converter → Validator → HandlerMap → Handler/FakeResponse → Middleware → Validator → Converter → VCR response.
 
@@ -99,7 +89,7 @@ composer test:unit:legacy  # PHPUnit 9 suite for PHP 8.0
 composer test:coverage     # Strict coverage metadata + XML
 composer doctest           # Runnable public PHPDoc examples
 composer lint              # All fast toolkit gates below
-composer phpstan           # Contracts, checked exceptions, strict types
+composer phpstan           # Toolkit contracts and strict types
 composer compat            # PHPCompatibility for PHP 8.0+
 composer loc-guard         # Size and complexity limits
 composer tree-guard        # Repository layout policy

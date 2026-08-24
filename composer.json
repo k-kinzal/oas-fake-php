@@ -38,7 +38,6 @@
         "infection/infection": "^0.26.19 || ^0.27 || ^0.28 || ^0.29 || ^0.30 || ^0.31 || ^0.32 || ^0.33 || ^0.34 || ^0.35",
         "k-kinzal/php-ai-toolkit": "dev-main",
         "phpcompatibility/php-compatibility": "^10.0@alpha",
-        "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan": "^1.12 || ^2.0",
         "phpstan/phpstan-strict-rules": "^1.6 || ^2.0",
         "phpunit/phpunit": "^9.6 || ^10.5 || ^11 || ^12 || ^13",
@@ -46,11 +45,26 @@
     },
     "autoload": {
         "psr-4": {
-            "OasFake\\": "src/"
+            "OasFake\\Exception\\": "src/Exception/",
+            "OasFake\\": [
+                "src/Application/",
+                "src/Interception/",
+                "src/Handling/",
+                "src/Generation/",
+                "src/OpenApi/"
+            ]
         }
     },
     "autoload-dev": {
         "psr-4": {
+            "OasFake\\Tests\\Unit\\": [
+                "tests/Unit/Application/",
+                "tests/Unit/Interception/",
+                "tests/Unit/Handling/",
+                "tests/Unit/Generation/",
+                "tests/Unit/OpenApi/",
+                "tests/Unit/Exception/"
+            ],
             "OasFake\\Tests\\": "tests/",
             "OasFake\\Testing\\": "tests/Testing/"
         },
@@ -63,8 +77,7 @@
         "sort-packages": true,
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true,
-            "infection/extension-installer": true,
-            "phpstan/extension-installer": true
+            "infection/extension-installer": true
         }
     },
     "scripts": {

@@ -4,59 +4,48 @@ deptrac:
   exclude_files:
     - '#.*/vendor/.*#'
   layers:
-    - name: Exception
+    - name: Application
       collectors:
-        - type: classLike
-          value: '^OasFake\\Exception\\'
-    - name: Contract
+        - type: directory
+          value: src/Application/.*
+    - name: Interception
       collectors:
-        - type: classLike
-          value: '^OasFake\\(EnvironmentResolver|Mode|OperationDefinition|OperationRequest|Route)$'
-    - name: Schema
+        - type: directory
+          value: src/Interception/.*
+    - name: Handling
       collectors:
-        - type: classLike
-          value: '^OasFake\\(OpenApiServerResolver|OperationIndexBuilder|OperationLookup|OperationParameterResolver|OperationPathResolver|OperationRequestResolver|PathOperationResolver|Schema|ServerUrlMatcher|Validator)$'
+        - type: directory
+          value: src/Handling/.*
     - name: Generation
       collectors:
-        - type: classLike
-          value: '^OasFake\\(FakeDataContext|FakeDataSource|FakeDataContextResolver|FakeRequest|FakeRequestFactory|FakeResponse|FakeResponseFactory|OperationResponseResolver|ParameterFaker|ParameterSerializer|PayloadSerializer|RequestBodyGenerator)$'
-    - name: Handler
+        - type: directory
+          value: src/Generation/.*
+    - name: OpenApi
       collectors:
-        - type: classLike
-          value: '^OasFake\\(Handler|HandlerMap|OperationResponder)$'
-    - name: Pipeline
+        - type: directory
+          value: src/OpenApi/.*
+    - name: Exception
       collectors:
-        - type: classLike
-          value: '^OasFake\\(CassetteNameNormalizer|CassetteSession|Converter|Interceptor|InterceptorFactory|InterceptorRouter|MiddlewarePipeline|MiddlewareRequestHandler|ResolvedResponseRequestHandler|SchemaRequestHandler|ServerOptions|VcrLifecycle|VcrResponseFactory)$'
-    - name: Facade
-      collectors:
-        - type: classLike
-          value: '^OasFake\\(DeclarativeHandlerInspector|DeclarativeHandlerRegistrar|OasFake|Server|ServerConfiguration|ServerLifecycle|ServerMiddleware|ServerRegistry)$'
+        - type: directory
+          value: src/Exception/.*
   ruleset:
-    Facade:
-      - Exception
-      - Contract
-      - Schema
+    Application:
+      - Interception
+      - Handling
       - Generation
-      - Handler
-      - Pipeline
-    Pipeline:
+      - OpenApi
       - Exception
-      - Contract
-      - Schema
+    Interception:
+      - Handling
       - Generation
-      - Handler
-    Handler:
+      - OpenApi
       - Exception
-      - Contract
+    Handling:
       - Generation
+      - OpenApi
+      - Exception
     Generation:
-      - Exception
-      - Contract
-      - Schema
-    Schema:
-      - Exception
-      - Contract
-    Contract:
+      - OpenApi
+    OpenApi:
       - Exception
     Exception: ~

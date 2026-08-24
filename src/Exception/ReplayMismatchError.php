@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace OasFake\Exception;
 
+use AssertionError;
 use LogicException;
 use VCR\Request as VcrRequest;
 
 /**
  * Thrown when a request in REPLAY mode does not match any cassette recording.
  *
- * The historical Error suffix is retained for backward compatibility; replay
- * mismatches are recoverable runtime failures that callers may handle.
+ * Extends \AssertionError so PHPUnit treats it as a test failure.
  */
-final class ReplayMismatchError extends OasFakeException
+final class ReplayMismatchError extends AssertionError
 {
     /**
      * Create an assertion-style error for an unmatched replay request.

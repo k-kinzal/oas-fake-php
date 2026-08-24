@@ -33,7 +33,6 @@
 /loc.yaml           export-ignore
 /tree.yaml          export-ignore
 /scope.yaml         export-ignore
-/stubs/             export-ignore
 /deptrac.yaml       export-ignore
 /deptrac.php        export-ignore
 /CLAUDE.md          export-ignore

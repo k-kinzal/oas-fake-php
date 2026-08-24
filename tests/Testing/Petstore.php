@@ -26,7 +26,7 @@ final class Petstore
      */
     public static function schema(): Schema
     {
-        return Schema::fromFile(self::path());
+        return SchemaFixture::fromFile(self::path());
     }
 
     /**
