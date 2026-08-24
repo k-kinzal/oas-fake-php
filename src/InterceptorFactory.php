@@ -6,6 +6,8 @@ namespace OasFake;
 
 /**
  * Builds interceptors from resolved server options.
+ *
+ * @visibility namespace
  */
 final class InterceptorFactory
 {

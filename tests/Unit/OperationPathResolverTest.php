@@ -11,6 +11,9 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(OperationPathResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerUrlMatcher::class)]
 final class OperationPathResolverTest extends TestCase
 {
     public function testResolveReturnsPathWhenServerHasNoBasePath(): void

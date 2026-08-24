@@ -9,6 +9,8 @@ use VCR\Response as VcrResponse;
 
 /**
  * Routes intercepted requests to the most specific registered server URL.
+ *
+ * @visibility namespace
  */
 final class InterceptorRouter
 {

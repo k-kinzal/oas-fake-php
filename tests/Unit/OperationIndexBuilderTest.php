@@ -10,6 +10,11 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(OperationIndexBuilder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 final class OperationIndexBuilderTest extends TestCase
 {
     public function testBuildIndexesIdsPathsAndMergedParameters(): void

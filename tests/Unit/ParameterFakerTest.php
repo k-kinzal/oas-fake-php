@@ -4,29 +4,30 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
-use cebe\openapi\spec\Parameter;
-use OasFake\OperationLookup;
+use JsonException;
 use OasFake\ParameterFaker;
-use OasFake\Schema;
+use OasFake\Testing\ExampleParameter;
+use OasFake\Testing\Petstore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ParameterFaker::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationLookup::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ParameterSerializer::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Schema::class)]
 final class ParameterFakerTest extends TestCase
 {
-    private Schema $schema;
-
-    private OperationLookup $lookup;
-
-    protected function setUp(): void
-    {
-        $this->schema = Schema::fromFile(__DIR__ . '/../Fixtures/openapi/petstore.yaml');
-        $this->lookup = new OperationLookup($this->schema);
-    }
-
+    /**
+     * @throws JsonException when a generated parameter cannot be serialized
+     */
     public function testGeneratesPathParameter(): void
     {
-        $info = $this->lookup->findByOperationId('getPetById');
+        $info = Petstore::lookup()->findByOperationId('getPetById');
         self::assertNotNull($info);
 
         $faker = new ParameterFaker();
@@ -39,21 +40,26 @@ final class ParameterFakerTest extends TestCase
         self::assertNotSame('', $result['path']['petId']);
     }
 
+    /**
+     * @throws JsonException when a generated parameter cannot be serialized
+     */
     public function testSkipsOptionalParametersWhenNotAlwaysFakeOptionals(): void
     {
-        $info = $this->lookup->findByOperationId('listPets');
+        $info = Petstore::lookup()->findByOperationId('listPets');
         self::assertNotNull($info);
 
         $faker = new ParameterFaker();
         $result = $faker->generate($info->parameters);
 
-        // "limit" is optional, so should be skipped
         self::assertSame([], $result['query']);
     }
 
+    /**
+     * @throws JsonException when a generated parameter cannot be serialized
+     */
     public function testGeneratesOptionalParametersWhenAlwaysFakeOptionals(): void
     {
-        $info = $this->lookup->findByOperationId('listPets');
+        $info = Petstore::lookup()->findByOperationId('listPets');
         self::assertNotNull($info);
 
         $faker = new ParameterFaker(['alwaysFakeOptionals' => true]);
@@ -62,46 +68,65 @@ final class ParameterFakerTest extends TestCase
         self::assertArrayHasKey('limit', $result['query']);
     }
 
+    /**
+     * @throws JsonException when a generated parameter cannot be serialized
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the fixture definition is invalid
+     */
     public function testGeneratesFormExplodedQueryArray(): void
     {
         $faker = new ParameterFaker(['minItems' => 2, 'maxItems' => 2]);
         $result = $faker->generate([
-            $this->arrayParameter('tags', 'query', 'form', true),
+            ExampleParameter::array('tags', 'query', 'form', true),
         ]);
 
         self::assertSame(['friendly', 'friendly'], $result['query']['tags']);
     }
 
+    /**
+     * @throws JsonException when a generated parameter cannot be serialized
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the fixture definition is invalid
+     */
     public function testGeneratesPipeDelimitedQueryArray(): void
     {
         $faker = new ParameterFaker(['minItems' => 2, 'maxItems' => 2]);
         $result = $faker->generate([
-            $this->arrayParameter('tags', 'query', 'pipeDelimited', false),
+            ExampleParameter::array('tags', 'query', 'pipeDelimited', false),
         ]);
 
         self::assertSame('friendly|friendly', $result['query']['tags']);
     }
 
+    /**
+     * @throws JsonException when a generated parameter cannot be serialized
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the fixture definition is invalid
+     */
     public function testGeneratesSimpleHeaderArray(): void
     {
         $faker = new ParameterFaker(['minItems' => 2, 'maxItems' => 2]);
         $result = $faker->generate([
-            $this->arrayParameter('X-Tags', 'header', 'simple', false),
+            ExampleParameter::array('X-Tags', 'header', 'simple', false),
         ]);
 
         self::assertSame('friendly,friendly', $result['header']['X-Tags']);
     }
 
+    /**
+     * @throws JsonException when a generated parameter cannot be serialized
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the fixture definition is invalid
+     */
     public function testGeneratesMatrixPathArray(): void
     {
         $faker = new ParameterFaker(['minItems' => 2, 'maxItems' => 2]);
         $result = $faker->generate([
-            $this->arrayParameter('tags', 'path', 'matrix', true),
+            ExampleParameter::array('tags', 'path', 'matrix', true),
         ]);
 
         self::assertSame(';tags=friendly;tags=friendly', $result['path']['tags']);
     }
 
+    /**
+     * @throws JsonException when a generated parameter cannot be serialized
+     */
     public function testGeneratesEmptyForNoParameters(): void
     {
         $faker = new ParameterFaker();
@@ -112,36 +137,17 @@ final class ParameterFakerTest extends TestCase
         self::assertSame([], $result['header']);
     }
 
+    /**
+     * @throws JsonException when a generated parameter cannot be serialized
+     */
     public function testValuesAreStrings(): void
     {
-        $info = $this->lookup->findByOperationId('getPetById');
+        $info = Petstore::lookup()->findByOperationId('getPetById');
         self::assertNotNull($info);
 
         $faker = new ParameterFaker();
         $result = $faker->generate($info->parameters);
 
-        foreach ($result['path'] as $value) {
-            self::assertIsString($value);
-        }
-    }
-
-    private function arrayParameter(string $name, string $in, string $style, bool $explode): Parameter
-    {
-        return new Parameter([
-            'name' => $name,
-            'in' => $in,
-            'required' => true,
-            'style' => $style,
-            'explode' => $explode,
-            'schema' => [
-                'type' => 'array',
-                'minItems' => 2,
-                'maxItems' => 2,
-                'items' => [
-                    'type' => 'string',
-                    'enum' => ['friendly'],
-                ],
-            ],
-        ]);
+        self::assertIsString($result['path']['petId']);
     }
 }

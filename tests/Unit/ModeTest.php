@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
-use InvalidArgumentException;
+use OasFake\Exception\InvalidModeException;
 use OasFake\Mode;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Mode::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(InvalidModeException::class)]
 final class ModeTest extends TestCase
 {
-    public function testConstructorNormalizesAndValidatesValue(): void
+    public function testNormalizesModeValue(): void
     {
         self::assertSame(Mode::RECORD, (new Mode(' Record '))->value());
     }
@@ -77,7 +78,7 @@ final class ModeTest extends TestCase
 
     public function testFromStringInvalidThrowsException(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(InvalidModeException::class);
         $this->expectExceptionMessage('Invalid mode "invalid"');
 
         Mode::fromString('invalid');

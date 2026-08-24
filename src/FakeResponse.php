@@ -32,7 +32,7 @@ final class FakeResponse
     /**
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      */
-    public static function for(Server|Schema|FakeDataContext $source, string $operationId, ?int $statusCode = null, array $options = []): self
+    public static function for(FakeDataSource|Schema $source, string $operationId, ?int $statusCode = null, array $options = []): self
     {
         $context = (new FakeDataContextResolver())->resolve($source, $options);
         $definition = $context->operationLookup()->findByOperationId($operationId);
@@ -50,7 +50,7 @@ final class FakeResponse
     /**
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      */
-    public static function forPath(Server|Schema|FakeDataContext $source, string $path, string $method, ?int $statusCode = null, array $options = []): self
+    public static function forPath(FakeDataSource|Schema $source, string $path, string $method, ?int $statusCode = null, array $options = []): self
     {
         $context = (new FakeDataContextResolver())->resolve($source, $options);
         $definition = $context->operationLookup()->findByPathAndMethod($path, $method);

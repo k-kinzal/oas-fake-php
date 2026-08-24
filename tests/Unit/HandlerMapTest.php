@@ -10,6 +10,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(HandlerMap::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Handler::class)]
 final class HandlerMapTest extends TestCase
 {
     public function testForOperationAndFindByOperationId(): void

@@ -7,13 +7,16 @@ namespace OasFake\Tests\Unit;
 use cebe\openapi\spec\Operation;
 use cebe\openapi\spec\Parameter;
 use OasFake\OperationInfo;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(OperationInfo::class)]
+#[CoversNothing]
 final class OperationInfoTest extends TestCase
 {
-    public function testConstructorStoresOperationMetadata(): void
+    /**
+     * @throws \cebe\openapi\exceptions\TypeErrorException when operation metadata is invalid
+     */
+    public function testStoresOperationMetadata(): void
     {
         $operation = new Operation(['responses' => []]);
         $parameter = new Parameter(['name' => 'petId', 'in' => 'path']);

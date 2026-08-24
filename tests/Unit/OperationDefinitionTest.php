@@ -12,7 +12,10 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(OperationDefinition::class)]
 final class OperationDefinitionTest extends TestCase
 {
-    public function testConstructorDefinesRoutingContract(): void
+    /**
+     * @throws \cebe\openapi\exceptions\TypeErrorException when operation metadata is invalid
+     */
+    public function testExposesRoutingMetadata(): void
     {
         $operation = new Operation(['responses' => []]);
         $definition = new OperationDefinition('/pets', 'get', 'listPets', $operation, [], ['https://api.example.com']);

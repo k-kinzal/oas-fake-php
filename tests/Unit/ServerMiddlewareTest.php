@@ -6,10 +6,12 @@ namespace OasFake\Tests\Unit;
 
 use OasFake\Server;
 use OasFake\ServerMiddleware;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversTrait;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(ServerMiddleware::class)]
+#[CoversTrait(ServerMiddleware::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Server::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerConfiguration::class)]
 final class ServerMiddlewareTest extends TestCase
 {
     public function testTraitProvidesEmptyDeclarativeMiddlewareByDefault(): void

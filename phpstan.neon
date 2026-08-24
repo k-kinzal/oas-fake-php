@@ -1,11 +1,17 @@
+includes:
+    - vendor/k-kinzal/php-ai-toolkit/error-formatter.neon
+
 parameters:
     level: max
     paths:
         - src
-    excludePaths:
         - tests
-
-    phpVersion: 80000
+    excludePaths:
+        - tests/Fixtures
+    scanFiles:
+        - stubs/OperationInfo.php
+    # Development tools run on PHP 8.3+; PHPCompatibility enforces the PHP 8.0 source floor.
+    phpVersion: 80300
     checkUninitializedProperties: true
     checkImplicitMixed: true
     checkBenevolentUnionTypes: true
@@ -19,6 +25,14 @@ parameters:
             - LogicException
             - RuntimeException
             - Error
+            - Random\RandomException
+            - PHPUnit\Framework\MockObject\Exception
+
+    customRules:
+        testNamespacePrefixes:
+            - 'OasFake\Tests'
+        restrictedTestNamespacePrefixes:
+            - 'OasFake\Tests\Unit'
 
     treatPhpDocTypesAsCertain: false
     reportUnmatchedIgnoredErrors: true

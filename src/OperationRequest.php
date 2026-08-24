@@ -8,6 +8,8 @@ use League\OpenAPIValidation\PSR7\OperationAddress;
 
 /**
  * Carries the OpenAPI operation resolution for one incoming request.
+ *
+ * @visibility namespace
  */
 final class OperationRequest
 {

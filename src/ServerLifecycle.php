@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace OasFake;
 
-use LogicException;
+use OasFake\Exception\ServerStateException;
 
 /**
  * Owns a server's interceptor and registry attachment state.
+ *
+ * @visibility namespace
  */
 final class ServerLifecycle
 {
@@ -20,31 +22,31 @@ final class ServerLifecycle
     /**
      * Reject configuration changes after the interceptor has started.
      *
-     * @throws LogicException when the server is running
+     * @throws ServerStateException when the server is running
      */
     public function assertConfigurable(): void
     {
         if ($this->isRunning()) {
-            throw new LogicException('Cannot change server configuration while the server is running. Configure the server before start().');
+            throw ServerStateException::configurationLocked();
         }
     }
 
     /**
      * Reject registration by a second registry.
      *
-     * @throws LogicException when another registry owns the server
+     * @throws ServerStateException when another registry owns the server
      */
     public function assertCanRegister(ServerRegistry $registry, string $key): void
     {
         if ($this->registry !== null && ($this->registry !== $registry || $this->registryKey !== $key)) {
-            throw new LogicException('Server is already registered in another ServerRegistry. Stop it before registering it again.');
+            throw ServerStateException::alreadyRegistered();
         }
     }
 
     /**
      * Attach the server to its owning registry after successful construction.
      *
-     * @throws LogicException when another registry owns the server
+     * @throws ServerStateException when another registry owns the server
      */
     public function register(ServerRegistry $registry, string $key): void
     {

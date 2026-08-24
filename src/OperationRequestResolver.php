@@ -12,6 +12,8 @@ use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Resolves a PSR-7 request to its effective OpenAPI operation contract.
+ *
+ * @visibility namespace
  */
 final class OperationRequestResolver
 {

@@ -13,6 +13,8 @@ use function strlen;
 
 /**
  * Resolves request paths relative to OpenAPI server base URLs.
+ *
+ * @visibility namespace
  */
 final class OperationPathResolver
 {

@@ -11,6 +11,8 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 /**
  * Handles a PSR-7 request through OpenAPI resolution and response validation.
+ *
+ * @visibility namespace
  */
 final class SchemaRequestHandler implements RequestHandlerInterface
 {

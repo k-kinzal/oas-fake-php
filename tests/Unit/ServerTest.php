@@ -4,14 +4,26 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
-use InvalidArgumentException;
-use LogicException;
+use Closure;
+use OasFake\Exception\InvalidModeException;
+use OasFake\Exception\ServerStateException;
 use OasFake\Handler;
 use OasFake\Mode;
-use OasFake\Route;
 use OasFake\Server;
 use OasFake\ServerRegistry;
+use OasFake\Testing\CassetteNameTestServer;
+use OasFake\Testing\DeclarativeTestServer;
+use OasFake\Testing\InvalidSignatureOperationIdServer;
+use OasFake\Testing\OperationIdTestServer;
+use OasFake\Testing\Petstore;
+use OasFake\Testing\RouteTestServer;
+use OasFake\Testing\SchemaAwareOperationServer;
+use OasFake\Testing\SchemaAwareRouteServer;
+use OasFake\Testing\TemporaryDirectory;
+use OasFake\Testing\UnknownRouteDeclarativeServer;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -20,15 +32,53 @@ use Psr\Http\Server\RequestHandlerInterface;
 use VCR\Request as VcrRequest;
 
 #[CoversClass(Server::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteNameNormalizer::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteSession::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Converter::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\DeclarativeHandlerInspector::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\DeclarativeHandlerRegistrar::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\EnvironmentResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(InvalidModeException::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(ServerStateException::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeDataContext::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeResponse::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeResponseFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Handler::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\HandlerMap::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Interceptor::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\InterceptorFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\InterceptorRouter::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\MiddlewarePipeline::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Mode::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OasFake::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationLookup::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationPathResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationRequest::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationRequestResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationResponder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationResponseResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadSerializer::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Route::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Schema::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\SchemaRequestHandler::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerConfiguration::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerLifecycle::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerOptions::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(ServerRegistry::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerUrlMatcher::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Validator::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\VcrLifecycle::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\VcrResponseFactory::class)]
 final class ServerTest extends TestCase
 {
-    private string $petstorePath;
-
+    #[Override]
     protected function setUp(): void
     {
-        $this->petstorePath = __DIR__ . '/../Fixtures/openapi/petstore.yaml';
-
-        // Clean up env vars
         putenv('OAS_FAKE_MODE');
         putenv('OAS_FAKE_CASSETTE_PATH');
         putenv('OAS_FAKE_CASSETTE_NAME');
@@ -36,6 +86,7 @@ final class ServerTest extends TestCase
         putenv('OAS_FAKE_VALIDATE_RESPONSES');
     }
 
+    #[Override]
     protected function tearDown(): void
     {
         putenv('OAS_FAKE_MODE');
@@ -48,7 +99,7 @@ final class ServerTest extends TestCase
     public function testWithSchemaReturnsStatic(): void
     {
         $server = new Server();
-        $result = $server->withSchema($this->petstorePath);
+        $result = $server->withSchema(Petstore::path());
 
         self::assertSame($server, $result);
     }
@@ -74,7 +125,7 @@ final class ServerTest extends TestCase
     {
         $server = new Server();
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(InvalidModeException::class);
 
         $server->withMode('invalid');
     }
@@ -197,7 +248,7 @@ final class ServerTest extends TestCase
     public function testStartCanBeCalledTwiceSafely(): void
     {
         $server = (new Server())
-            ->withSchema($this->petstorePath)
+            ->withSchema(Petstore::path())
             ->withCassettePath(sys_get_temp_dir() . '/oas-fake-test-cassettes')
             ->withRequestValidation(false)
             ->withResponseValidation(false);
@@ -217,7 +268,7 @@ final class ServerTest extends TestCase
     public function testBuildInterceptorStartsInterceptor(): void
     {
         $server = (new Server())
-            ->withSchema($this->petstorePath)
+            ->withSchema(Petstore::path())
             ->withRequestValidation(false)
             ->withResponseValidation(false);
 
@@ -232,8 +283,8 @@ final class ServerTest extends TestCase
 
     public function testBuildInterceptorUsesServerSpecificCassetteName(): void
     {
-        $cassettePath = sys_get_temp_dir() . '/oas-fake-server-cassettes-' . uniqid('', true);
-        mkdir($cassettePath, 0777, true);
+        $directory = new TemporaryDirectory('oas-fake-server-cassettes');
+        $cassettePath = $directory->path();
 
         $server = (new CassetteNameTestServer())
             ->withMode(Mode::RECORD)
@@ -242,22 +293,16 @@ final class ServerTest extends TestCase
         try {
             $server->buildInterceptor();
 
-            self::assertFileExists($cassettePath . '/oasfake-tests-unit-cassettenametestserver');
+            self::assertFileExists($cassettePath . '/oasfake-testing-cassettenametestserver');
         } finally {
             $server->stop();
-            foreach (glob($cassettePath . '/*') ?: [] as $file) {
-                if (is_file($file)) {
-                    @unlink($file);
-                }
-            }
-            @rmdir($cassettePath);
         }
     }
 
     public function testBuildInterceptorUsesConfiguredCassetteName(): void
     {
-        $cassettePath = sys_get_temp_dir() . '/oas-fake-server-cassettes-' . uniqid('', true);
-        mkdir($cassettePath, 0777, true);
+        $directory = new TemporaryDirectory('oas-fake-server-cassettes');
+        $cassettePath = $directory->path();
 
         $server = (new CassetteNameTestServer())
             ->withMode(Mode::RECORD)
@@ -270,65 +315,61 @@ final class ServerTest extends TestCase
             self::assertFileExists($cassettePath . '/custom-cassette');
         } finally {
             $server->stop();
-            foreach (glob($cassettePath . '/*') ?: [] as $file) {
-                if (is_file($file)) {
-                    @unlink($file);
-                }
-            }
-            @rmdir($cassettePath);
         }
     }
 
-    public function testConfigurationCannotChangeWhileRunning(): void
+    #[DataProvider('providerConfigurationMutations')]
+    public function testConfigurationCannotChangeWhileRunning(Closure $mutation): void
     {
         $server = (new Server())
-            ->withSchema($this->petstorePath)
+            ->withSchema(Petstore::path())
             ->withRequestValidation(false)
             ->withResponseValidation(false);
 
-        $middleware = new class () implements MiddlewareInterface {
-            public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
-            {
-                return $handler->handle($request);
-            }
-        };
+        $server->buildInterceptor();
+        $this->expectException(ServerStateException::class);
+        $this->expectExceptionMessage('Cannot change server configuration while the server is running');
 
         try {
-            $server->buildInterceptor();
-
-            $cases = [
-                'schema' => static fn () => $server->withSchema(__DIR__ . '/../Fixtures/openapi/bookstore.yaml'),
-                'mode' => static fn () => $server->withMode(Mode::RECORD),
-                'cassettePath' => static fn () => $server->withCassettePath('/tmp/other-cassettes'),
-                'cassetteName' => static fn () => $server->withCassetteName('other'),
-                'requestValidation' => static fn () => $server->withRequestValidation(true),
-                'responseValidation' => static fn () => $server->withResponseValidation(true),
-                'fakerOptions' => static fn () => $server->withFakerOptions(['alwaysFakeOptionals' => true]),
-                'middleware' => static fn () => $server->withMiddleware($middleware),
-                'handler' => static fn () => $server->withHandler('deletePet', Handler::status(204)),
-                'response' => static fn () => $server->withResponse('listPets', 200, []),
-                'callback' => static fn () => $server->withCallback('listPets', static fn (): ResponseInterface => new \GuzzleHttp\Psr7\Response(200)),
-                'pathResponse' => static fn () => $server->withPathResponse('/pets', 'GET', 200, []),
-                'pathCallback' => static fn () => $server->withPathCallback('/pets', 'GET', static fn (): ResponseInterface => new \GuzzleHttp\Psr7\Response(200)),
-            ];
-
-            foreach ($cases as $name => $mutate) {
-                try {
-                    $mutate();
-                    self::fail(sprintf('Expected LogicException for %s mutation while running.', $name));
-                } catch (LogicException $e) {
-                    self::assertStringContainsString('Cannot change server configuration while the server is running', $e->getMessage());
-                }
-            }
+            $mutation($server);
         } finally {
             $server->stop();
         }
     }
 
+    /**
+     * @return iterable<string, array{Closure(Server): Server}>
+     */
+    public static function providerConfigurationMutations(): iterable
+    {
+        yield 'schema' => [static fn (Server $server): Server => $server->withSchema(__DIR__ . '/../Fixtures/openapi/bookstore.yaml')];
+        yield 'mode' => [static fn (Server $server): Server => $server->withMode(Mode::RECORD)];
+        yield 'cassette path' => [static fn (Server $server): Server => $server->withCassettePath('/tmp/other-cassettes')];
+        yield 'cassette name' => [static fn (Server $server): Server => $server->withCassetteName('other')];
+        yield 'request validation' => [static fn (Server $server): Server => $server->withRequestValidation(true)];
+        yield 'response validation' => [static fn (Server $server): Server => $server->withResponseValidation(true)];
+        yield 'faker options' => [static fn (Server $server): Server => $server->withFakerOptions(['alwaysFakeOptionals' => true])];
+        yield 'middleware' => [static function (Server $server): Server {
+            $middleware = new class () implements MiddlewareInterface {
+                public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+                {
+                    return $handler->handle($request);
+                }
+            };
+
+            return $server->withMiddleware($middleware);
+        }];
+        yield 'handler' => [static fn (Server $server): Server => $server->withHandler('deletePet', Handler::status(204))];
+        yield 'response' => [static fn (Server $server): Server => $server->withResponse('listPets', 200, [])];
+        yield 'callback' => [static fn (Server $server): Server => $server->withCallback('listPets', static fn (): ResponseInterface => new \GuzzleHttp\Psr7\Response(200))];
+        yield 'path response' => [static fn (Server $server): Server => $server->withPathResponse('/pets', 'GET', 200, [])];
+        yield 'path callback' => [static fn (Server $server): Server => $server->withPathCallback('/pets', 'GET', static fn (): ResponseInterface => new \GuzzleHttp\Psr7\Response(200))];
+    }
+
     public function testInterceptorReturnsActiveInterceptor(): void
     {
         $server = (new Server())
-            ->withSchema($this->petstorePath)
+            ->withSchema(Petstore::path())
             ->withRequestValidation(false)
             ->withResponseValidation(false);
 
@@ -345,7 +386,7 @@ final class ServerTest extends TestCase
 
     public function testSchemaReturnsResolvedSchema(): void
     {
-        $server = (new Server())->withSchema($this->petstorePath);
+        $server = (new Server())->withSchema(Petstore::path());
 
         self::assertSame(['https://api.petstore.example.com'], $server->schema()->serverUrls());
     }
@@ -359,7 +400,7 @@ final class ServerTest extends TestCase
 
     public function testServerUrlsReturnsSchemaUrls(): void
     {
-        $server = (new Server())->withSchema($this->petstorePath);
+        $server = (new Server())->withSchema(Petstore::path());
 
         self::assertSame(['https://api.petstore.example.com'], $server->serverUrls());
     }
@@ -375,14 +416,14 @@ final class ServerTest extends TestCase
 
     public function testAssertCanRegisterInRegistryRejectsDifferentOwner(): void
     {
-        $server = (new Server())->withSchema($this->petstorePath);
+        $server = (new Server())->withSchema(Petstore::path());
         $registry = new ServerRegistry();
 
         $server->registerInRegistry($registry, 'PetServer');
 
         try {
             $server->assertCanRegisterInRegistry(new ServerRegistry(), 'OtherServer');
-        } catch (LogicException $exception) {
+        } catch (ServerStateException $exception) {
             self::assertStringContainsString('already registered', $exception->getMessage());
 
             return;
@@ -390,7 +431,7 @@ final class ServerTest extends TestCase
             $server->unregisterFromRegistry($registry, 'PetServer');
         }
 
-        self::fail('Expected LogicException was not thrown.');
+        self::fail('Expected ServerStateException was not thrown.');
     }
 
     public function testRegisterInRegistryStoresOwnership(): void
@@ -410,7 +451,7 @@ final class ServerTest extends TestCase
     public function testUnregisterFromRegistryStopsInterceptor(): void
     {
         $server = (new Server())
-            ->withSchema($this->petstorePath)
+            ->withSchema(Petstore::path())
             ->withRequestValidation(false)
             ->withResponseValidation(false);
         $registry = new ServerRegistry();
@@ -428,8 +469,6 @@ final class ServerTest extends TestCase
     public function testDeclarativeSubclassConfiguresStaticProperties(): void
     {
         $server = new DeclarativeTestServer();
-
-        // The server should be constructible and fluent methods should work
         $result = $server->withMode(Mode::RECORD);
         self::assertSame($server, $result);
     }
@@ -439,10 +478,7 @@ final class ServerTest extends TestCase
         putenv('OAS_FAKE_MODE=record');
 
         $server = new Server();
-        $server->withSchema($this->petstorePath)->withMode(Mode::FAKE);
-
-        // We can't easily test the resolved mode without starting,
-        // but we can verify env is set
+        $server->withSchema(Petstore::path())->withMode(Mode::FAKE);
         self::assertSame('record', getenv('OAS_FAKE_MODE'));
     }
 
@@ -511,7 +547,7 @@ final class ServerTest extends TestCase
 
     public function testResolvedOptionsCapturesEffectiveConfiguration(): void
     {
-        $schema = \OasFake\Schema::fromFile($this->petstorePath);
+        $schema = \OasFake\Schema::fromFile(Petstore::path());
         $server = (new Server())
             ->withMode(Mode::RECORD)
             ->withCassettePath('/tmp/cassettes')
@@ -533,22 +569,16 @@ final class ServerTest extends TestCase
 
     public function testSubclassMethodsAreAutoRegisteredAsStubs(): void
     {
-        // The OperationIdTestServer has a public method "listPets"
-        // which should be auto-registered as a stub for operationId "listPets"
         $server = new OperationIdTestServer();
-
-        // The server was created - method stubs were registered during construction
-        // We verify by checking fluent returns still work
-        $result = $server->withSchema($this->petstorePath);
+        $result = $server->withSchema(Petstore::path());
         self::assertSame($server, $result);
     }
 
     public function testRouteAttributeMethodsAreRegisteredByPathMethod(): void
     {
-        // The RouteTestServer has a method with #[Route] attribute
         $server = new RouteTestServer();
 
-        $result = $server->withSchema($this->petstorePath);
+        $result = $server->withSchema(Petstore::path());
         self::assertSame($server, $result);
     }
 
@@ -608,7 +638,7 @@ final class ServerTest extends TestCase
     public function testPublicMethodsWithoutHandlerSignatureAreNotAutoRegistered(): void
     {
         $server = (new InvalidSignatureOperationIdServer())
-            ->withSchema($this->petstorePath)
+            ->withSchema(Petstore::path())
             ->withRequestValidation(false)
             ->withResponseValidation(false);
 
@@ -621,7 +651,7 @@ final class ServerTest extends TestCase
             $response = $interceptor->handle(new VcrRequest('GET', 'https://api.petstore.example.com/pets', []));
 
             self::assertSame(200, $response->getStatusCode());
-            self::assertIsArray(json_decode($response->getBody() ?? '', true));
+            self::assertIsArray(json_decode($response->getBody(), true));
         } finally {
             $server->stop();
         }
@@ -632,7 +662,7 @@ final class ServerTest extends TestCase
         $server = new Server();
 
         $result = $server
-            ->withSchema($this->petstorePath)
+            ->withSchema(Petstore::path())
             ->withMode(Mode::FAKE)
             ->withCassettePath('/tmp/cassettes')
             ->withRequestValidation(true)
@@ -640,84 +670,5 @@ final class ServerTest extends TestCase
             ->withFakerOptions(['alwaysFakeOptionals' => true]);
 
         self::assertSame($server, $result);
-    }
-}
-
-// Test helper classes
-
-class DeclarativeTestServer extends Server
-{
-    protected static string $SCHEMA = './tests/Fixtures/openapi/petstore.yaml';
-    protected static string $MODE = 'record';
-    protected static string $CASSETTE_PATH = '/custom/cassettes';
-    protected static bool $VALIDATE_REQUESTS = false;
-    protected static bool $VALIDATE_RESPONSES = false;
-    /** @var array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} */
-    protected static array $FAKER_OPTIONS = ['alwaysFakeOptionals' => true];
-}
-
-class OperationIdTestServer extends Server
-{
-    protected static string $SCHEMA = './tests/Fixtures/openapi/petstore.yaml';
-
-    public function listPets(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
-    {
-        return $response ?? new \GuzzleHttp\Psr7\Response(200, [], '[]');
-    }
-}
-
-class RouteTestServer extends Server
-{
-    protected static string $SCHEMA = './tests/Fixtures/openapi/petstore.yaml';
-
-    #[Route(method: 'DELETE', path: '/pets/{petId}')]
-    public function removePet(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
-    {
-        return new \GuzzleHttp\Psr7\Response(204);
-    }
-}
-
-class CassetteNameTestServer extends Server
-{
-    protected static string $SCHEMA = './tests/Fixtures/openapi/petstore.yaml';
-}
-
-class InvalidSignatureOperationIdServer extends Server
-{
-    public function listPets(): string
-    {
-        return 'not a response';
-    }
-}
-
-class SchemaAwareOperationServer extends Server
-{
-    protected static string $SCHEMA = './tests/Fixtures/openapi/petstore.yaml';
-
-    public function listPets(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
-    {
-        return new \GuzzleHttp\Psr7\Response(200, [], '[{"name":"Declarative operation"}]');
-    }
-}
-
-class SchemaAwareRouteServer extends Server
-{
-    protected static string $SCHEMA = './tests/Fixtures/openapi/petstore.yaml';
-
-    #[Route(method: 'DELETE', path: '/pets/{petId}')]
-    public function removePet(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
-    {
-        return new \GuzzleHttp\Psr7\Response(204);
-    }
-}
-
-class UnknownRouteDeclarativeServer extends Server
-{
-    protected static string $SCHEMA = './tests/Fixtures/openapi/petstore.yaml';
-
-    #[Route(method: 'GET', path: '/unknown')]
-    public function unknown(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
-    {
-        return new \GuzzleHttp\Psr7\Response(200, [], 'Unknown declarative route');
     }
 }

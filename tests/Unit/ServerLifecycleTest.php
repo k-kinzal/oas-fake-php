@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
-use LogicException;
+use OasFake\Exception\ServerStateException;
 use OasFake\HandlerMap;
 use OasFake\Interceptor;
 use OasFake\Mode;
@@ -16,6 +16,26 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ServerLifecycle::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteSession::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(ServerStateException::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeDataContext::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Interceptor::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\InterceptorRouter::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\MiddlewarePipeline::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Mode::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationLookup::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationPathResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationRequestResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationResponder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\SchemaRequestHandler::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(ServerRegistry::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Validator::class)]
 final class ServerLifecycleTest extends TestCase
 {
     public function testAssertConfigurableAllowsStoppedLifecycle(): void
@@ -30,7 +50,7 @@ final class ServerLifecycleTest extends TestCase
         $lifecycle = new ServerLifecycle();
         $lifecycle->register(new ServerRegistry(), 'one');
 
-        $this->expectException(LogicException::class);
+        $this->expectException(ServerStateException::class);
         $lifecycle->assertCanRegister(new ServerRegistry(), 'two');
     }
 

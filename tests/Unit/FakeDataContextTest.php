@@ -11,6 +11,13 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(FakeDataContext::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationLookup::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 final class FakeDataContextTest extends TestCase
 {
     public function testSchemaReturnsSourceSchema(): void
@@ -38,6 +45,10 @@ final class FakeDataContextTest extends TestCase
         self::assertSame(['alwaysFakeOptionals' => true], $context->fakerOptions());
     }
 
+    /**
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the fixture path is missing
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the fixture request is missing
+     */
     public function testMockRequestGeneratesData(): void
     {
         $schema = Schema::fromFile(__DIR__ . '/../Fixtures/openapi/petstore.yaml');
@@ -46,6 +57,10 @@ final class FakeDataContextTest extends TestCase
         self::assertIsArray($context->mockRequest('/pets', 'POST'));
     }
 
+    /**
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the fixture path is missing
+     * @throws \Vural\OpenAPIFaker\Exception\NoResponse when the fixture response is missing
+     */
     public function testMockResponseGeneratesData(): void
     {
         $schema = Schema::fromFile(__DIR__ . '/../Fixtures/openapi/petstore.yaml');
@@ -54,6 +69,9 @@ final class FakeDataContextTest extends TestCase
         self::assertIsArray($context->mockResponse('/pets', 'GET', 200));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture is invalid
+     */
     public function testMockSchemaGeneratesData(): void
     {
         $schema = Schema::fromFile(__DIR__ . '/../Fixtures/openapi/petstore.yaml');

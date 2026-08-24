@@ -4,10 +4,17 @@ declare(strict_types=1);
 
 namespace OasFake;
 
-use InvalidArgumentException;
+use OasFake\Exception\InvalidModeException;
 
 /**
  * Operating mode for fake servers: FAKE, RECORD, or REPLAY.
+ *
+ * @visibility public
+ *
+ * @example Selecting record mode
+ *     $mode = \OasFake\Mode::fromString('RECORD');
+ *     $mode->value() // => 'record'
+ *     $mode->isRecord() // => true
  */
 final class Mode
 {
@@ -33,7 +40,7 @@ final class Mode
     /**
      * Create a mode from a case-insensitive string value.
      *
-     * @throws InvalidArgumentException If the value does not match a valid mode
+     * @throws InvalidModeException if the value does not match a valid mode
      */
     public function __construct(string $value)
     {
@@ -42,9 +49,7 @@ final class Mode
             'fake' => self::FAKE,
             'record' => self::RECORD,
             'replay' => self::REPLAY,
-            default => throw new InvalidArgumentException(
-                sprintf('Invalid mode "%s". Valid modes are: %s', $value, implode(', ', [self::FAKE, self::RECORD, self::REPLAY])),
-            ),
+            default => throw InvalidModeException::forValue($value, [self::FAKE, self::RECORD, self::REPLAY]),
         };
     }
 
@@ -81,7 +86,7 @@ final class Mode
      *
      * @param string $value The mode string (case-insensitive)
      *
-     * @throws InvalidArgumentException If the value does not match a valid mode
+     * @throws InvalidModeException if the value does not match a valid mode
      */
     public static function fromString(string $value): self
     {

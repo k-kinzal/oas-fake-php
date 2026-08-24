@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OasFake;
 
 use GuzzleHttp\Psr7\Response;
+use OasFake\Exception\ServerStateException;
 use VCR\Request as VcrRequest;
 use VCR\Response as VcrResponse;
 
@@ -40,6 +41,8 @@ final class ServerRegistry
      *
      * @param string $key Unique identifier for the server (typically the class name)
      * @param Server $server The server instance to register
+     *
+     * @throws ServerStateException when another registry owns the server
      */
     public function register(string $key, Server $server): void
     {

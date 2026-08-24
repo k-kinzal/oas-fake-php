@@ -12,6 +12,17 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(FakeResponseFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(FakeGenerationException::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(FakeDataContext::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationLookup::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationResponseResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadSerializer::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 final class FakeResponseFactoryTest extends TestCase
 {
     public function testCreateUsesDeclaredStatusMediaTypeAndSchema(): void

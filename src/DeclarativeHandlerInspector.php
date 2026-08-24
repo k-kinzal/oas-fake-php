@@ -15,6 +15,8 @@ use ReflectionType;
 
 /**
  * Recognizes public server methods that satisfy the handler contract.
+ *
+ * @visibility namespace
  */
 final class DeclarativeHandlerInspector
 {

@@ -1,0 +1,23 @@
+{
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": [
+            "src"
+        ]
+    },
+    "mutators": {
+        "@default": true
+    },
+    "minMsi": 73,
+    "minCoveredMsi": 75,
+    "timeout": 10,
+    "tmpDir": "build/infection-tmp",
+    "logs": {
+        "text": "build/infection/escaped.log",
+        "summary": "build/infection/summary.log",
+        "perMutator": "build/infection/per-mutator.md",
+        "json": "build/infection/infection.json"
+    },
+    "testFrameworkOptions": "--no-extensions",
+    "testFramework": "phpunit"
+}

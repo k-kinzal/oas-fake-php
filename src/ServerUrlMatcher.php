@@ -18,6 +18,8 @@ use function substr;
 
 /**
  * Matches request URLs and paths against normalized OpenAPI server URLs.
+ *
+ * @visibility namespace
  */
 final class ServerUrlMatcher
 {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
+use JsonException;
 use OasFake\CassetteSession;
 use OasFake\Exception\ReplayMismatchError;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -12,6 +13,7 @@ use VCR\Request;
 use VCR\Response;
 
 #[CoversClass(CassetteSession::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(ReplayMismatchError::class)]
 final class CassetteSessionTest extends TestCase
 {
     public function testStartOpensCassetteForRecording(): void
@@ -59,6 +61,9 @@ final class CassetteSessionTest extends TestCase
         }
     }
 
+    /**
+     * @throws JsonException when the cassette cannot be decoded
+     */
     public function testRecordPersistsResponse(): void
     {
         $path = sys_get_temp_dir() . '/oas-fake-cassette-session-' . uniqid('', true);
@@ -71,7 +76,12 @@ final class CassetteSessionTest extends TestCase
 
             $recordings = json_decode((string) file_get_contents($path . '/recorded'), true, 512, JSON_THROW_ON_ERROR);
 
-            self::assertSame('https://example.com/pets', $recordings[0]['request']['url']);
+            self::assertIsArray($recordings);
+            self::assertArrayHasKey(0, $recordings);
+            self::assertIsArray($recordings[0]);
+            self::assertArrayHasKey('request', $recordings[0]);
+            self::assertIsArray($recordings[0]['request']);
+            self::assertSame('https://example.com/pets', $recordings[0]['request']['url'] ?? null);
         } finally {
             $session->stop();
             @unlink($path . '/recorded');

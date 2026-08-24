@@ -18,7 +18,7 @@ use Vural\OpenAPIFaker\SchemaFaker\SchemaFaker;
 /**
  * Shared fake-data generation context for one schema and faker option set.
  */
-final class FakeDataContext
+final class FakeDataContext implements FakeDataSource
 {
     private OperationLookup $operationLookup;
 

@@ -10,6 +10,8 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 /**
  * Request handler that returns an already resolved response.
+ *
+ * @visibility namespace
  */
 final class ResolvedResponseRequestHandler implements RequestHandlerInterface
 {

@@ -14,6 +14,8 @@ use VCR\Storage\Json;
 
 /**
  * Owns one interceptor's cassette and per-request playback indexes.
+ *
+ * @visibility namespace
  */
 final class CassetteSession
 {

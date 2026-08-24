@@ -21,6 +21,8 @@ use function trim;
 
 /**
  * Serializes fake payload data for common OpenAPI media types.
+ *
+ * @visibility namespace
  */
 final class PayloadSerializer
 {

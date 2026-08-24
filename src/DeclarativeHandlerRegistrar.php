@@ -10,6 +10,8 @@ use ReflectionMethod;
 
 /**
  * Registers public server methods as declarative handlers.
+ *
+ * @visibility namespace
  */
 final class DeclarativeHandlerRegistrar
 {

@@ -1,0 +1,62 @@
+deptrac:
+  paths:
+    - ./src
+  exclude_files:
+    - '#.*/vendor/.*#'
+  layers:
+    - name: Exception
+      collectors:
+        - type: classLike
+          value: '^OasFake\\Exception\\'
+    - name: Contract
+      collectors:
+        - type: classLike
+          value: '^OasFake\\(EnvironmentResolver|Mode|OperationDefinition|OperationRequest|Route)$'
+    - name: Schema
+      collectors:
+        - type: classLike
+          value: '^OasFake\\(OpenApiServerResolver|OperationIndexBuilder|OperationLookup|OperationParameterResolver|OperationPathResolver|OperationRequestResolver|PathOperationResolver|Schema|ServerUrlMatcher|Validator)$'
+    - name: Generation
+      collectors:
+        - type: classLike
+          value: '^OasFake\\(FakeDataContext|FakeDataSource|FakeDataContextResolver|FakeRequest|FakeRequestFactory|FakeResponse|FakeResponseFactory|OperationResponseResolver|ParameterFaker|ParameterSerializer|PayloadSerializer|RequestBodyGenerator)$'
+    - name: Handler
+      collectors:
+        - type: classLike
+          value: '^OasFake\\(Handler|HandlerMap|OperationResponder)$'
+    - name: Pipeline
+      collectors:
+        - type: classLike
+          value: '^OasFake\\(CassetteNameNormalizer|CassetteSession|Converter|Interceptor|InterceptorFactory|InterceptorRouter|MiddlewarePipeline|MiddlewareRequestHandler|ResolvedResponseRequestHandler|SchemaRequestHandler|ServerOptions|VcrLifecycle|VcrResponseFactory)$'
+    - name: Facade
+      collectors:
+        - type: classLike
+          value: '^OasFake\\(DeclarativeHandlerInspector|DeclarativeHandlerRegistrar|OasFake|Server|ServerConfiguration|ServerLifecycle|ServerMiddleware|ServerRegistry)$'
+  ruleset:
+    Facade:
+      - Exception
+      - Contract
+      - Schema
+      - Generation
+      - Handler
+      - Pipeline
+    Pipeline:
+      - Exception
+      - Contract
+      - Schema
+      - Generation
+      - Handler
+    Handler:
+      - Exception
+      - Contract
+      - Generation
+    Generation:
+      - Exception
+      - Contract
+      - Schema
+    Schema:
+      - Exception
+      - Contract
+    Contract:
+      - Exception
+    Exception: ~

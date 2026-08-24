@@ -8,6 +8,8 @@ use Psr\Http\Server\MiddlewareInterface;
 
 /**
  * Resolved configuration used to construct a server interceptor.
+ *
+ * @visibility namespace
  */
 final class ServerOptions
 {

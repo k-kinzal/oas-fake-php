@@ -19,6 +19,12 @@ use Symfony\Component\Yaml\Yaml;
 
 /**
  * Wrapper around an OpenAPI specification with factory methods for loading.
+ *
+ * @visibility public
+ *
+ * @example Parsing an inline OpenAPI document
+ *     $schema = \OasFake\Schema::fromString('{"openapi":"3.0.0","info":{"title":"Example","version":"1.0.0"},"paths":{}}', 'json');
+ *     $schema->openApi()->openapi // => '3.0.0'
  */
 final class Schema
 {

@@ -11,6 +11,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(OpenApiServerResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 final class OpenApiServerResolverTest extends TestCase
 {
     public function testAllReturnsEffectiveOperationUrls(): void
@@ -27,6 +28,9 @@ final class OpenApiServerResolverTest extends TestCase
         self::assertSame(['https://api.petstore.example.com'], (new OpenApiServerResolver())->effective($schema->openApi()));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the server fixture is invalid
+     */
     public function testSubstituteVariablesUsesDeclaredDefaults(): void
     {
         $server = new Server([

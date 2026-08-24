@@ -20,6 +20,25 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(SchemaRequestHandler::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(FakeDataContext::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeResponse::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeResponseFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(HandlerMap::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(OperationLookup::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(OperationPathResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(OperationRequest::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(OperationRequestResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(OperationResponder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationResponseResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadSerializer::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerUrlMatcher::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Validator::class)]
 final class SchemaRequestHandlerTest extends TestCase
 {
     public function testHandleGeneratesSchemaResponse(): void

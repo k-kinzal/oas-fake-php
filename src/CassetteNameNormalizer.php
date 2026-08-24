@@ -6,6 +6,8 @@ namespace OasFake;
 
 /**
  * Converts server identifiers into portable cassette file names.
+ *
+ * @visibility namespace
  */
 final class CassetteNameNormalizer
 {

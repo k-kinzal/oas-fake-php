@@ -15,6 +15,20 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(OperationResponder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(FakeDataContext::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeResponse::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeResponseFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Handler::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(HandlerMap::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(OperationLookup::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationResponseResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadSerializer::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 final class OperationResponderTest extends TestCase
 {
     public function testRespondUsesRegisteredHandler(): void

@@ -14,6 +14,8 @@ use Vural\OpenAPIFaker\Exception\NoResponse;
 
 /**
  * Generates PSR-7 responses from schema-defined response contracts.
+ *
+ * @visibility namespace
  */
 final class FakeResponseFactory
 {

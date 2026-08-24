@@ -13,6 +13,8 @@ use function is_string;
 
 /**
  * Resolves successful response metadata for an indexed OpenAPI operation.
+ *
+ * @visibility namespace
  */
 final class OperationResponseResolver
 {

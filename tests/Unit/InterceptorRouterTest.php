@@ -16,6 +16,32 @@ use PHPUnit\Framework\TestCase;
 use VCR\Request as VcrRequest;
 
 #[CoversClass(InterceptorRouter::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteSession::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Converter::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeDataContext::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeResponse::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeResponseFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(HandlerMap::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Interceptor::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\MiddlewarePipeline::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Mode::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationLookup::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationPathResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationRequest::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationRequestResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationResponder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationResponseResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadSerializer::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\SchemaRequestHandler::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(ServerUrlMatcher::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Validator::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\VcrResponseFactory::class)]
 final class InterceptorRouterTest extends TestCase
 {
     public function testAddRegistersRoutesForDispatch(): void

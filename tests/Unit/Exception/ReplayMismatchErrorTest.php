@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit\Exception;
 
-use AssertionError;
 use LogicException;
 use OasFake\Exception\ReplayMismatchError;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -14,14 +13,14 @@ use VCR\Request as VcrRequest;
 #[CoversClass(ReplayMismatchError::class)]
 final class ReplayMismatchErrorTest extends TestCase
 {
-    public function testForRequestReturnsAssertionError(): void
+    public function testForRequestRetainsOriginalLookupFailure(): void
     {
         $request = new VcrRequest('GET', 'https://example.com/pets', []);
         $previous = new LogicException('No matching recording');
 
         $error = ReplayMismatchError::forRequest($request, $previous);
 
-        self::assertInstanceOf(AssertionError::class, $error);
+        self::assertSame($previous, $error->getPrevious());
     }
 
     public function testMessageContainsMethodAndUrl(): void

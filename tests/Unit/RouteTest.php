@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Route::class)]
 final class RouteTest extends TestCase
 {
-    public function testConstructorStoresRouteMetadata(): void
+    public function testStoresRouteMetadata(): void
     {
         $route = new Route('DELETE', '/pets/{petId}');
 

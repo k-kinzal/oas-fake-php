@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OasFake\Tests\Unit;
 
 use cebe\openapi\spec\OpenApi;
+use JsonException;
 use OasFake\Exception\SchemaNotFoundException;
 use OasFake\Exception\SchemaParseException;
 use OasFake\Schema;
@@ -12,6 +13,9 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Schema::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(SchemaNotFoundException::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(SchemaParseException::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
 final class SchemaTest extends TestCase
 {
     public function testFromStringWrapsParserFailure(): void
@@ -21,18 +25,10 @@ final class SchemaTest extends TestCase
         Schema::fromString('openapi: [invalid');
     }
 
-    private string $fixturesPath;
-
-    protected function setUp(): void
-    {
-        $this->fixturesPath = __DIR__ . '/../Fixtures/openapi';
-    }
-
     public function testFromFileLoadsYaml(): void
     {
-        $schema = Schema::fromFile($this->fixturesPath . '/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../Fixtures/openapi' . '/petstore.yaml');
 
-        self::assertInstanceOf(OpenApi::class, $schema->openApi());
         self::assertSame('Petstore API', $schema->openApi()->info->title);
     }
 
@@ -40,7 +36,6 @@ final class SchemaTest extends TestCase
     {
         $schema = Schema::fromFile('tests/Fixtures/openapi/petstore.yaml');
 
-        self::assertInstanceOf(OpenApi::class, $schema->openApi());
         self::assertSame('Petstore API', $schema->openApi()->info->title);
     }
 
@@ -61,6 +56,9 @@ final class SchemaTest extends TestCase
         self::assertSame('Test API', $schema->openApi()->info->title);
     }
 
+    /**
+     * @throws JsonException when the fixture cannot be encoded
+     */
     public function testFromStringJson(): void
     {
         $json = json_encode([
@@ -74,6 +72,9 @@ final class SchemaTest extends TestCase
         self::assertSame('JSON API', $schema->openApi()->info->title);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the OpenAPI fixture is invalid
+     */
     public function testFromOpenApi(): void
     {
         $openApi = new OpenApi([
@@ -94,12 +95,12 @@ final class SchemaTest extends TestCase
 
         $result = $schema->openApi();
 
-        self::assertInstanceOf(OpenApi::class, $result);
+        self::assertSame('Test', $result->info->title);
     }
 
     public function testServerUrlsReturnsUrls(): void
     {
-        $schema = Schema::fromFile($this->fixturesPath . '/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../Fixtures/openapi' . '/petstore.yaml');
 
         $urls = $schema->serverUrls();
 

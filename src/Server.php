@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace OasFake;
 
-use LogicException;
 use OasFake\Exception\HandlerRegistrationException;
-use OasFake\Exception\SchemaNotFoundException;
+use OasFake\Exception\ServerStateException;
 use Psr\Http\Server\MiddlewareInterface;
 use ReflectionException;
 
@@ -16,7 +15,7 @@ use ReflectionException;
  * Subclass this to define a persistent server configuration with static properties,
  * or use the fluent API via OasFake::start() to configure on the fly.
  */
-class Server
+class Server implements FakeDataSource
 {
     use ServerMiddleware;
 
@@ -31,23 +30,9 @@ class Server
      */
     protected static array $FAKER_OPTIONS = [];
 
-    private ?string $schema = null;
-    private ?Mode $mode = null;
-    private ?string $cassettePath = null;
-    private ?string $cassetteName = null;
-    private ?bool $validateRequests = null;
-    private ?bool $validateResponses = null;
-    /**
-     * @var array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int}|null
-     */
-    private ?array $fakerOptions = null;
-
-    /**
-     * @var list<MiddlewareInterface>
-     */
-    private array $additionalMiddleware = [];
     private HandlerMap $handlers;
     private ?Schema $resolvedSchema = null;
+    private ServerConfiguration $configuration;
     private ServerLifecycle $lifecycle;
 
     /**
@@ -55,6 +40,7 @@ class Server
      */
     public function __construct()
     {
+        $this->configuration = new ServerConfiguration();
         $this->handlers = new HandlerMap();
         $this->lifecycle = new ServerLifecycle();
     }
@@ -67,7 +53,8 @@ class Server
     public function withSchema(string $schemaPath): static
     {
         $this->lifecycle->assertConfigurable();
-        $this->schema = $schemaPath;
+        $this->configuration->setSchema($schemaPath);
+        $this->resolvedSchema = null;
 
         return $this;
     }
@@ -80,7 +67,7 @@ class Server
     public function withMode(string|Mode $mode): static
     {
         $this->lifecycle->assertConfigurable();
-        $this->mode = Mode::from($mode);
+        $this->configuration->setMode($mode);
 
         return $this;
     }
@@ -93,7 +80,7 @@ class Server
     public function withCassettePath(string $path): static
     {
         $this->lifecycle->assertConfigurable();
-        $this->cassettePath = $path;
+        $this->configuration->setCassettePath($path);
 
         return $this;
     }
@@ -104,7 +91,7 @@ class Server
     public function withCassetteName(string $name): static
     {
         $this->lifecycle->assertConfigurable();
-        $this->cassetteName = $name;
+        $this->configuration->setCassetteName($name);
 
         return $this;
     }
@@ -117,7 +104,7 @@ class Server
     public function withRequestValidation(bool $enable = true): static
     {
         $this->lifecycle->assertConfigurable();
-        $this->validateRequests = $enable;
+        $this->configuration->setRequestValidation($enable);
 
         return $this;
     }
@@ -130,7 +117,7 @@ class Server
     public function withResponseValidation(bool $enable = true): static
     {
         $this->lifecycle->assertConfigurable();
-        $this->validateResponses = $enable;
+        $this->configuration->setResponseValidation($enable);
 
         return $this;
     }
@@ -143,7 +130,7 @@ class Server
     public function withFakerOptions(array $options): static
     {
         $this->lifecycle->assertConfigurable();
-        $this->fakerOptions = $options;
+        $this->configuration->setFakerOptions($options);
 
         return $this;
     }
@@ -156,7 +143,7 @@ class Server
     public function withMiddleware(MiddlewareInterface $middleware): static
     {
         $this->lifecycle->assertConfigurable();
-        $this->additionalMiddleware[] = $middleware;
+        $this->configuration->addMiddleware($middleware);
 
         return $this;
     }
@@ -275,8 +262,6 @@ class Server
 
     /**
      * Check whether the server is currently running.
-     *
-     * @return bool True if the interceptor is active
      */
     public function isRunning(): bool
     {
@@ -285,8 +270,6 @@ class Server
 
     /**
      * Return the active interceptor instance.
-     *
-     * @return Interceptor|null The interceptor, or null if the server is not running
      */
     public function interceptor(): ?Interceptor
     {
@@ -312,7 +295,7 @@ class Server
      */
     public function fakerOptions(): array
     {
-        return $this->fakerOptions ?? static::$FAKER_OPTIONS;
+        return $this->configuration->fakerOptions(static::$FAKER_OPTIONS);
     }
 
     /**
@@ -334,15 +317,7 @@ class Server
      */
     public function resolveMode(): Mode
     {
-        $env = getenv('OAS_FAKE_MODE');
-        if ($env !== false && $env !== '') {
-            return Mode::fromString($env);
-        }
-        if ($this->mode !== null) {
-            return $this->mode;
-        }
-
-        return Mode::fromString(static::$MODE);
+        return $this->configuration->mode(static::$MODE);
     }
 
     /**
@@ -356,7 +331,7 @@ class Server
     /**
      * Assert that this server can be attached to the given registry.
      *
-     * @throws LogicException when another registry owns the server
+     * @throws ServerStateException when another registry owns the server
      */
     public function assertCanRegisterInRegistry(ServerRegistry $registry, string $key): void
     {
@@ -374,16 +349,11 @@ class Server
     /**
      * Resolve the configured schema file into a schema object.
      *
-     * @throws SchemaNotFoundException when no schema path is configured
+     * @throws Exception\SchemaNotFoundException when no schema path is configured
      */
     public function resolveSchema(): Schema
     {
-        $path = $this->schema ?? static::$SCHEMA;
-        if ($path === '') {
-            throw new SchemaNotFoundException('No schema configured. Set $SCHEMA or call withSchema().');
-        }
-
-        return Schema::fromFile($path);
+        return $this->configuration->schema(static::$SCHEMA);
     }
 
     /**
@@ -391,12 +361,7 @@ class Server
      */
     public function resolveCassettePath(): string
     {
-        $env = getenv('OAS_FAKE_CASSETTE_PATH');
-        if ($env !== false && $env !== '') {
-            return $env;
-        }
-
-        return $this->cassettePath ?? static::$CASSETTE_PATH;
+        return $this->configuration->cassettePath(static::$CASSETTE_PATH);
     }
 
     /**
@@ -404,21 +369,7 @@ class Server
      */
     public function resolveCassetteName(): string
     {
-        $normalizer = new CassetteNameNormalizer();
-        $env = getenv('OAS_FAKE_CASSETTE_NAME');
-        if ($env !== false && $env !== '') {
-            return $normalizer->normalize($env);
-        }
-
-        if ($this->cassetteName !== null) {
-            return $normalizer->normalize($this->cassetteName);
-        }
-
-        if (static::$CASSETTE_NAME !== '') {
-            return $normalizer->normalize(static::$CASSETTE_NAME);
-        }
-
-        return $normalizer->normalize(static::class);
+        return $this->configuration->cassetteName(static::$CASSETTE_NAME, static::class);
     }
 
     /**
@@ -426,11 +377,7 @@ class Server
      */
     public function resolveRequestValidation(): bool
     {
-        $env = getenv('OAS_FAKE_VALIDATE_REQUESTS');
-
-        return $env !== false && $env !== ''
-            ? filter_var($env, FILTER_VALIDATE_BOOLEAN)
-            : ($this->validateRequests ?? static::$VALIDATE_REQUESTS);
+        return $this->configuration->requestValidation(static::$VALIDATE_REQUESTS);
     }
 
     /**
@@ -438,11 +385,7 @@ class Server
      */
     public function resolveResponseValidation(): bool
     {
-        $env = getenv('OAS_FAKE_VALIDATE_RESPONSES');
-
-        return $env !== false && $env !== ''
-            ? filter_var($env, FILTER_VALIDATE_BOOLEAN)
-            : ($this->validateResponses ?? static::$VALIDATE_RESPONSES);
+        return $this->configuration->responseValidation(static::$VALIDATE_RESPONSES);
     }
 
     /**
@@ -450,7 +393,7 @@ class Server
      */
     public function resolveMiddleware(): array
     {
-        return array_merge(static::middleware(), $this->additionalMiddleware);
+        return $this->configuration->middleware(static::middleware());
     }
 
     /**

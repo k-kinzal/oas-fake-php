@@ -25,7 +25,22 @@ jobs:
           extensions: mbstring, curl
           coverage: none
       - uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v4.0.0
-      - run: composer lint
+      - name: Validate Composer manifest
+        run: composer validate --strict
+      - name: Check formatting
+        run: composer format:check
+      - name: Analyse contracts and types
+        run: composer phpstan
+      - name: Check PHP 8.0 compatibility
+        run: composer compat
+      - name: Enforce source size
+        run: composer loc-guard
+      - name: Enforce repository structure
+        run: composer tree-guard
+      - name: Enforce visibility scopes
+        run: composer scope-guard
+      - name: Enforce dependency direction
+        run: composer deptrac
 
   test:
     name: Test (PHP ${{ matrix.php }}, ${{ matrix.deps }} deps)
@@ -52,7 +67,92 @@ jobs:
       - uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v4.0.0
         with:
           dependency-versions: ${{ matrix.deps }}
-      - run: composer test
+      - name: Run legacy unit and doctest suites
+        if: matrix.php == '8.0'
+        run: composer test:unit:legacy
+      - name: Run unit and doctest suites
+        if: matrix.php != '8.0'
+        run: composer test:unit
+
+  test-parallel:
+    name: Test (parallel)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
+        with:
+          php-version: '8.4'
+          extensions: mbstring, curl
+          coverage: none
+      - uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v4.0.0
+      - name: Run tests across isolated processes
+        run: composer test
+
+  mutation:
+    name: Mutation tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
+        with:
+          php-version: '8.4'
+          extensions: mbstring, curl
+          coverage: pcov
+      - uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v4.0.0
+      - name: Generate mutation coverage map
+        run: >-
+          php -d memory_limit=1G vendor/bin/phpunit
+          --configuration phpunit.xml.dist
+          --no-extensions
+          --coverage-xml build/infection-coverage/coverage-xml
+          --log-junit build/infection-coverage/junit.xml
+      - name: Score changed lines
+        if: github.event_name == 'pull_request'
+        run: >-
+          php -d memory_limit=4G vendor/bin/infection
+          --configuration=infection.json5
+          --threads=max
+          --coverage=build/infection-coverage
+          --skip-initial-tests
+          --git-diff-lines
+          --git-diff-base=origin/${{ github.base_ref }}
+          --ignore-msi-with-no-mutations
+          --min-msi=74
+          --min-covered-msi=77
+          --logger-github
+      - name: Score whole source tree
+        if: github.event_name != 'pull_request'
+        run: >-
+          php -d memory_limit=4G vendor/bin/infection
+          --configuration=infection.json5
+          --threads=max
+          --coverage=build/infection-coverage
+          --skip-initial-tests
+          --logger-github
+
+  documentation:
+    name: Documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
+        with:
+          php-version: '8.4'
+          extensions: mbstring, curl
+          coverage: pcov
+      - uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v4.0.0
+      - name: Verify strict coverage metadata
+        run: composer test:coverage
+      - name: Generate API and architecture documentation
+        run: composer doc-gen
 
   examples:
     name: Example (${{ matrix.example }}, PHP ${{ matrix.php }})

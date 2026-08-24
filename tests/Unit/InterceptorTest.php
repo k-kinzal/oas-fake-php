@@ -6,14 +6,13 @@ namespace OasFake\Tests\Unit;
 
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Uri;
+use JsonException;
 use OasFake\Exception\ReplayMismatchError;
 use OasFake\Exception\ValidationException;
 use OasFake\Handler;
-use OasFake\HandlerMap;
 use OasFake\Interceptor;
 use OasFake\Mode;
-use OasFake\Schema;
-use OasFake\Validator;
+use OasFake\Testing\InterceptorScenario;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -23,47 +22,52 @@ use Psr\Http\Server\RequestHandlerInterface;
 use VCR\Request as VcrRequest;
 
 #[CoversClass(Interceptor::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteSession::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Converter::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(ReplayMismatchError::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(ValidationException::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeDataContext::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeResponse::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeResponseFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Handler::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\HandlerMap::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\MiddlewarePipeline::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\MiddlewareRequestHandler::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Mode::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationLookup::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationPathResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationRequest::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationRequestResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationResponder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationResponseResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadSerializer::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ResolvedResponseRequestHandler::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Schema::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\SchemaRequestHandler::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerUrlMatcher::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Validator::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\VcrResponseFactory::class)]
 final class InterceptorTest extends TestCase
 {
-    private Schema $schema;
-
-    private Validator $validator;
-
-    private HandlerMap $handlers;
-
-    private string $cassettePath;
-
-    protected function setUp(): void
-    {
-        $this->schema = Schema::fromFile(__DIR__ . '/../Fixtures/openapi/petstore.yaml');
-        $this->validator = new Validator($this->schema);
-        $this->handlers = new HandlerMap();
-        $this->cassettePath = sys_get_temp_dir() . '/oas-fake-test-cassettes';
-
-        if (!is_dir($this->cassettePath)) {
-            mkdir($this->cassettePath, 0777, true);
-        }
-    }
-
-    protected function tearDown(): void
-    {
-        foreach (glob($this->cassettePath . '/*') ?: [] as $file) {
-            if (is_file($file)) {
-                @unlink($file);
-            }
-        }
-    }
-
     public function testIsRunningReturnsFalseByDefault(): void
     {
-        $interceptor = $this->createInterceptor();
+        $scenario = new InterceptorScenario();
+
+        $interceptor = $scenario->interceptor();
 
         self::assertFalse($interceptor->isRunning());
     }
 
     public function testStartMarksInterceptorRunning(): void
     {
-        $interceptor = $this->createInterceptor();
+        $scenario = new InterceptorScenario();
+
+        $interceptor = $scenario->interceptor();
 
         $interceptor->start();
 
@@ -73,7 +77,9 @@ final class InterceptorTest extends TestCase
 
     public function testStopMarksInterceptorStopped(): void
     {
-        $interceptor = $this->createInterceptor();
+        $scenario = new InterceptorScenario();
+
+        $interceptor = $scenario->interceptor();
         $interceptor->start();
 
         $interceptor->stop();
@@ -83,36 +89,45 @@ final class InterceptorTest extends TestCase
 
     public function testHandleReturnsFakeResponseForValidRequest(): void
     {
-        $interceptor = $this->createInterceptor(validateRequests: false, validateResponses: false);
+        $scenario = new InterceptorScenario();
+
+        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: false);
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
 
         $vcrResponse = $interceptor->handle($vcrRequest);
 
         self::assertSame(200, $vcrResponse->getStatusCode());
-        $body = json_decode($vcrResponse->getBody() ?? '', true);
+        $body = json_decode($vcrResponse->getBody(), true);
         self::assertIsArray($body);
     }
 
     public function testHandleReturnsFakeResponseForSingleResource(): void
     {
-        $interceptor = $this->createInterceptor(validateRequests: false, validateResponses: false);
+        $scenario = new InterceptorScenario();
+
+        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: false);
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets/1', []);
 
         $vcrResponse = $interceptor->handle($vcrRequest);
 
         self::assertSame(200, $vcrResponse->getStatusCode());
-        $body = json_decode($vcrResponse->getBody() ?? '', true);
+        $body = json_decode($vcrResponse->getBody(), true);
         self::assertIsArray($body);
         self::assertArrayHasKey('id', $body);
         self::assertArrayHasKey('name', $body);
     }
 
+    /**
+     * @throws JsonException when the response fixture cannot be encoded
+     */
     public function testHandleUsesStubOverFaker(): void
     {
-        $stubBody = json_encode([['id' => 42, 'name' => 'Stubbed Pet']], JSON_THROW_ON_ERROR);
-        $this->handlers->forOperation('listPets', Handler::response(200, $stubBody));
+        $scenario = new InterceptorScenario();
 
-        $interceptor = $this->createInterceptor(validateRequests: false, validateResponses: false);
+        $stubBody = json_encode([['id' => 42, 'name' => 'Stubbed Pet']], JSON_THROW_ON_ERROR);
+        $scenario->handlers()->forOperation('listPets', Handler::response(200, $stubBody));
+
+        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: false);
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
 
         $vcrResponse = $interceptor->handle($vcrRequest);
@@ -121,12 +136,17 @@ final class InterceptorTest extends TestCase
         self::assertSame($stubBody, $vcrResponse->getBody());
     }
 
+    /**
+     * @throws JsonException when the response fixture cannot be encoded
+     */
     public function testHandleUsesPathStubOverFaker(): void
     {
-        $stubBody = json_encode([['id' => 77, 'name' => 'Path Stub']], JSON_THROW_ON_ERROR);
-        $this->handlers->forPath('/pets', 'GET', Handler::response(200, $stubBody));
+        $scenario = new InterceptorScenario();
 
-        $interceptor = $this->createInterceptor(validateRequests: false, validateResponses: false);
+        $stubBody = json_encode([['id' => 77, 'name' => 'Path Stub']], JSON_THROW_ON_ERROR);
+        $scenario->handlers()->forPath('/pets', 'GET', Handler::response(200, $stubBody));
+
+        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: false);
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
 
         $vcrResponse = $interceptor->handle($vcrRequest);
@@ -135,12 +155,17 @@ final class InterceptorTest extends TestCase
         self::assertSame($stubBody, $vcrResponse->getBody());
     }
 
+    /**
+     * @throws JsonException when the response fixture cannot be encoded
+     */
     public function testHandleUsesTemplatedPathStubOverFaker(): void
     {
-        $stubBody = json_encode(['id' => 77, 'name' => 'Template Path Stub'], JSON_THROW_ON_ERROR);
-        $this->handlers->forPath('/pets/{petId}', 'GET', Handler::response(200, $stubBody));
+        $scenario = new InterceptorScenario();
 
-        $interceptor = $this->createInterceptor(validateRequests: false, validateResponses: false);
+        $stubBody = json_encode(['id' => 77, 'name' => 'Template Path Stub'], JSON_THROW_ON_ERROR);
+        $scenario->handlers()->forPath('/pets/{petId}', 'GET', Handler::response(200, $stubBody));
+
+        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: false);
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets/123', []);
 
         $vcrResponse = $interceptor->handle($vcrRequest);
@@ -151,7 +176,9 @@ final class InterceptorTest extends TestCase
 
     public function testHandleValidatesRequestWhenEnabled(): void
     {
-        $interceptor = $this->createInterceptor(validateRequests: true, validateResponses: false);
+        $scenario = new InterceptorScenario();
+
+        $interceptor = $scenario->interceptor(validateRequests: true, validateResponses: false);
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/nonexistent', []);
 
         $this->expectException(ValidationException::class);
@@ -161,8 +188,10 @@ final class InterceptorTest extends TestCase
 
     public function testHandleValidatesResponseWhenRequestValidationDisabled(): void
     {
-        $this->handlers->forOperation('listPets', Handler::response(200, ['not' => 'an array']));
-        $interceptor = $this->createInterceptor(validateRequests: false, validateResponses: true);
+        $scenario = new InterceptorScenario();
+
+        $scenario->handlers()->forOperation('listPets', Handler::response(200, ['not' => 'an array']));
+        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: true);
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets?limit=invalid', []);
 
         $this->expectException(ValidationException::class);
@@ -172,7 +201,9 @@ final class InterceptorTest extends TestCase
 
     public function testHandleReturns500WhenOperationCannotBeResolved(): void
     {
-        $interceptor = $this->createInterceptor(validateRequests: false, validateResponses: false);
+        $scenario = new InterceptorScenario();
+
+        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: false);
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/nonexistent', []);
 
         $vcrResponse = $interceptor->handle($vcrRequest);
@@ -182,6 +213,8 @@ final class InterceptorTest extends TestCase
 
     public function testHandleExecutesMiddleware(): void
     {
+        $scenario = new InterceptorScenario();
+
         $middleware = new class () implements MiddlewareInterface {
             public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
             {
@@ -191,7 +224,7 @@ final class InterceptorTest extends TestCase
             }
         };
 
-        $interceptor = $this->createInterceptor(
+        $interceptor = $scenario->interceptor(
             validateRequests: false,
             validateResponses: false,
             middleware: [$middleware],
@@ -208,6 +241,8 @@ final class InterceptorTest extends TestCase
 
     public function testHandleLetsMiddlewareRewriteRequestBeforeOperationResolution(): void
     {
+        $scenario = new InterceptorScenario();
+
         $middleware = new class () implements MiddlewareInterface {
             public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
             {
@@ -215,7 +250,7 @@ final class InterceptorTest extends TestCase
             }
         };
 
-        $interceptor = $this->createInterceptor(
+        $interceptor = $scenario->interceptor(
             validateRequests: false,
             validateResponses: false,
             middleware: [$middleware],
@@ -225,11 +260,13 @@ final class InterceptorTest extends TestCase
         $vcrResponse = $interceptor->handle($vcrRequest);
 
         self::assertSame(200, $vcrResponse->getStatusCode());
-        self::assertIsArray(json_decode($vcrResponse->getBody() ?? '', true));
+        self::assertIsArray(json_decode($vcrResponse->getBody(), true));
     }
 
     public function testHandleExecutesMiddlewareInCorrectOrder(): void
     {
+        $scenario = new InterceptorScenario();
+
         $first = new class () implements MiddlewareInterface {
             public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
             {
@@ -248,7 +285,7 @@ final class InterceptorTest extends TestCase
             }
         };
 
-        $interceptor = $this->createInterceptor(
+        $interceptor = $scenario->interceptor(
             validateRequests: false,
             validateResponses: false,
             middleware: [$first, $second],
@@ -261,14 +298,19 @@ final class InterceptorTest extends TestCase
         self::assertSame('secondfirst', $headers['X-Order']);
     }
 
+    /**
+     * @throws JsonException when the response fixture cannot be encoded
+     */
     public function testHandleWithCallbackStub(): void
     {
+        $scenario = new InterceptorScenario();
+
         $callbackBody = json_encode([['id' => 1, 'name' => 'Callback Pet']], JSON_THROW_ON_ERROR);
-        $this->handlers->forOperation('listPets', Handler::callback(
+        $scenario->handlers()->forOperation('listPets', Handler::callback(
             static fn (ServerRequestInterface $request, ?ResponseInterface $default): ResponseInterface => new Response(200, ['Content-Type' => 'application/json'], $callbackBody),
         ));
 
-        $interceptor = $this->createInterceptor(validateRequests: false, validateResponses: false);
+        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: false);
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
 
         $vcrResponse = $interceptor->handle($vcrRequest);
@@ -279,9 +321,11 @@ final class InterceptorTest extends TestCase
 
     public function testHandleWithStatusStub(): void
     {
-        $this->handlers->forOperation('listPets', Handler::status(201));
+        $scenario = new InterceptorScenario();
 
-        $interceptor = $this->createInterceptor(validateRequests: false, validateResponses: false);
+        $scenario->handlers()->forOperation('listPets', Handler::status(201));
+
+        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: false);
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
 
         $vcrResponse = $interceptor->handle($vcrRequest);
@@ -292,7 +336,9 @@ final class InterceptorTest extends TestCase
 
     public function testReplayReturnsMatchingRecording(): void
     {
-        $interceptor = $this->createInterceptor(
+        $scenario = new InterceptorScenario();
+
+        $interceptor = $scenario->interceptor(
             mode: Mode::REPLAY,
             cassettePath: __DIR__ . '/../Fixtures/cassettes',
             validateRequests: false,
@@ -311,6 +357,8 @@ final class InterceptorTest extends TestCase
 
     public function testReplayExecutesMiddleware(): void
     {
+        $scenario = new InterceptorScenario();
+
         $middleware = new class () implements MiddlewareInterface {
             public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
             {
@@ -318,7 +366,7 @@ final class InterceptorTest extends TestCase
             }
         };
 
-        $interceptor = $this->createInterceptor(
+        $interceptor = $scenario->interceptor(
             mode: Mode::REPLAY,
             cassettePath: __DIR__ . '/../Fixtures/cassettes',
             validateRequests: false,
@@ -338,7 +386,9 @@ final class InterceptorTest extends TestCase
 
     public function testReplayValidatesRequestWhenEnabled(): void
     {
-        $interceptor = $this->createInterceptor(
+        $scenario = new InterceptorScenario();
+
+        $interceptor = $scenario->interceptor(
             mode: Mode::REPLAY,
             cassettePath: __DIR__ . '/../Fixtures/cassettes',
             validateRequests: true,
@@ -355,9 +405,14 @@ final class InterceptorTest extends TestCase
         }
     }
 
+    /**
+     * @throws JsonException when the response fixture cannot be encoded
+     */
     public function testReplayValidatesResponseWhenEnabled(): void
     {
-        file_put_contents($this->cassettePath . '/recording', (string) json_encode([[
+        $scenario = new InterceptorScenario();
+
+        file_put_contents($scenario->cassettePath() . '/recording', (string) json_encode([[
             'request' => [
                 'method' => 'GET',
                 'url' => 'https://api.petstore.example.com/pets',
@@ -371,7 +426,7 @@ final class InterceptorTest extends TestCase
             'index' => 0,
         ]], JSON_THROW_ON_ERROR));
 
-        $interceptor = $this->createInterceptor(
+        $interceptor = $scenario->interceptor(
             mode: Mode::REPLAY,
             validateRequests: true,
             validateResponses: true,
@@ -391,7 +446,9 @@ final class InterceptorTest extends TestCase
 
     public function testReplayThrowsOnMismatch(): void
     {
-        $interceptor = $this->createInterceptor(
+        $scenario = new InterceptorScenario();
+
+        $interceptor = $scenario->interceptor(
             mode: Mode::REPLAY,
             cassettePath: __DIR__ . '/../Fixtures/cassettes',
             validateRequests: false,
@@ -412,7 +469,9 @@ final class InterceptorTest extends TestCase
 
     public function testReplayThrowsOnQueryStringMismatch(): void
     {
-        $interceptor = $this->createInterceptor(
+        $scenario = new InterceptorScenario();
+
+        $interceptor = $scenario->interceptor(
             mode: Mode::REPLAY,
             cassettePath: __DIR__ . '/../Fixtures/cassettes',
             validateRequests: false,
@@ -432,7 +491,9 @@ final class InterceptorTest extends TestCase
 
     public function testRecordModeGeneratesResponse(): void
     {
-        $interceptor = $this->createInterceptor(
+        $scenario = new InterceptorScenario();
+
+        $interceptor = $scenario->interceptor(
             mode: Mode::RECORD,
             validateRequests: false,
             validateResponses: false,
@@ -443,7 +504,7 @@ final class InterceptorTest extends TestCase
         $vcrResponse = $interceptor->handle($vcrRequest);
 
         self::assertSame(200, $vcrResponse->getStatusCode());
-        $body = json_decode($vcrResponse->getBody() ?? '', true);
+        $body = json_decode($vcrResponse->getBody(), true);
         self::assertIsArray($body);
 
         $interceptor->stop();
@@ -451,7 +512,9 @@ final class InterceptorTest extends TestCase
 
     public function testRecordModeWritesCassette(): void
     {
-        $interceptor = $this->createInterceptor(
+        $scenario = new InterceptorScenario();
+
+        $interceptor = $scenario->interceptor(
             mode: Mode::RECORD,
             validateRequests: false,
             validateResponses: false,
@@ -462,19 +525,27 @@ final class InterceptorTest extends TestCase
         $interceptor->handle($vcrRequest);
         $interceptor->stop();
 
-        $cassetteFile = $this->cassettePath . '/recording';
+        $cassetteFile = $scenario->cassettePath() . '/recording';
         self::assertFileExists($cassetteFile);
 
         $recordings = json_decode((string) file_get_contents($cassetteFile), true);
         self::assertIsArray($recordings);
         self::assertCount(1, $recordings);
-        self::assertSame('GET', $recordings[0]['request']['method']);
-        self::assertStringContainsString('/pets', $recordings[0]['request']['url']);
+        $recording = $recordings[0] ?? null;
+        self::assertIsArray($recording);
+        $recordedRequest = $recording['request'] ?? null;
+        self::assertIsArray($recordedRequest);
+        self::assertSame('GET', $recordedRequest['method'] ?? null);
+        $recordedUrl = $recordedRequest['url'] ?? null;
+        self::assertIsString($recordedUrl);
+        self::assertStringContainsString('/pets', $recordedUrl);
     }
 
     public function testRecordModeWritesConfiguredCassetteName(): void
     {
-        $interceptor = $this->createInterceptor(
+        $scenario = new InterceptorScenario();
+
+        $interceptor = $scenario->interceptor(
             mode: Mode::RECORD,
             validateRequests: false,
             validateResponses: false,
@@ -486,13 +557,13 @@ final class InterceptorTest extends TestCase
         $interceptor->handle($vcrRequest);
         $interceptor->stop();
 
-        self::assertFileExists($this->cassettePath . '/petstore-recording');
+        self::assertFileExists($scenario->cassettePath() . '/petstore-recording');
     }
 
     public function testRecordThenReplayRoundTrip(): void
     {
-        // Phase 1: Record
-        $recorder = $this->createInterceptor(
+        $scenario = new InterceptorScenario();
+        $recorder = $scenario->interceptor(
             mode: Mode::RECORD,
             validateRequests: false,
             validateResponses: false,
@@ -503,9 +574,7 @@ final class InterceptorTest extends TestCase
         $vcrRequest->setHeader('Host', 'api.petstore.example.com');
         $recordedResponse = $recorder->handle($vcrRequest);
         $recorder->stop();
-
-        // Phase 2: Replay
-        $replayer = $this->createInterceptor(
+        $replayer = $scenario->interceptor(
             mode: Mode::REPLAY,
             validateRequests: false,
             validateResponses: false,
@@ -524,8 +593,8 @@ final class InterceptorTest extends TestCase
 
     public function testReplayRejectsBodyMismatchOnSameUrl(): void
     {
-        // RECORD: GET /pets without body
-        $recorder = $this->createInterceptor(
+        $scenario = new InterceptorScenario();
+        $recorder = $scenario->interceptor(
             mode: Mode::RECORD,
             validateRequests: false,
             validateResponses: false,
@@ -536,9 +605,7 @@ final class InterceptorTest extends TestCase
         $request->setHeader('Host', 'api.petstore.example.com');
         $recorder->handle($request);
         $recorder->stop();
-
-        // REPLAY: GET /pets with body should not match
-        $replayer = $this->createInterceptor(
+        $replayer = $scenario->interceptor(
             mode: Mode::REPLAY,
             validateRequests: false,
             validateResponses: false,
@@ -559,8 +626,8 @@ final class InterceptorTest extends TestCase
 
     public function testRecordThenReplayWithDifferentBodiesSameUrl(): void
     {
-        // RECORD: POST /pets body=A, POST /pets body=B
-        $recorder = $this->createInterceptor(
+        $scenario = new InterceptorScenario();
+        $recorder = $scenario->interceptor(
             mode: Mode::RECORD,
             validateRequests: false,
             validateResponses: false,
@@ -580,9 +647,7 @@ final class InterceptorTest extends TestCase
         $respB = $recorder->handle($reqB);
 
         $recorder->stop();
-
-        // REPLAY: same order should return matching responses
-        $replayer = $this->createInterceptor(
+        $replayer = $scenario->interceptor(
             mode: Mode::REPLAY,
             validateRequests: false,
             validateResponses: false,
@@ -604,30 +669,5 @@ final class InterceptorTest extends TestCase
         self::assertSame($respB->getBody(), $resultB->getBody());
 
         $replayer->stop();
-    }
-
-    /**
-     * @param list<MiddlewareInterface> $middleware
-     */
-    private function createInterceptor(
-        string $mode = Mode::FAKE,
-        ?string $cassettePath = null,
-        bool $validateRequests = true,
-        bool $validateResponses = true,
-        array $middleware = [],
-        string $cassetteName = 'recording',
-    ): Interceptor {
-        return new Interceptor(
-            mode: $mode,
-            cassettePath: $cassettePath ?? $this->cassettePath,
-            schema: $this->schema,
-            validator: $this->validator,
-            fakerOptions: [],
-            handlers: $this->handlers,
-            validateRequests: $validateRequests,
-            validateResponses: $validateResponses,
-            middleware: $middleware,
-            cassetteName: $cassetteName,
-        );
     }
 }

@@ -11,9 +11,11 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ServerOptions::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Mode::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 final class ServerOptionsTest extends TestCase
 {
-    public function testConstructorStoresValues(): void
+    public function testStoresResolvedValues(): void
     {
         $schema = Schema::fromFile(__DIR__ . '/../Fixtures/openapi/petstore.yaml');
         $options = new ServerOptions(
@@ -37,7 +39,7 @@ final class ServerOptionsTest extends TestCase
         self::assertSame('petstore', $options->cassetteName);
     }
 
-    public function testConstructorKeepsModeInstance(): void
+    public function testKeepsModeInstance(): void
     {
         $schema = Schema::fromFile(__DIR__ . '/../Fixtures/openapi/petstore.yaml');
         $mode = Mode::fromString('replay');

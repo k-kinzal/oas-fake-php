@@ -6,7 +6,6 @@ namespace OasFake;
 
 use Closure;
 use GuzzleHttp\Psr7\Response;
-use InvalidArgumentException;
 
 use function is_array;
 use function json_encode;
@@ -20,38 +19,44 @@ use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Represents a handler for a specific API operation.
+ *
+ * @visibility public
+ *
+ * @example Creating a fixed JSON response
+ *     $handler = \OasFake\Handler::response(201, ['id' => 1]);
+ *     $response = $handler->resolve(new \GuzzleHttp\Psr7\ServerRequest('POST', '/pets'));
+ *     $response->getStatusCode() // => 201
+ *     (string) $response->getBody() // => '{"id":1}'
  */
 final class Handler
 {
     /**
-     * @param array<string, mixed>|list<mixed>|string|null $body
-     * @param array<string, string> $headers
-     * @param (Closure(ServerRequestInterface, ?ResponseInterface): ResponseInterface)|null $callback
+     * Create a handler from one total response strategy.
      *
-     * @throws InvalidArgumentException when callback and fixed-response state are mixed or incomplete
+     * @param Closure(ServerRequestInterface, ?ResponseInterface): ResponseInterface $resolver
      */
-    public function __construct(
-        private ?int $statusCode,
-        private array|string|null $body,
-        private array $headers,
-        private ?Closure $callback,
-    ) {
-        if ($callback !== null && ($statusCode !== null || $body !== null || $headers !== [])) {
-            throw new InvalidArgumentException('Callback handlers cannot also define a fixed response.');
-        }
-
-        if ($callback === null && $statusCode === null) {
-            throw new InvalidArgumentException('Fixed response handlers require a status code.');
-        }
+    public function __construct(private Closure $resolver)
+    {
     }
 
     /**
      * @param array<string, mixed>|list<mixed>|string $body
      * @param array<string, string> $headers
+     *
+     * @throws HandlerResolutionException when a fixed array body cannot be encoded
      */
     public static function response(int $status, array|string $body, array $headers = []): self
     {
-        return new self($status, $body, $headers, null);
+        try {
+            $serializedBody = is_array($body) ? json_encode($body, JSON_THROW_ON_ERROR) : $body;
+        } catch (JsonException $exception) {
+            throw HandlerResolutionException::forBody($status, $exception);
+        }
+        $headers['Content-Type'] ??= 'application/json';
+
+        return new self(static function () use ($status, $serializedBody, $headers): ResponseInterface {
+            return new Response($status, $headers, $serializedBody);
+        });
     }
 
     /**
@@ -61,7 +66,7 @@ final class Handler
      */
     public static function callback(callable $callback): self
     {
-        return new self(null, null, [], Closure::fromCallable($callback));
+        return new self(Closure::fromCallable($callback));
     }
 
     /**
@@ -71,7 +76,7 @@ final class Handler
      */
     public static function status(int $status): self
     {
-        return new self($status, null, [], null);
+        return new self(static fn (): ResponseInterface => new Response($status));
     }
 
     /**
@@ -84,30 +89,10 @@ final class Handler
      * @param ServerRequestInterface $request The incoming request
      * @param ResponseInterface|null $default An optional faker-generated default response
      *
-     * @throws HandlerResolutionException when a fixed array body cannot be encoded
-     *
      * @return ResponseInterface The resolved response
      */
     public function resolve(ServerRequestInterface $request, ?ResponseInterface $default = null): ResponseInterface
     {
-        if ($this->callback !== null) {
-            return ($this->callback)($request, $default);
-        }
-
-        $statusCode = $this->statusCode ?? 200;
-        $headers = $this->headers;
-
-        if ($this->body === null) {
-            return new Response($statusCode, $headers);
-        }
-
-        try {
-            $body = is_array($this->body) ? json_encode($this->body, JSON_THROW_ON_ERROR) : $this->body;
-        } catch (JsonException $exception) {
-            throw HandlerResolutionException::forBody($statusCode, $exception);
-        }
-        $headers['Content-Type'] ??= 'application/json';
-
-        return new Response($statusCode, $headers, $body);
+        return ($this->resolver)($request, $default);
     }
 }

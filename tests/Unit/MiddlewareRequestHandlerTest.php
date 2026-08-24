@@ -16,6 +16,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 #[CoversClass(MiddlewareRequestHandler::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(ResolvedResponseRequestHandler::class)]
 final class MiddlewareRequestHandlerTest extends TestCase
 {
     public function testHandleProcessesMiddleware(): void

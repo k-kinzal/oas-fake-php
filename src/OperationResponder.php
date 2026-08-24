@@ -13,6 +13,8 @@ use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Resolves operation handlers or schema-generated fake responses.
+ *
+ * @visibility namespace
  */
 final class OperationResponder
 {

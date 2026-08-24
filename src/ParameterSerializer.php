@@ -25,6 +25,8 @@ use function range;
 
 /**
  * Serializes generated parameter values according to OpenAPI styles.
+ *
+ * @visibility namespace
  */
 final class ParameterSerializer
 {

@@ -4,19 +4,21 @@ declare(strict_types=1);
 
 namespace OasFake;
 
-use function array_values;
-
 use cebe\openapi\spec\Operation;
-use cebe\openapi\spec\Parameter;
 use cebe\openapi\spec\PathItem;
 
 use function is_string;
 
 /**
  * Builds immutable lookup tables from the operations declared in a schema.
+ *
+ * @visibility namespace
  */
 final class OperationIndexBuilder
 {
+    /** @var list<string> */
+    private const METHODS = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head', 'trace'];
+
     /**
      * @return array{
      *     byOperationId: array<string, OperationDefinition>,
@@ -28,6 +30,8 @@ final class OperationIndexBuilder
         $byOperationId = [];
         $byPathMethod = [];
         $openApi = $schema->openApi();
+        $operationResolver = new PathOperationResolver();
+        $parameterResolver = new OperationParameterResolver();
 
         if ($openApi->paths === null) {
             return [
@@ -42,41 +46,11 @@ final class OperationIndexBuilder
                 continue;
             }
 
-            $pathParameters = [];
-            if ($pathItem->parameters !== null) {
-                foreach ($pathItem->parameters as $parameter) {
-                    if ($parameter instanceof Parameter) {
-                        $pathParameters[] = $parameter;
-                    }
-                }
-            }
-
-            foreach (['get', 'post', 'put', 'delete', 'patch', 'options', 'head', 'trace'] as $method) {
-                $operation = match ($method) {
-                    'get' => $pathItem->get,
-                    'post' => $pathItem->post,
-                    'put' => $pathItem->put,
-                    'delete' => $pathItem->delete,
-                    'patch' => $pathItem->patch,
-                    'options' => $pathItem->options,
-                    'head' => $pathItem->head,
-                    'trace' => $pathItem->trace,
-                };
+            $pathParameters = $parameterResolver->forPath($pathItem);
+            foreach (self::METHODS as $method) {
+                $operation = $operationResolver->resolve($pathItem, $method);
                 if (!$operation instanceof Operation) {
                     continue;
-                }
-
-                /** @var array<string, Parameter> $mergedParameters */
-                $mergedParameters = [];
-                foreach ($pathParameters as $parameter) {
-                    $mergedParameters[$parameter->in . ':' . $parameter->name] = $parameter;
-                }
-                if ($operation->parameters !== null) {
-                    foreach ($operation->parameters as $parameter) {
-                        if ($parameter instanceof Parameter) {
-                            $mergedParameters[$parameter->in . ':' . $parameter->name] = $parameter;
-                        }
-                    }
                 }
 
                 $operationId = $operation->operationId ?? '';
@@ -85,7 +59,7 @@ final class OperationIndexBuilder
                     method: $method,
                     operationId: $operationId,
                     operation: $operation,
-                    parameters: array_values($mergedParameters),
+                    parameters: $parameterResolver->merge($pathParameters, $operation),
                     serverUrls: $schema->effectiveServerUrls($pathItem, $operation),
                 );
 

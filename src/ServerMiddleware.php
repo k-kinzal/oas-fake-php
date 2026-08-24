@@ -8,6 +8,8 @@ use Psr\Http\Server\MiddlewareInterface;
 
 /**
  * Provides the subclass extension point for declarative server middleware.
+ *
+ * @visibility namespace
  */
 trait ServerMiddleware
 {

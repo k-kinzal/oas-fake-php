@@ -4,109 +4,159 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
-use LogicException;
+use OasFake\Exception\ServerStateException;
 use OasFake\Server;
 use OasFake\ServerRegistry;
+use OasFake\Testing\InspectableServer;
+use OasFake\Testing\ServerRegistryContext;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use VCR\Request as VcrRequest;
 
 #[CoversClass(ServerRegistry::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteNameNormalizer::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteSession::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Converter::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\DeclarativeHandlerInspector::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\DeclarativeHandlerRegistrar::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\EnvironmentResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(ServerStateException::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeDataContext::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeResponse::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeResponseFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Handler::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\HandlerMap::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Interceptor::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\InterceptorFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\InterceptorRouter::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\MiddlewarePipeline::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Mode::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationLookup::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationPathResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationRequest::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationRequestResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationResponder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationResponseResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadSerializer::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Schema::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\SchemaRequestHandler::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Server::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerConfiguration::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerLifecycle::class)]
+#[\PHPUnit\Framework\Attributes\UsesTrait(\OasFake\ServerMiddleware::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerOptions::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerUrlMatcher::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Validator::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\VcrLifecycle::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\VcrResponseFactory::class)]
 final class ServerRegistryTest extends TestCase
 {
-    private ServerRegistry $registry;
-
-    protected function setUp(): void
-    {
-        $this->registry = new ServerRegistry();
-    }
-
-    protected function tearDown(): void
-    {
-        $this->registry->unregisterAll();
-    }
-
     public function testIsEmptyByDefault(): void
     {
-        self::assertTrue($this->registry->isEmpty());
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
+        self::assertTrue($registry->isEmpty());
     }
 
     public function testRegisterAndGet(): void
     {
-        $server = $this->createMock(Server::class);
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
 
-        $this->registry->register('TestServer', $server);
+        $server = new InspectableServer();
 
-        self::assertFalse($this->registry->isEmpty());
-        self::assertSame($server, $this->registry->get('TestServer'));
+        $registry->register('TestServer', $server);
+
+        self::assertFalse($registry->isEmpty());
+        self::assertSame($server, $registry->get('TestServer'));
     }
 
     public function testGetReturnsNullForUnknownKey(): void
     {
-        self::assertNull($this->registry->get('Unknown'));
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
+        self::assertNull($registry->get('Unknown'));
     }
 
     public function testUnregister(): void
     {
-        $server = $this->createMock(Server::class);
-        $server->expects(self::once())->method('unregisterFromRegistry');
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
 
-        $this->registry->register('TestServer', $server);
-        $this->registry->unregister('TestServer');
+        $server = new InspectableServer();
 
-        self::assertTrue($this->registry->isEmpty());
-        self::assertNull($this->registry->get('TestServer'));
+        $registry->register('TestServer', $server);
+        $registry->unregister('TestServer');
+
+        self::assertTrue($registry->isEmpty());
+        self::assertNull($registry->get('TestServer'));
     }
 
     public function testUnregisterNonExistentDoesNothing(): void
     {
-        $this->registry->unregister('Unknown');
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
+        $registry->unregister('Unknown');
         $this->addToAssertionCount(1);
     }
 
     public function testUnregisterAll(): void
     {
-        $server1 = $this->createMock(Server::class);
-        $server1->expects(self::once())->method('unregisterFromRegistry');
-        $server2 = $this->createMock(Server::class);
-        $server2->expects(self::once())->method('unregisterFromRegistry');
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
 
-        $this->registry->register('Server1', $server1);
-        $this->registry->register('Server2', $server2);
+        $server1 = new InspectableServer();
+        $server2 = new InspectableServer();
 
-        $this->registry->unregisterAll();
+        $registry->register('Server1', $server1);
+        $registry->register('Server2', $server2);
 
-        self::assertTrue($this->registry->isEmpty());
+        $registry->unregisterAll();
+
+        self::assertTrue($registry->isEmpty());
     }
 
     public function testReRegisterSameKeyReplacesServer(): void
     {
-        $server1 = $this->createMock(Server::class);
-        $server1->expects(self::once())->method('unregisterFromRegistry');
-        $server2 = $this->createMock(Server::class);
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
 
-        $this->registry->register('TestServer', $server1);
-        $this->registry->register('TestServer', $server2);
+        $server1 = new InspectableServer();
+        $server2 = new InspectableServer();
 
-        self::assertSame($server2, $this->registry->get('TestServer'));
+        $registry->register('TestServer', $server1);
+        $registry->register('TestServer', $server2);
+
+        self::assertSame($server2, $registry->get('TestServer'));
     }
 
     public function testRejectedReplacementKeepsExistingServerRegistered(): void
     {
-        $existing = $this->createMock(Server::class);
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
+        $existing = new InspectableServer();
         $replacement = (new Server())
             ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
             ->withResponseValidation(false);
         $otherRegistry = new ServerRegistry();
         $otherRegistry->register('OwnedServer', $replacement);
-        $this->registry->register('TestServer', $existing);
+        $registry->register('TestServer', $existing);
 
         try {
-            $this->registry->register('TestServer', $replacement);
+            $registry->register('TestServer', $replacement);
             self::fail('Expected replacement owned by another registry to be rejected.');
-        } catch (LogicException) {
-            self::assertSame($existing, $this->registry->get('TestServer'));
+        } catch (ServerStateException) {
+            self::assertSame($existing, $registry->get('TestServer'));
         } finally {
             $otherRegistry->unregisterAll();
         }
@@ -114,6 +164,9 @@ final class ServerRegistryTest extends TestCase
 
     public function testDispatchRoutesToCorrectServer(): void
     {
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
         $petServer = (new Server())
             ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
@@ -126,22 +179,25 @@ final class ServerRegistryTest extends TestCase
             ->withResponseValidation(false)
             ->withResponse('listBooks', 200, [['id' => 1, 'title' => 'PHP in Action']]);
 
-        $this->registry->register('PetServer', $petServer);
-        $this->registry->register('BookServer', $bookServer);
+        $registry->register('PetServer', $petServer);
+        $registry->register('BookServer', $bookServer);
 
         $petRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
-        $petResponse = $this->registry->dispatch($petRequest);
+        $petResponse = $registry->dispatch($petRequest);
         self::assertSame(200, $petResponse->getStatusCode());
         self::assertStringContainsString('Buddy', $petResponse->getBody());
 
         $bookRequest = new VcrRequest('GET', 'https://api.bookstore.example.com/books', []);
-        $bookResponse = $this->registry->dispatch($bookRequest);
+        $bookResponse = $registry->dispatch($bookRequest);
         self::assertSame(200, $bookResponse->getStatusCode());
         self::assertStringContainsString('PHP in Action', $bookResponse->getBody());
     }
 
     public function testDispatchUsesMostRecentServerForSameUrl(): void
     {
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
         $first = (new Server())
             ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
@@ -154,11 +210,11 @@ final class ServerRegistryTest extends TestCase
             ->withResponseValidation(false)
             ->withResponse('listPets', 200, [['id' => 2, 'name' => 'Second']]);
 
-        $this->registry->register('FirstServer', $first);
-        $this->registry->register('SecondServer', $second);
+        $registry->register('FirstServer', $first);
+        $registry->register('SecondServer', $second);
 
         $request = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
-        $response = $this->registry->dispatch($request);
+        $response = $registry->dispatch($request);
 
         self::assertSame(200, $response->getStatusCode());
         self::assertStringContainsString('Second', $response->getBody());
@@ -166,6 +222,9 @@ final class ServerRegistryTest extends TestCase
 
     public function testUnregisterOlderServerKeepsNewerServerForSameUrl(): void
     {
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
         $first = (new Server())
             ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
@@ -178,12 +237,12 @@ final class ServerRegistryTest extends TestCase
             ->withResponseValidation(false)
             ->withResponse('listPets', 200, [['id' => 2, 'name' => 'Second']]);
 
-        $this->registry->register('FirstServer', $first);
-        $this->registry->register('SecondServer', $second);
-        $this->registry->unregister('FirstServer');
+        $registry->register('FirstServer', $first);
+        $registry->register('SecondServer', $second);
+        $registry->unregister('FirstServer');
 
         $request = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
-        $response = $this->registry->dispatch($request);
+        $response = $registry->dispatch($request);
 
         self::assertSame(200, $response->getStatusCode());
         self::assertStringContainsString('Second', $response->getBody());
@@ -191,6 +250,9 @@ final class ServerRegistryTest extends TestCase
 
     public function testUnregisterNewerServerRestoresOlderServerForSameUrl(): void
     {
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
         $first = (new Server())
             ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
@@ -203,12 +265,12 @@ final class ServerRegistryTest extends TestCase
             ->withResponseValidation(false)
             ->withResponse('listPets', 200, [['id' => 2, 'name' => 'Second']]);
 
-        $this->registry->register('FirstServer', $first);
-        $this->registry->register('SecondServer', $second);
-        $this->registry->unregister('SecondServer');
+        $registry->register('FirstServer', $first);
+        $registry->register('SecondServer', $second);
+        $registry->unregister('SecondServer');
 
         $request = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
-        $response = $this->registry->dispatch($request);
+        $response = $registry->dispatch($request);
 
         self::assertSame(200, $response->getStatusCode());
         self::assertStringContainsString('First', $response->getBody());
@@ -216,6 +278,9 @@ final class ServerRegistryTest extends TestCase
 
     public function testServerStopUnregistersFromOwningRegistry(): void
     {
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
         $first = (new Server())
             ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
@@ -228,13 +293,13 @@ final class ServerRegistryTest extends TestCase
             ->withResponseValidation(false)
             ->withResponse('listPets', 200, [['id' => 2, 'name' => 'Second']]);
 
-        $this->registry->register('FirstServer', $first);
-        $this->registry->register('SecondServer', $second);
+        $registry->register('FirstServer', $first);
+        $registry->register('SecondServer', $second);
 
         $second->stop();
 
         $request = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
-        $response = $this->registry->dispatch($request);
+        $response = $registry->dispatch($request);
 
         self::assertSame(200, $response->getStatusCode());
         self::assertStringContainsString('First', $response->getBody());
@@ -242,15 +307,18 @@ final class ServerRegistryTest extends TestCase
 
     public function testServerCannotBeRegisteredInTwoRegistriesAtOnce(): void
     {
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
         $server = (new Server())
             ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
             ->withResponseValidation(false);
         $otherRegistry = new ServerRegistry();
 
-        $this->registry->register('PetServer', $server);
+        $registry->register('PetServer', $server);
 
-        $this->expectException(LogicException::class);
+        $this->expectException(ServerStateException::class);
         $this->expectExceptionMessage('already registered');
 
         try {
@@ -262,51 +330,63 @@ final class ServerRegistryTest extends TestCase
 
     public function testDispatchReturns502ForUnknownUrl(): void
     {
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
         $server = (new Server())
             ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
             ->withResponseValidation(false);
 
-        $this->registry->register('PetServer', $server);
+        $registry->register('PetServer', $server);
 
         $request = new VcrRequest('GET', 'https://unknown.example.com/foo', []);
-        $response = $this->registry->dispatch($request);
+        $response = $registry->dispatch($request);
 
         self::assertSame(502, $response->getStatusCode());
     }
 
     public function testDispatchDoesNotMatchSimilarHostPrefix(): void
     {
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
         $server = (new Server())
             ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
             ->withResponseValidation(false);
 
-        $this->registry->register('PetServer', $server);
+        $registry->register('PetServer', $server);
 
         $request = new VcrRequest('GET', 'https://api.petstore.example.com.evil/pets', []);
-        $response = $this->registry->dispatch($request);
+        $response = $registry->dispatch($request);
 
         self::assertSame(502, $response->getStatusCode());
     }
 
     public function testDispatchDoesNotMatchPathPrefixWithoutSegmentBoundary(): void
     {
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
         $server = (new Server())
             ->withSchema(__DIR__ . '/../Fixtures/openapi/versioned-petstore.yaml')
             ->withRequestValidation(false)
             ->withResponseValidation(false);
 
-        $this->registry->register('VersionedServer', $server);
+        $registry->register('VersionedServer', $server);
 
         $request = new VcrRequest('GET', 'https://api.versioned.example.com/v10/pets', []);
-        $response = $this->registry->dispatch($request);
+        $response = $registry->dispatch($request);
 
         self::assertSame(502, $response->getStatusCode());
     }
 
     public function testDispatchUsesMostSpecificMatchingServerUrl(): void
     {
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
         $rootServer = (new Server())
             ->withSchema(__DIR__ . '/../Fixtures/openapi/root-versioned-petstore.yaml')
             ->withRequestValidation(false)
@@ -319,11 +399,11 @@ final class ServerRegistryTest extends TestCase
             ->withResponseValidation(false)
             ->withResponse('listPets', 200, [['id' => 2, 'name' => 'Versioned']]);
 
-        $this->registry->register('RootServer', $rootServer);
-        $this->registry->register('VersionedServer', $versionedServer);
+        $registry->register('RootServer', $rootServer);
+        $registry->register('VersionedServer', $versionedServer);
 
         $request = new VcrRequest('GET', 'https://api.versioned.example.com/v1/pets', []);
-        $response = $this->registry->dispatch($request);
+        $response = $registry->dispatch($request);
 
         self::assertSame(200, $response->getStatusCode());
         self::assertStringContainsString('Versioned', $response->getBody());
@@ -332,30 +412,36 @@ final class ServerRegistryTest extends TestCase
 
     public function testDispatchStripsServerBasePathForOperationLookup(): void
     {
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
         $server = (new Server())
             ->withSchema(__DIR__ . '/../Fixtures/openapi/versioned-petstore.yaml');
 
-        $this->registry->register('VersionedServer', $server);
+        $registry->register('VersionedServer', $server);
 
         $request = new VcrRequest('GET', 'https://api.versioned.example.com/v1/pets', []);
-        $response = $this->registry->dispatch($request);
+        $response = $registry->dispatch($request);
 
         self::assertSame(200, $response->getStatusCode());
-        self::assertIsArray(json_decode($response->getBody() ?? '', true));
+        self::assertIsArray(json_decode($response->getBody(), true));
     }
 
     public function testDispatchRoutesPathLevelServerUrl(): void
     {
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
         $server = (new Server())
             ->withSchema(__DIR__ . '/../Fixtures/openapi/path-server-petstore.yaml')
             ->withRequestValidation(false)
             ->withResponseValidation(false)
             ->withResponse('listPets', 200, [['id' => 1, 'name' => 'Path Server']]);
 
-        $this->registry->register('PathServer', $server);
+        $registry->register('PathServer', $server);
 
         $request = new VcrRequest('GET', 'https://api.path-petstore.example.com/v1/pets', []);
-        $response = $this->registry->dispatch($request);
+        $response = $registry->dispatch($request);
 
         self::assertSame(200, $response->getStatusCode());
         self::assertStringContainsString('Path Server', $response->getBody());
@@ -363,21 +449,27 @@ final class ServerRegistryTest extends TestCase
 
     public function testDispatchDoesNotMatchRootServerOverriddenByPathServer(): void
     {
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
         $server = (new Server())
             ->withSchema(__DIR__ . '/../Fixtures/openapi/path-server-petstore.yaml')
             ->withRequestValidation(false)
             ->withResponseValidation(false);
 
-        $this->registry->register('PathServer', $server);
+        $registry->register('PathServer', $server);
 
         $request = new VcrRequest('GET', 'https://root.petstore.example.com/pets', []);
-        $response = $this->registry->dispatch($request);
+        $response = $registry->dispatch($request);
 
         self::assertSame(502, $response->getStatusCode());
     }
 
     public function testDispatchDoesNotServePathLevelOperationThroughRootServer(): void
     {
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+
         $server = (new Server())
             ->withSchema(__DIR__ . '/../Fixtures/openapi/mixed-server-petstore.yaml')
             ->withRequestValidation(false)
@@ -385,14 +477,14 @@ final class ServerRegistryTest extends TestCase
             ->withResponse('listPets', 200, [['id' => 1, 'name' => 'Path Server']])
             ->withResponse('listOrders', 200, [['id' => 10]]);
 
-        $this->registry->register('MixedServer', $server);
+        $registry->register('MixedServer', $server);
 
         $rootOrders = new VcrRequest('GET', 'https://root.petstore.example.com/orders', []);
-        $ordersResponse = $this->registry->dispatch($rootOrders);
+        $ordersResponse = $registry->dispatch($rootOrders);
         self::assertSame(200, $ordersResponse->getStatusCode());
 
         $rootPets = new VcrRequest('GET', 'https://root.petstore.example.com/pets', []);
-        $petsResponse = $this->registry->dispatch($rootPets);
+        $petsResponse = $registry->dispatch($rootPets);
 
         self::assertSame(500, $petsResponse->getStatusCode());
         self::assertStringNotContainsString('Path Server', $petsResponse->getBody());

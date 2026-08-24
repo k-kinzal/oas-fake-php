@@ -24,6 +24,21 @@ The primary user-facing entry points are `OasFake`, `Server`, `Schema`, `FakeDat
 - PHP 8.0 - 8.5
 - ext-curl
 
+## Development contracts
+
+The project applies `k-kinzal/php-ai-toolkit` as a coordinated set of quality contracts, not only as additional PHPStan rules. Static types and checked exceptions, PHP 8.0 compatibility, dependency direction, source size, repository structure, declared visibility, strict test coverage metadata, runnable documentation examples, and mutation scores are all enforced in CI.
+
+Run the normal local gates with:
+
+```bash
+composer lint          # formatting, PHPStan, compatibility, structure, scopes, dependencies
+composer test          # process-isolated parallel test suite
+composer test:coverage # strict CoversClass/UsesClass metadata and coverage XML
+composer doc-gen       # API and architecture documentation in build/docs
+```
+
+See [Development contracts](docs/development-contracts.md) for the responsibility of each gate and the design decisions they enforce.
+
 ## Installation
 
 ```bash

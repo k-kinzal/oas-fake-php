@@ -13,6 +13,8 @@ use function is_string;
 
 /**
  * Resolves the effective server URLs declared at OpenAPI hierarchy levels.
+ *
+ * @visibility namespace
  */
 final class OpenApiServerResolver
 {

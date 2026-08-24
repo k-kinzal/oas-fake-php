@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(OperationRequest::class)]
 final class OperationRequestTest extends TestCase
 {
-    public function testConstructorCarriesResolvedRequestContract(): void
+    public function testCarriesResolvedRequestContract(): void
     {
         $address = new OperationAddress('/pets', 'get');
         $request = new OperationRequest('/pets', 'GET', null, $address);

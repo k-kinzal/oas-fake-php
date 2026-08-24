@@ -11,6 +11,8 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 /**
  * Request handler that invokes one middleware and delegates to the next handler.
+ *
+ * @visibility namespace
  */
 final class MiddlewareRequestHandler implements RequestHandlerInterface
 {

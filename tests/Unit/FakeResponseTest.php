@@ -5,27 +5,37 @@ declare(strict_types=1);
 namespace OasFake\Tests\Unit;
 
 use GuzzleHttp\Psr7\Response;
+use JsonException;
 use OasFake\Exception\OperationNotFoundException;
 use OasFake\FakeDataContext;
 use OasFake\FakeResponse;
 use OasFake\Schema;
+use OasFake\Testing\Petstore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
 
 #[CoversClass(FakeResponse::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(OperationNotFoundException::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(FakeDataContext::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeDataContextResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeResponseFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationLookup::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationResponseResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadSerializer::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 final class FakeResponseTest extends TestCase
 {
-    private Schema $schema;
-
-    protected function setUp(): void
-    {
-        $this->schema = Schema::fromFile(__DIR__ . '/../Fixtures/openapi/petstore.yaml');
-    }
-
+    /**
+     * @throws JsonException when generated JSON cannot be decoded
+     */
     public function testForGeneratesResponse(): void
     {
-        $response = FakeResponse::for($this->schema, 'listPets');
+        $response = FakeResponse::for(Petstore::schema(), 'listPets');
 
         self::assertSame(200, $response->statusCode());
         self::assertSame('application/json', $response->headers()['Content-Type']);
@@ -34,17 +44,23 @@ final class FakeResponseTest extends TestCase
         self::assertIsArray($data);
     }
 
+    /**
+     * @throws JsonException when generated JSON cannot be decoded
+     */
     public function testForAcceptsFakeDataContext(): void
     {
-        $response = FakeResponse::for(new FakeDataContext($this->schema), 'listPets');
+        $response = FakeResponse::for(new FakeDataContext(Petstore::schema()), 'listPets');
 
         self::assertSame(200, $response->statusCode());
         self::assertIsArray($response->json());
     }
 
+    /**
+     * @throws JsonException when generated JSON cannot be decoded
+     */
     public function testForWithCustomStatusCode(): void
     {
-        $response = FakeResponse::for($this->schema, 'getPetById', 404);
+        $response = FakeResponse::for(Petstore::schema(), 'getPetById', 404);
 
         self::assertSame(404, $response->statusCode());
 
@@ -54,9 +70,12 @@ final class FakeResponseTest extends TestCase
         self::assertArrayHasKey('message', $data);
     }
 
+    /**
+     * @throws JsonException when generated JSON cannot be decoded
+     */
     public function testForPathGeneratesResponse(): void
     {
-        $response = FakeResponse::forPath($this->schema, '/pets/{petId}', 'GET', 200);
+        $response = FakeResponse::forPath(Petstore::schema(), '/pets/{petId}', 'GET', 200);
 
         self::assertSame(200, $response->statusCode());
 
@@ -70,33 +89,33 @@ final class FakeResponseTest extends TestCase
     {
         $this->expectException(OperationNotFoundException::class);
 
-        FakeResponse::for($this->schema, 'nonexistent');
+        FakeResponse::for(Petstore::schema(), 'nonexistent');
     }
 
     public function testStatusCodeReturnsHttpStatus(): void
     {
-        $response = FakeResponse::for($this->schema, 'createPet', 201);
+        $response = FakeResponse::for(Petstore::schema(), 'createPet', 201);
 
         self::assertSame(201, $response->statusCode());
     }
 
     public function testForDefaultsToFirstSuccessStatusCode(): void
     {
-        $response = FakeResponse::for($this->schema, 'createPet');
+        $response = FakeResponse::for(Petstore::schema(), 'createPet');
 
         self::assertSame(201, $response->statusCode());
     }
 
     public function testForPathDefaultsToFirstSuccessStatusCode(): void
     {
-        $response = FakeResponse::forPath($this->schema, '/pets', 'POST');
+        $response = FakeResponse::forPath(Petstore::schema(), '/pets', 'POST');
 
         self::assertSame(201, $response->statusCode());
     }
 
     public function testHeadersReturnsResponseHeaders(): void
     {
-        $response = FakeResponse::for($this->schema, 'listPets');
+        $response = FakeResponse::for(Petstore::schema(), 'listPets');
 
         self::assertSame('application/json', $response->headers()['Content-Type']);
     }
@@ -159,27 +178,29 @@ final class FakeResponseTest extends TestCase
         self::assertSame('status=ok', $response->body());
     }
 
+    /**
+     * @throws JsonException when generated JSON cannot be decoded
+     */
     public function testJsonDecodesResponseBody(): void
     {
-        $response = FakeResponse::for($this->schema, 'listPets');
+        $response = FakeResponse::for(Petstore::schema(), 'listPets');
 
         self::assertIsArray($response->json());
     }
 
     public function testToPsr7ReturnsResponseInterface(): void
     {
-        $response = FakeResponse::for($this->schema, 'listPets');
+        $response = FakeResponse::for(Petstore::schema(), 'listPets');
 
         $psr7 = $response->toPsr7();
 
-        self::assertInstanceOf(ResponseInterface::class, $psr7);
         self::assertSame(200, $psr7->getStatusCode());
         self::assertSame('application/json', $psr7->getHeaderLine('Content-Type'));
     }
 
     public function testToArrayReturnsStructuredData(): void
     {
-        $response = FakeResponse::for($this->schema, 'listPets');
+        $response = FakeResponse::for(Petstore::schema(), 'listPets');
 
         $array = $response->toArray();
 
@@ -191,17 +212,19 @@ final class FakeResponseTest extends TestCase
 
     public function testBodyReturnsRawJson(): void
     {
-        $response = FakeResponse::for($this->schema, 'listPets');
+        $response = FakeResponse::for(Petstore::schema(), 'listPets');
 
         $body = $response->body();
 
-        self::assertIsString($body);
         self::assertJson($body);
     }
 
+    /**
+     * @throws JsonException when generated JSON cannot be decoded
+     */
     public function testWithFakerOptionsAlwaysFakeOptionals(): void
     {
-        $response = FakeResponse::for($this->schema, 'getPetById', 200, ['alwaysFakeOptionals' => true]);
+        $response = FakeResponse::for(Petstore::schema(), 'getPetById', 200, ['alwaysFakeOptionals' => true]);
 
         $data = $response->json();
         self::assertIsArray($data);
@@ -210,9 +233,12 @@ final class FakeResponseTest extends TestCase
         self::assertArrayHasKey('tag', $data);
     }
 
+    /**
+     * @throws JsonException when generated JSON cannot be decoded
+     */
     public function testCreatePetReturnsCreatedStatus(): void
     {
-        $response = FakeResponse::for($this->schema, 'createPet', 201);
+        $response = FakeResponse::for(Petstore::schema(), 'createPet', 201);
 
         self::assertSame(201, $response->statusCode());
 
@@ -224,17 +250,15 @@ final class FakeResponseTest extends TestCase
 
     public function testGenerateResponseStaticMethod(): void
     {
-        $psr7 = FakeResponse::generateResponse($this->schema, '/pets', 'GET', 200);
+        $psr7 = FakeResponse::generateResponse(Petstore::schema(), '/pets', 'GET', 200);
 
-        self::assertInstanceOf(ResponseInterface::class, $psr7);
         self::assertSame(200, $psr7->getStatusCode());
     }
 
     public function testGenerateResponseAcceptsFakeDataContext(): void
     {
-        $psr7 = FakeResponse::generateResponse(new FakeDataContext($this->schema), '/pets', 'GET', 200);
+        $psr7 = FakeResponse::generateResponse(new FakeDataContext(Petstore::schema()), '/pets', 'GET', 200);
 
-        self::assertInstanceOf(ResponseInterface::class, $psr7);
         self::assertSame(200, $psr7->getStatusCode());
     }
 

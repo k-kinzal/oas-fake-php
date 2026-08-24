@@ -4,20 +4,36 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
-use GuzzleHttp\Psr7\Response;
 use OasFake\DeclarativeHandlerRegistrar;
 use OasFake\HandlerMap;
-use OasFake\Route;
 use OasFake\Schema;
-use OasFake\Server;
+use OasFake\Testing\RegistrarInvalidParameterServer;
+use OasFake\Testing\RegistrarInvalidRouteServer;
+use OasFake\Testing\RegistrarOperationServer;
+use OasFake\Testing\RegistrarRouteServer;
+use OasFake\Testing\RegistrarUnknownRouteServer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
+use ReflectionException;
 
 #[CoversClass(DeclarativeHandlerRegistrar::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\DeclarativeHandlerInspector::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Handler::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(HandlerMap::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationLookup::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Route::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Server::class)]
 final class DeclarativeHandlerRegistrarTest extends TestCase
 {
+    /**
+     * @throws ReflectionException when handler metadata cannot be read
+     */
     public function testRegisterAddsOperationIdHandler(): void
     {
         $handlers = new HandlerMap();
@@ -27,6 +43,9 @@ final class DeclarativeHandlerRegistrarTest extends TestCase
         self::assertNotNull($handlers->find('listPets', '/pets', 'GET'));
     }
 
+    /**
+     * @throws ReflectionException when handler metadata cannot be read
+     */
     public function testRegisterWithSchemaSkipsUnknownOperationIdHandler(): void
     {
         $handlers = new HandlerMap();
@@ -38,6 +57,9 @@ final class DeclarativeHandlerRegistrarTest extends TestCase
         self::assertNull($handlers->find('helperOperation', '/pets', 'GET'));
     }
 
+    /**
+     * @throws ReflectionException when handler metadata cannot be read
+     */
     public function testRegisterAddsRouteHandler(): void
     {
         $handlers = new HandlerMap();
@@ -47,6 +69,9 @@ final class DeclarativeHandlerRegistrarTest extends TestCase
         self::assertNotNull($handlers->find('', '/pets/1', 'DELETE', '/pets/{petId}'));
     }
 
+    /**
+     * @throws ReflectionException when handler metadata cannot be read
+     */
     public function testRegisterWithSchemaSkipsUnknownRouteHandler(): void
     {
         $handlers = new HandlerMap();
@@ -57,6 +82,9 @@ final class DeclarativeHandlerRegistrarTest extends TestCase
         self::assertNull($handlers->find('', '/unknown', 'GET'));
     }
 
+    /**
+     * @throws ReflectionException when handler metadata cannot be read
+     */
     public function testRegisterSkipsMethodsWithExtraRequiredParameters(): void
     {
         $handlers = new HandlerMap();
@@ -66,6 +94,9 @@ final class DeclarativeHandlerRegistrarTest extends TestCase
         self::assertNull($handlers->find('listPets', '/pets', 'GET'));
     }
 
+    /**
+     * @throws ReflectionException when handler metadata cannot be read
+     */
     public function testRegisterSkipsRouteMethodsWithInvalidSignature(): void
     {
         $handlers = new HandlerMap();
@@ -73,53 +104,5 @@ final class DeclarativeHandlerRegistrarTest extends TestCase
         (new DeclarativeHandlerRegistrar())->register(new RegistrarInvalidRouteServer(), $handlers);
 
         self::assertNull($handlers->find('', '/pets/1', 'DELETE', '/pets/{petId}'));
-    }
-}
-
-class RegistrarOperationServer extends Server
-{
-    public function listPets(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
-    {
-        return $response ?? new Response(200);
-    }
-
-    public function helperOperation(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
-    {
-        return $response ?? new Response(200);
-    }
-}
-
-class RegistrarRouteServer extends Server
-{
-    #[Route(method: 'DELETE', path: '/pets/{petId}')]
-    public function removePet(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
-    {
-        return new Response(204);
-    }
-}
-
-class RegistrarInvalidParameterServer extends Server
-{
-    public function listPets(ServerRequestInterface $request, string $unexpected): ResponseInterface
-    {
-        return new Response(200, [], $unexpected);
-    }
-}
-
-class RegistrarInvalidRouteServer extends Server
-{
-    #[Route(method: 'DELETE', path: '/pets/{petId}')]
-    public function removePet(): ResponseInterface
-    {
-        return new Response(204);
-    }
-}
-
-class RegistrarUnknownRouteServer extends Server
-{
-    #[Route(method: 'GET', path: '/unknown')]
-    public function unknown(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
-    {
-        return $response ?? new Response(200);
     }
 }

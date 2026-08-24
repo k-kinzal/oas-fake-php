@@ -13,6 +13,8 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 /**
  * Runs the configured PSR-15 middleware chain.
+ *
+ * @visibility namespace
  */
 final class MiddlewarePipeline
 {

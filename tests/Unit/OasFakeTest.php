@@ -5,13 +5,20 @@ declare(strict_types=1);
 namespace OasFake\Tests\Unit;
 
 use OasFake\OasFake;
-use OasFake\Server;
+use OasFake\Testing\InspectableServer;
+use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(OasFake::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\InterceptorRouter::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Server::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerLifecycle::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerRegistry::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\VcrLifecycle::class)]
 final class OasFakeTest extends TestCase
 {
+    #[Override]
     protected function tearDown(): void
     {
         OasFake::stop();
@@ -19,54 +26,47 @@ final class OasFakeTest extends TestCase
 
     public function testStartWithServerInstance(): void
     {
-        $server = $this->createMock(Server::class);
-        $server->expects(self::once())->method('buildInterceptor');
+        $server = new InspectableServer();
 
         $result = OasFake::start($server);
 
         self::assertSame($server, $result);
+        self::assertSame(1, $server->buildCount);
     }
 
     public function testStartWithConfigureCallback(): void
     {
-        $server = new Server();
+        $server = new InspectableServer();
         $callbackInvoked = false;
 
-        // The configure callback receives the server and should return it
-        // start() will throw because no schema, but the callback should be invoked first
-        try {
-            OasFake::start($server, static function (Server $s) use (&$callbackInvoked): Server {
-                $callbackInvoked = true;
+        OasFake::start($server, static function (InspectableServer $configured) use (&$callbackInvoked): InspectableServer {
+            $callbackInvoked = true;
 
-                return $s->withSchema('/nonexistent/schema.yaml');
-            });
-        } catch (\OasFake\Exception\SchemaNotFoundException) {
-            // Expected - no schema file
-        }
+            return $configured;
+        });
 
         self::assertTrue($callbackInvoked);
     }
 
     public function testStopStopsServer(): void
     {
-        $server = $this->createMock(Server::class);
-        $server->expects(self::once())->method('buildInterceptor');
-        $server->expects(self::once())->method('unregisterFromRegistry');
+        $server = new InspectableServer();
 
         OasFake::start($server);
         OasFake::stop();
+
+        self::assertSame(1, $server->unregisterCount);
     }
 
     public function testStopWhenNotRunningDoesNothing(): void
     {
-        // Should not throw
         OasFake::stop();
         $this->addToAssertionCount(1);
     }
 
     public function testStartReturnsServerInstance(): void
     {
-        $server = $this->createMock(Server::class);
+        $server = new InspectableServer();
 
         $result = OasFake::start($server);
 
@@ -75,81 +75,70 @@ final class OasFakeTest extends TestCase
 
     public function testStopIsIdempotent(): void
     {
-        $server = $this->createMock(Server::class);
-        $server->expects(self::once())->method('unregisterFromRegistry');
+        $server = new InspectableServer();
 
         OasFake::start($server);
         OasFake::stop();
-        OasFake::stop(); // Second call should be safe
+        OasFake::stop();
+        OasFake::stop();
+
+        self::assertSame(1, $server->unregisterCount);
     }
 
     public function testMultipleServersCanBeStarted(): void
     {
-        $server1 = $this->createMock(Server::class);
-        $server1->expects(self::once())->method('buildInterceptor');
-        $server2 = $this->createMock(Server::class);
-        $server2->expects(self::once())->method('buildInterceptor');
+        $server1 = new InspectableServer();
+        $server2 = new InspectableServer();
 
         $result1 = OasFake::start($server1);
         $result2 = OasFake::start($server2);
 
         self::assertSame($server1, $result1);
         self::assertSame($server2, $result2);
+        self::assertSame(1, $server1->buildCount);
+        self::assertSame(1, $server2->buildCount);
     }
 
     public function testStopStopsAllServers(): void
     {
-        $server1 = $this->createMock(Server::class);
-        $server1->expects(self::once())->method('unregisterFromRegistry');
-        $server2 = $this->createMock(Server::class);
-        $server2->expects(self::once())->method('unregisterFromRegistry');
+        $server1 = new InspectableServer();
+        $server2 = new InspectableServer();
 
         OasFake::start($server1);
         OasFake::start($server2);
         OasFake::stop();
+
+        self::assertSame(1, $server1->unregisterCount);
+        self::assertSame(1, $server2->unregisterCount);
+    }
+
+    public function testStopCanSelectOneServer(): void
+    {
+        $first = new InspectableServer();
+        $second = new InspectableServer();
+        OasFake::start($first);
+        OasFake::start($second);
+
+        OasFake::stop($first);
+
+        self::assertSame(1, $first->unregisterCount);
+        self::assertSame(0, $second->unregisterCount);
     }
 
     public function testStartingSameServerClassTwiceKeepsFirstInstanceRegistered(): void
     {
-        $server1 = new SameClassStartServer();
-        $server2 = new SameClassStartServer();
+        $server1 = new InspectableServer();
+        $server2 = new InspectableServer();
 
         OasFake::start($server1);
         OasFake::start($server2);
 
-        self::assertFalse($server1->stopped);
-        self::assertFalse($server2->stopped);
+        self::assertSame(0, $server1->unregisterCount);
+        self::assertSame(0, $server2->unregisterCount);
 
         OasFake::stop();
 
-        self::assertTrue($server1->stopped);
-        self::assertTrue($server2->stopped);
-    }
-}
-
-class SameClassStartServer extends Server
-{
-    public bool $stopped = false;
-
-    public function buildInterceptor(): void
-    {
-    }
-
-    /**
-     * @return list<string>
-     */
-    public function serverUrls(): array
-    {
-        return [];
-    }
-
-    public function stop(): void
-    {
-        $this->stopped = true;
-    }
-
-    public function unregisterFromRegistry(\OasFake\ServerRegistry $registry, string $key): void
-    {
-        $this->stopped = true;
+        self::assertSame(1, $server1->unregisterCount);
+        self::assertSame(1, $server2->unregisterCount);
     }
 }

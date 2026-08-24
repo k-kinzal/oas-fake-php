@@ -5,44 +5,43 @@ declare(strict_types=1);
 namespace OasFake\Tests\Unit;
 
 use OasFake\DeclarativeHandlerInspector;
-use OasFake\Route;
+use OasFake\DeclarativeHandlerRegistrar;
+use OasFake\HandlerMap;
+use OasFake\Testing\InspectorServer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use ReflectionMethod;
+use ReflectionException;
 
 #[CoversClass(DeclarativeHandlerInspector::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(DeclarativeHandlerRegistrar::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Handler::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(HandlerMap::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Route::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Server::class)]
 final class DeclarativeHandlerInspectorTest extends TestCase
 {
-    public function testIsCandidateRequiresTheRequestHandlerSignature(): void
+    /**
+     * @throws ReflectionException when handler metadata cannot be read
+     */
+    public function testIsCandidateExcludesInvalidPublicMethods(): void
     {
-        $inspector = new DeclarativeHandlerInspector();
+        $handlers = new HandlerMap();
 
-        self::assertTrue($inspector->isCandidate(new ReflectionMethod(InspectorServerFixture::class, 'listPets')));
-        self::assertFalse($inspector->isCandidate(new ReflectionMethod(InspectorServerFixture::class, 'invalid')));
+        (new DeclarativeHandlerRegistrar())->register(new InspectorServer(), $handlers);
+
+        self::assertNotNull($handlers->find('', '/pets', 'GET'));
+        self::assertNull($handlers->find('invalid', '/invalid', 'GET'));
     }
 
-    public function testRouteReturnsDeclaredMapping(): void
+    /**
+     * @throws ReflectionException when handler metadata cannot be read
+     */
+    public function testRouteRegistersDeclaredMapping(): void
     {
-        $route = (new DeclarativeHandlerInspector())->route(new ReflectionMethod(InspectorServerFixture::class, 'listPets'));
+        $handlers = new HandlerMap();
 
-        self::assertNotNull($route);
-        self::assertSame('GET', $route->method);
-        self::assertSame('/pets', $route->path);
-    }
-}
+        (new DeclarativeHandlerRegistrar())->register(new InspectorServer(), $handlers);
 
-final class InspectorServerFixture
-{
-    #[Route(method: 'GET', path: '/pets')]
-    public function listPets(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
-    {
-        return $response ?? new \GuzzleHttp\Psr7\Response(200);
-    }
-
-    public function invalid(): string
-    {
-        return 'invalid';
+        self::assertNotNull($handlers->find('', '/pets', 'GET'));
     }
 }

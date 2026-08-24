@@ -15,6 +15,8 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 #[CoversClass(MiddlewarePipeline::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\MiddlewareRequestHandler::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ResolvedResponseRequestHandler::class)]
 final class MiddlewarePipelineTest extends TestCase
 {
     public function testProcessReturnsOriginalResponseWithoutMiddleware(): void
@@ -36,7 +38,9 @@ final class MiddlewarePipelineTest extends TestCase
         $handler = new class () implements RequestHandlerInterface {
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
-                return new Response(200, ['X-Rewritten' => (string) $request->getAttribute('rewritten')]);
+                $rewritten = $request->getAttribute('rewritten');
+
+                return new Response(200, ['X-Rewritten' => is_string($rewritten) ? $rewritten : '']);
             }
         };
 

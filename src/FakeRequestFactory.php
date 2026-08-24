@@ -4,13 +4,6 @@ declare(strict_types=1);
 
 namespace OasFake;
 
-use cebe\openapi\spec\MediaType;
-use cebe\openapi\spec\RequestBody;
-use cebe\openapi\spec\Schema as CebeSchema;
-
-use function is_int;
-use function is_string;
-
 use JsonException;
 use OasFake\Exception\FakeGenerationException;
 use Vural\OpenAPIFaker\Exception\NoPath;
@@ -18,6 +11,8 @@ use Vural\OpenAPIFaker\Exception\NoRequest;
 
 /**
  * Builds a fake request from an indexed OpenAPI operation.
+ *
+ * @visibility namespace
  */
 final class FakeRequestFactory
 {
@@ -34,36 +29,10 @@ final class FakeRequestFactory
             $headers = $parameters['header'];
 
             if ($definition->operation->requestBody !== null) {
-                $requestBody = $definition->operation->requestBody;
-                $mediaTypes = [];
-                if ($requestBody instanceof RequestBody && $requestBody->content !== null) {
-                    foreach ($requestBody->content as $mediaType => $_content) {
-                        if (is_int($mediaType) || is_string($mediaType)) {
-                            $mediaTypes[] = (string) $mediaType;
-                        }
-                    }
-                }
-                $mediaType = PayloadSerializer::preferredMediaType($mediaTypes);
-
-                $schema = null;
-                if ($requestBody instanceof RequestBody && $requestBody->content !== null) {
-                    foreach ($requestBody->content as $candidateMediaType => $content) {
-                        if ((!is_int($candidateMediaType) && !is_string($candidateMediaType)) || (string) $candidateMediaType !== $mediaType || !$content instanceof MediaType) {
-                            continue;
-                        }
-
-                        $schema = $content->schema instanceof CebeSchema ? $content->schema : null;
-                        break;
-                    }
-                }
-
-                $fakeData = $schema instanceof CebeSchema && !PayloadSerializer::isJsonMediaType($mediaType)
-                    ? $context->mockSchema($schema)
-                    : $context->mockRequest($definition->pathPattern, $definition->method);
-
-                if ($fakeData !== null) {
-                    $body = PayloadSerializer::serialize($fakeData, $mediaType);
-                    $headers['Content-Type'] ??= $mediaType;
+                $payload = (new RequestBodyGenerator())->generate($context, $definition);
+                $body = $payload['body'];
+                if ($body !== null) {
+                    $headers['Content-Type'] ??= $payload['mediaType'];
                 }
             }
         } catch (NoPath|NoRequest|JsonException $exception) {

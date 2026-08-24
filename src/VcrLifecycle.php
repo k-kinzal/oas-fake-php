@@ -13,6 +13,8 @@ use VCR\VCRFactory;
 
 /**
  * Owns the process-wide PHP-VCR activation and dispatch hook lifecycle.
+ *
+ * @visibility namespace
  */
 final class VcrLifecycle
 {

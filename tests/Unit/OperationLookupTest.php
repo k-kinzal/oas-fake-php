@@ -4,27 +4,25 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
-use OasFake\OperationInfo;
 use OasFake\OperationLookup;
 use OasFake\Schema;
+use OasFake\Testing\Petstore;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(OperationLookup::class)]
-#[CoversClass(OperationInfo::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 final class OperationLookupTest extends TestCase
 {
-    private OperationLookup $lookup;
-
-    protected function setUp(): void
-    {
-        $schema = Schema::fromFile(__DIR__ . '/../Fixtures/openapi/petstore.yaml');
-        $this->lookup = new OperationLookup($schema);
-    }
-
     public function testFindByOperationIdReturnsInfo(): void
     {
-        $info = $this->lookup->findByOperationId('listPets');
+        $info = Petstore::lookup()->findByOperationId('listPets');
 
         self::assertNotNull($info);
         self::assertSame('/pets', $info->pathPattern);
@@ -34,14 +32,14 @@ final class OperationLookupTest extends TestCase
 
     public function testFindByOperationIdReturnsNullForUnknown(): void
     {
-        $info = $this->lookup->findByOperationId('nonexistent');
+        $info = Petstore::lookup()->findByOperationId('nonexistent');
 
         self::assertNull($info);
     }
 
     public function testFindByPathAndMethodReturnsInfo(): void
     {
-        $info = $this->lookup->findByPathAndMethod('/pets', 'POST');
+        $info = Petstore::lookup()->findByPathAndMethod('/pets', 'POST');
 
         self::assertNotNull($info);
         self::assertSame('/pets', $info->pathPattern);
@@ -51,14 +49,14 @@ final class OperationLookupTest extends TestCase
 
     public function testFindByPathAndMethodReturnsNullForUnknown(): void
     {
-        $info = $this->lookup->findByPathAndMethod('/unknown', 'GET');
+        $info = Petstore::lookup()->findByPathAndMethod('/unknown', 'GET');
 
         self::assertNull($info);
     }
 
     public function testParametersAreMerged(): void
     {
-        $info = $this->lookup->findByOperationId('getPetById');
+        $info = Petstore::lookup()->findByOperationId('getPetById');
 
         self::assertNotNull($info);
         self::assertNotEmpty($info->parameters);
@@ -66,18 +64,30 @@ final class OperationLookupTest extends TestCase
         self::assertSame('path', $info->parameters[0]->in);
     }
 
-    public function testAllOperationsIndexed(): void
+    #[DataProvider('providerOperationIds')]
+    public function testOperationIsIndexed(string $operationId): void
     {
-        $ids = ['listPets', 'createPet', 'getPetById', 'updatePet', 'deletePet', 'patchPet', 'optionsPet', 'headPet'];
+        self::assertNotNull(Petstore::lookup()->findByOperationId($operationId));
+    }
 
-        foreach ($ids as $id) {
-            self::assertNotNull($this->lookup->findByOperationId($id), "Operation '$id' should be found");
-        }
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function providerOperationIds(): iterable
+    {
+        yield 'list pets' => ['listPets'];
+        yield 'create pet' => ['createPet'];
+        yield 'get pet' => ['getPetById'];
+        yield 'update pet' => ['updatePet'];
+        yield 'delete pet' => ['deletePet'];
+        yield 'patch pet' => ['patchPet'];
+        yield 'options pet' => ['optionsPet'];
+        yield 'head pet' => ['headPet'];
     }
 
     public function testFindByPathAndMethodIsCaseInsensitive(): void
     {
-        $info = $this->lookup->findByPathAndMethod('/pets', 'get');
+        $info = Petstore::lookup()->findByPathAndMethod('/pets', 'get');
 
         self::assertNotNull($info);
         self::assertSame('listPets', $info->operationId);
@@ -85,7 +95,7 @@ final class OperationLookupTest extends TestCase
 
     public function testFindByRequestPathAndMethodMatchesTemplatedPath(): void
     {
-        $info = $this->lookup->findByRequestPathAndMethod('/pets/123', 'GET');
+        $info = Petstore::lookup()->findByRequestPathAndMethod('/pets/123', 'GET');
 
         self::assertNotNull($info);
         self::assertSame('/pets/{petId}', $info->pathPattern);
@@ -94,14 +104,14 @@ final class OperationLookupTest extends TestCase
 
     public function testFindByRequestPathAndMethodPrefersExactPath(): void
     {
-        $info = $this->lookup->findByRequestPathAndMethod('/pets', 'GET');
+        $info = Petstore::lookup()->findByRequestPathAndMethod('/pets', 'GET');
 
         self::assertNotNull($info);
         self::assertSame('/pets', $info->pathPattern);
         self::assertSame('listPets', $info->operationId);
     }
 
-    public function testOperationInfoIncludesEffectiveServerUrls(): void
+    public function testOperationDefinitionIncludesEffectiveServerUrls(): void
     {
         $schema = Schema::fromString(<<<'YAML'
             openapi: 3.0.0
@@ -146,7 +156,7 @@ final class OperationLookupTest extends TestCase
 
     public function testMatchesPathUsesOpenApiTemplateSegments(): void
     {
-        self::assertTrue($this->lookup->matchesPath('/pets/{petId}', '/pets/123'));
-        self::assertFalse($this->lookup->matchesPath('/pets/{petId}', '/pets/123/owner'));
+        self::assertTrue(Petstore::lookup()->matchesPath('/pets/{petId}', '/pets/123'));
+        self::assertFalse(Petstore::lookup()->matchesPath('/pets/{petId}', '/pets/123/owner'));
     }
 }
