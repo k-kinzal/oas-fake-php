@@ -92,9 +92,15 @@ final class CassetteSessionTest extends TestCase
     public function testNextIndexAdvancesPerRequestSignature(): void
     {
         $session = new CassetteSession(sys_get_temp_dir(), 'index');
-        $request = new Request('GET', 'https://example.com/pets', []);
+        $getPets = new Request('GET', 'https://example.com/pets', []);
+        $postPets = new Request('POST', 'https://example.com/pets', []);
+        $getOwners = new Request('GET', 'https://example.com/owners', []);
 
-        self::assertSame(0, $session->nextIndex($request));
-        self::assertSame(1, $session->nextIndex($request));
+        self::assertSame(0, $session->nextIndex($getPets));
+        self::assertSame(0, $session->nextIndex($postPets));
+        self::assertSame(0, $session->nextIndex($getOwners));
+        self::assertSame(1, $session->nextIndex($getPets));
+        self::assertSame(1, $session->nextIndex($postPets));
+        self::assertSame(1, $session->nextIndex($getOwners));
     }
 }

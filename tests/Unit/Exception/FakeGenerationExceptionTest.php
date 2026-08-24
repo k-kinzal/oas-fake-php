@@ -18,6 +18,7 @@ final class FakeGenerationExceptionTest extends TestCase
         $exception = FakeGenerationException::forOperation('GET /pets', $previous);
 
         self::assertStringContainsString('GET /pets', $exception->getMessage());
+        self::assertSame(0, $exception->getCode());
         self::assertSame($previous, $exception->getPrevious());
     }
 }

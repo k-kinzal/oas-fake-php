@@ -68,10 +68,10 @@ jobs:
         with:
           dependency-versions: ${{ matrix.deps }}
       - name: Run legacy unit and doctest suites
-        if: matrix.php == '8.0'
+        if: matrix.php == '8.0' || matrix.deps == 'lowest'
         run: composer test:unit:legacy
       - name: Run unit and doctest suites
-        if: matrix.php != '8.0'
+        if: matrix.php != '8.0' && matrix.deps != 'lowest'
         run: composer test:unit
 
   test-parallel:
@@ -123,7 +123,7 @@ jobs:
           --git-diff-lines
           --git-diff-base=origin/${{ github.base_ref }}
           --ignore-msi-with-no-mutations
-          --min-msi=74
+          --min-msi=75
           --min-covered-msi=77
           --logger-github
       - name: Score whole source tree

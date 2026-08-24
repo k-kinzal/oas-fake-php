@@ -79,7 +79,7 @@ final class ModeTest extends TestCase
     public function testFromStringInvalidThrowsException(): void
     {
         $this->expectException(InvalidModeException::class);
-        $this->expectExceptionMessage('Invalid mode "invalid"');
+        $this->expectExceptionMessage('Invalid mode "invalid". Valid modes are: fake, record, replay');
 
         Mode::fromString('invalid');
     }

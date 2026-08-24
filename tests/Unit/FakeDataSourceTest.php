@@ -7,14 +7,11 @@ namespace OasFake\Tests\Unit;
 use OasFake\FakeDataContextResolver;
 use OasFake\FakeDataSource;
 use OasFake\Schema;
-use PHPUnit\Framework\Attributes\CoversClassesThatImplementInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @coversNothing
- */
-#[CoversClassesThatImplementInterface(FakeDataSource::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(FakeDataContextResolver::class)]
+#[CoversClass(FakeDataContextResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeDataContext::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
@@ -24,6 +21,24 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 final class FakeDataSourceTest extends TestCase
 {
+    public function testSchemaIsResolvedWithExplicitGenerationPolicy(): void
+    {
+        $schema = Schema::fromFile(__DIR__ . '/../Fixtures/openapi/petstore.yaml');
+
+        $context = (new FakeDataContextResolver())->resolve($schema, ['minItems' => 2]);
+
+        self::assertSame($schema, $context->schema());
+        self::assertSame(['minItems' => 2], $context->fakerOptions());
+    }
+
+    public function testResolvedContextRetainsItsIdentity(): void
+    {
+        $schema = Schema::fromFile(__DIR__ . '/../Fixtures/openapi/petstore.yaml');
+        $context = new \OasFake\FakeDataContext($schema, ['maxItems' => 3]);
+
+        self::assertSame($context, (new FakeDataContextResolver())->resolve($context, ['minItems' => 2]));
+    }
+
     public function testSchemaSuppliesGenerationContract(): void
     {
         $schema = Schema::fromFile(__DIR__ . '/../Fixtures/openapi/petstore.yaml');

@@ -17,8 +17,6 @@ final class ParameterSerializerTest extends TestCase
     /**
      * @throws JsonException when a value cannot be serialized
      * @throws \cebe\openapi\exceptions\TypeErrorException when parameter metadata is invalid
-     *
-     * @dataProvider providerQueryStyles
      */
     public function testQuerySerializesExplodedLists(): void
     {
@@ -34,7 +32,7 @@ final class ParameterSerializerTest extends TestCase
      * @throws JsonException when a value cannot be serialized
      * @throws \cebe\openapi\exceptions\TypeErrorException when parameter metadata is invalid
      *
-     * @dataProvider providerDelimitedStyles
+     * @dataProvider providerQueryStyles
      */
     #[DataProvider('providerQueryStyles')]
     public function testQueryHonorsOpenApiStyle(
@@ -109,6 +107,8 @@ final class ParameterSerializerTest extends TestCase
      *
      * @throws JsonException when a value cannot be serialized
      * @throws \cebe\openapi\exceptions\TypeErrorException when parameter metadata is invalid
+     *
+     * @dataProvider providerDelimitedStyles
      */
     #[DataProvider('providerDelimitedStyles')]
     public function testDelimitedHonorsPathAndHeaderStyle(
@@ -174,8 +174,6 @@ final class ParameterSerializerTest extends TestCase
 
     /**
      * @throws JsonException when a value cannot be serialized
-     *
-     * @dataProvider providerDelimitedValues
      */
     public function testMatrixSerializesExplodedObjects(): void
     {
@@ -184,8 +182,6 @@ final class ParameterSerializerTest extends TestCase
 
     /**
      * @throws JsonException when a value cannot be serialized
-     *
-     * @dataProvider providerScalarValues
      */
     public function testDelimitedValueSerializesObjects(): void
     {
@@ -194,6 +190,8 @@ final class ParameterSerializerTest extends TestCase
 
     /**
      * @throws JsonException when a value cannot be serialized
+     *
+     * @dataProvider providerDelimitedValues
      */
     #[DataProvider('providerDelimitedValues')]
     public function testDelimitedValuePreservesValueShape(
@@ -226,6 +224,8 @@ final class ParameterSerializerTest extends TestCase
 
     /**
      * @throws JsonException when a value cannot be serialized
+     *
+     * @dataProvider providerScalarValues
      */
     #[DataProvider('providerScalarValues')]
     public function testScalarUsesWireRepresentation(mixed $value, string $expected): void

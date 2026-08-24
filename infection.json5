@@ -8,8 +8,8 @@
     "mutators": {
         "@default": true
     },
-    "minMsi": 73,
-    "minCoveredMsi": 75,
+    "minMsi": 75,
+    "minCoveredMsi": 77,
     "timeout": 10,
     "tmpDir": "build/infection-tmp",
     "logs": {

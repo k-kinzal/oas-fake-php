@@ -31,6 +31,89 @@ final class InspectorServer extends Server
     {
         return 'invalid';
     }
+
+    /**
+     * Return a response through the one-parameter handler contract.
+     */
+    public function requestOnly(ServerRequestInterface $request): ResponseInterface
+    {
+        return new Response(200);
+    }
+
+    /**
+     * @return ResponseInterface
+     */
+    public function untypedReturn(ServerRequestInterface $request)
+    {
+        return new Response(200);
+    }
+
+    /**
+     * Demonstrate that static methods cannot own request handling state.
+     */
+    public static function staticHandler(ServerRequestInterface $request): ResponseInterface
+    {
+        return new Response(200);
+    }
+
+    /**
+     * Demonstrate that a handler must accept the intercepted request.
+     */
+    public function missingRequest(): ResponseInterface
+    {
+        return new Response(200);
+    }
+
+    /**
+     * Demonstrate that handlers cannot require pipeline-unknown arguments.
+     */
+    public function tooManyParameters(
+        ServerRequestInterface $request,
+        ?ResponseInterface $response,
+        string $unexpected,
+    ): ResponseInterface {
+        return $response ?? new Response(200, [], $unexpected);
+    }
+
+    /**
+     * Demonstrate that the request parameter must implement the PSR contract.
+     */
+    public function builtinRequest(string $request): ResponseInterface
+    {
+        return new Response(200, [], $request);
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     */
+    public function untypedRequest($request): ResponseInterface
+    {
+        return new Response(200);
+    }
+
+    /**
+     * Demonstrate that a generated response is optional for handlers.
+     */
+    public function requiredResponse(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        return $response;
+    }
+
+    /**
+     * Demonstrate that the optional response must implement the PSR contract.
+     */
+    public function builtinResponse(ServerRequestInterface $request, ?string $response): ResponseInterface
+    {
+        return new Response(200, [], $response ?? '');
+    }
+
+    /**
+     * Demonstrate that explicit return types must implement the PSR contract.
+     */
+    public function invalidReturn(ServerRequestInterface $request): string
+    {
+        return $request->getMethod();
+    }
 }
 
 /**

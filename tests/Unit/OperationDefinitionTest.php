@@ -27,4 +27,14 @@ final class OperationDefinitionTest extends TestCase
         self::assertSame([], $definition->parameters);
         self::assertSame(['https://api.example.com'], $definition->serverUrls);
     }
+
+    /**
+     * @throws \cebe\openapi\exceptions\TypeErrorException when operation metadata is invalid
+     */
+    public function testDefaultsServerScopeToTheRootUrl(): void
+    {
+        $definition = new OperationDefinition('/pets', 'get', 'listPets', new Operation(['responses' => []]), []);
+
+        self::assertSame(['/'], $definition->serverUrls);
+    }
 }

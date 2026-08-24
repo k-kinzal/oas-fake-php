@@ -18,6 +18,7 @@ final class SchemaParseExceptionTest extends TestCase
         $exception = SchemaParseException::forSource('inline YAML', $previous);
 
         self::assertStringContainsString('inline YAML', $exception->getMessage());
+        self::assertSame(0, $exception->getCode());
         self::assertSame($previous, $exception->getPrevious());
     }
 }

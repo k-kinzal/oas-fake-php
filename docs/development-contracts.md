@@ -56,7 +56,7 @@ Runnable `@example` blocks on public symbols are executed by the doctest suite o
 
 CI generates a fresh coverage map before every Infection run. Pull requests score only changed lines against `origin/<base>`, while pushes to `main` score the whole source tree. `infection.json5` keeps the whole-tree ratchet; CI supplies the changed-line threshold.
 
-The initial measured whole-tree scores are 73.47% MSI and 75.90% covered MSI, with 96.80% mutation coverage; the committed ratchet is 73/75. This pull request's changed lines measure 74.80% MSI and 77.36% covered MSI, so their ratchet is 74/77. The small margin absorbs runtime classification differences without allowing an untested behavioral regression to disappear into rounding.
+The measured whole-tree scores are 75.94% MSI and 78.22% covered MSI, with 97.09% mutation coverage; the committed ratchet is 75/77. This pull request's changed lines measure 75.52% MSI and 77.53% covered MSI, with 97.41% mutation coverage, so their ratchet is also 75/77. The small margin absorbs runtime classification differences without allowing an untested behavioral regression to disappear into rounding.
 
 The installed OpenAPI faker currently requires `thecodingmachine/safe` 2.x, which constrains Infection to its 0.29 line. The configuration therefore uses that line's `testFrameworkOptions` key while retaining a broad Composer constraint for future dependency resolution.
 

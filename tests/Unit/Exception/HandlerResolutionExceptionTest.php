@@ -18,6 +18,7 @@ final class HandlerResolutionExceptionTest extends TestCase
         $exception = HandlerResolutionException::forBody(422, $previous);
 
         self::assertStringContainsString('422', $exception->getMessage());
+        self::assertSame(0, $exception->getCode());
         self::assertSame($previous, $exception->getPrevious());
     }
 }

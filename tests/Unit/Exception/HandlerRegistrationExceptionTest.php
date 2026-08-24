@@ -18,6 +18,7 @@ final class HandlerRegistrationExceptionTest extends TestCase
         $exception = HandlerRegistrationException::forServer(self::class, $previous);
 
         self::assertStringContainsString(self::class, $exception->getMessage());
+        self::assertSame(0, $exception->getCode());
         self::assertSame($previous, $exception->getPrevious());
     }
 }
