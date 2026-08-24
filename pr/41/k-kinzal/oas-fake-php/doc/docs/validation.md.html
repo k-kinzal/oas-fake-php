@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Validation — k-kinzal/oas-fake-php</title>
+<link rel="canonical" href="https://k-kinzal.github.io/oas-fake-php/pr/41/k-kinzal/oas-fake-php/doc/docs/validation.md.html">
+<meta name="description" content="Validation, a document of the k-kinzal/oas-fake-php package.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="k-kinzal/oas-fake-php">
+<meta property="og:title" content="Validation — k-kinzal/oas-fake-php">
+<meta property="og:description" content="Validation, a document of the k-kinzal/oas-fake-php package.">
+<meta property="og:url" content="https://k-kinzal.github.io/oas-fake-php/pr/41/k-kinzal/oas-fake-php/doc/docs/validation.md.html">
+<meta property="og:image" content="https://k-kinzal.github.io/oas-fake-php/pr/41/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="k-kinzal/oas-fake-php">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../../../assets/style.css">
+<script>try{var t=localStorage.getItem("docgen-theme");if(t){document.documentElement.dataset.theme=t}document.documentElement.dataset.diffMode=localStorage.getItem("docgen-diff-mode")||"inline"}catch(e){}</script>
+</head>
+<body data-root="../../../../">
+<nav class="sidebar" id="sidebar"><div class="sb-head"><a class="sb-site" href="../../../../index.html">k-kinzal/oas-fake-php</a></div><div class="sb-pkg"><a href="../../../../k-kinzal/oas-fake-php/index.html">k-kinzal/oas-fake-php</a></div><nav class="sb-block"><div class="sb-title">Package</div><ul class="sb-list"><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/all-items.html">All items</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/index.html#documents">Documents</a></li></ul><div class="sb-kind" data-diff="modified">Layers</div><ul class="sb-list"><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.Application.html">Application</a></li><li data-diff="same"><a href="../../../../k-kinzal/oas-fake-php/layer.Exception.html">Exception</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.Generation.html">Generation</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.Handling.html">Handling</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.Interception.html">Interception</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.OpenApi.html">OpenApi</a></li></ul></nav><nav class="sb-block"><div class="sb-title">Namespaces</div><ul class="sb-list"><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/OasFake/index.html" title="OasFake">OasFake</a></li><li data-diff="same"><a href="../../../../k-kinzal/oas-fake-php/OasFake/Exception/index.html" title="OasFake\Exception">OasFake\Exception</a></li></ul></nav></nav>
+<div class="page">
+<header class="topbar">
+<button class="nav-toggle" id="nav-toggle" title="Toggle navigation">☰</button>
+<nav class="crumbs"><a href="../../../../k-kinzal/oas-fake-php/index.html">k-kinzal/oas-fake-php</a><span class="crumb-sep">::</span><span class="crumb-current">docs/validation.md</span></nav>
+<div class="topbar-tools">
+<input type="search" id="search" placeholder="Search… ( / )" autocomplete="off" spellcheck="false">
+<span class="diff-range" title="Comparing 150b00a to working tree">150b00a <span class="diff-arrow">→</span> working tree</span><div class="diff-modes" id="diff-modes" role="group" aria-label="Diff display mode"><button type="button" class="diff-mode" data-diff-mode="off" title="Documentation of the head revision, without diff marks">Off</button><button type="button" class="diff-mode" data-diff-mode="inline" title="Every page with additions and removals marked">Diff</button><button type="button" class="diff-mode" data-diff-mode="changes" title="Only what the head revision added, changed, or removed">Changes</button></div><a class="repo-link" href="https://github.com/k-kinzal/oas-fake-php" title="Repository: https://github.com/k-kinzal/oas-fake-php" rel="noreferrer">github.com</a>
+<button id="theme-toggle" title="Toggle theme">◐</button>
+</div>
+</header>
+<div class="search-results" id="search-results" hidden></div>
+<main class="content">
+<p class="diff-empty" id="diff-empty" data-changes="Nothing on this page changed between 150b00a and working tree." data-off="This page documents what 150b00a had and working tree no longer has. Switch to Diff to read it." hidden></p>
+<div class="symbol-head"><h1><span class="chip chip-kind k-document">document</span>Validation</h1><div class="symbol-meta"><span class="src-link">docs/validation.md</span></div></div>
+<section class="readme" data-diff="same"><div class="doc-block" data-diff="same"><h2>Validation</h2>
+</div><div class="doc-block" data-diff="same"><p>OasFake validates requests and responses against the OpenAPI schema by default. Validation uses <a href="https://github.com/thephpleague/openapi-psr7-validator">league/openapi-psr7-validator</a> under the hood.</p>
+</div><div class="doc-block" data-diff="same"><h3>Automatic Validation</h3>
+</div><div class="doc-block" data-diff="same"><p>When the server is running, requests are validated before handler resolution and responses are validated before being returned. Invalid requests or responses throw <code>OasFake\Exception\ValidationException</code>.</p>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-kw">use</span> <span class="tok-id">OasFake\OasFake</span>;
+
+<span class="tok-var">$server</span> = <span class="tok-id">OasFake</span>::<span class="tok-id">start</span>(<span class="tok-id">MyServer</span>::<span class="tok-kw">class</span>);
+
+<span class="tok-com">// This will throw ValidationException if the request body</span>
+<span class="tok-com">// doesn&#039;t match the schema (e.g., missing required fields)</span>
+<span class="tok-var">$client</span>-&gt;<span class="tok-id">post</span>(<span class="tok-str">&#039;/users&#039;</span>, [
+    <span class="tok-str">&#039;json&#039;</span> =&gt; [<span class="tok-str">&#039;name&#039;</span> =&gt; <span class="tok-str">&#039;Alice&#039;</span>], <span class="tok-com">// Missing required &#039;email&#039; field</span>
+]);</code></pre>
+</div><div class="doc-block" data-diff="same"><h3>Disabling Validation</h3>
+</div><div class="doc-block" data-diff="same"><h4>Static Properties</h4>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-kw">final</span> <span class="tok-kw">class</span> <span class="tok-id">MyServer</span> <span class="tok-kw">extends</span> <span class="tok-id">Server</span>
+{
+    <span class="tok-kw">protected</span> <span class="tok-kw">static</span> <span class="tok-id">string</span> <span class="tok-var">$SCHEMA</span> = __DIR__ . <span class="tok-str">&#039;/openapi.yaml&#039;</span>;
+    <span class="tok-kw">protected</span> <span class="tok-kw">static</span> <span class="tok-id">bool</span> <span class="tok-var">$VALIDATE_REQUESTS</span> = <span class="tok-id">false</span>;
+    <span class="tok-kw">protected</span> <span class="tok-kw">static</span> <span class="tok-id">bool</span> <span class="tok-var">$VALIDATE_RESPONSES</span> = <span class="tok-id">false</span>;
+}</code></pre>
+</div><div class="doc-block" data-diff="same"><h4>Fluent API</h4>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-var">$server</span> = <span class="tok-id">OasFake</span>::<span class="tok-id">start</span>(<span class="tok-id">MyServer</span>::<span class="tok-kw">class</span>, <span class="tok-kw">fn</span> (<span class="tok-var">$s</span>) =&gt; <span class="tok-var">$s</span>
+    -&gt;<span class="tok-id">withRequestValidation</span>(<span class="tok-id">false</span>)
+    -&gt;<span class="tok-id">withResponseValidation</span>(<span class="tok-id">false</span>)
+);</code></pre>
+</div><div class="doc-block" data-diff="same"><h4>Environment Variables</h4>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code>OAS_FAKE_VALIDATE_REQUESTS=false
+OAS_FAKE_VALIDATE_RESPONSES=false</code></pre>
+</div><div class="doc-block" data-diff="same"><h3>ValidationException</h3>
+</div><div class="doc-block" data-diff="same"><p><code>OasFake\Exception\ValidationException</code> provides details about what failed:</p>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-kw">use</span> <span class="tok-id">OasFake\Exception\ValidationException</span>;
+
+<span class="tok-kw">try</span> {
+    <span class="tok-var">$client</span>-&gt;<span class="tok-id">post</span>(<span class="tok-str">&#039;/users&#039;</span>, [<span class="tok-str">&#039;json&#039;</span> =&gt; [<span class="tok-str">&#039;invalid&#039;</span> =&gt; <span class="tok-str">&#039;data&#039;</span>]]);
+} <span class="tok-kw">catch</span> (<span class="tok-id">ValidationException</span> <span class="tok-var">$e</span>) {
+    <span class="tok-var">$e</span>-&gt;<span class="tok-id">getMessage</span>();          <span class="tok-com">// &quot;Request validation failed for POST /users: ...&quot;</span>
+    <span class="tok-var">$e</span>-&gt;<span class="tok-id">getValidationError</span>();  <span class="tok-com">// League\OpenAPIValidation\PSR7\Exception\ValidationFailed</span>
+}</code></pre>
+</div><div class="doc-block" data-diff="same"><p>There are two factory methods:</p>
+</div><div class="doc-block" data-diff="same"><ul><li><code>ValidationException::forRequest(RequestInterface $request, ValidationFailed $previous)</code> - request validation failure</li><li><code>ValidationException::forResponse(ResponseInterface $response, string $path, string $method, ValidationFailed $previous)</code> - response validation failure</li></ul>
+</div><div class="doc-block" data-diff="same"><h3>Standalone Validator</h3>
+</div><div class="doc-block" data-diff="same"><p>The <code>OasFake\Validator</code> class can be used independently of the server for validating PSR-7 messages:</p>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-kw">use</span> <span class="tok-id">OasFake\Schema</span>;
+<span class="tok-kw">use</span> <span class="tok-id">OasFake\Validator</span>;
+
+<span class="tok-var">$schema</span> = <span class="tok-id">Schema</span>::<span class="tok-id">fromFile</span>(__DIR__ . <span class="tok-str">&#039;/openapi.yaml&#039;</span>);
+<span class="tok-var">$validator</span> = <span class="tok-kw">new</span> <span class="tok-id">Validator</span>(<span class="tok-var">$schema</span>);
+
+<span class="tok-com">// Throws ValidationException on failure, returns OperationAddress on success</span>
+<span class="tok-var">$operation</span> = <span class="tok-var">$validator</span>-&gt;<span class="tok-id">validateRequest</span>(<span class="tok-var">$psr7Request</span>);
+<span class="tok-var">$validator</span>-&gt;<span class="tok-id">validateResponse</span>(<span class="tok-var">$operation</span>, <span class="tok-var">$psr7Response</span>);
+
+<span class="tok-com">// Boolean checks (no exceptions)</span>
+<span class="tok-var">$validator</span>-&gt;<span class="tok-id">isValidRequest</span>(<span class="tok-var">$psr7Request</span>);    <span class="tok-com">// true/false</span>
+<span class="tok-var">$validator</span>-&gt;<span class="tok-id">isValidResponse</span>(<span class="tok-var">$operation</span>, <span class="tok-var">$psr7Response</span>); <span class="tok-com">// true/false</span></code></pre>
+</div><div class="doc-block" data-diff="same"><h3>FakeRequest</h3>
+</div><div class="doc-block" data-diff="same"><p><code>OasFake\FakeRequest</code> generates fake HTTP requests from an OpenAPI schema, useful for testing your handlers or validation:</p>
+</div><div class="doc-block" data-diff="same"><h4>Creating Requests</h4>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-kw">use</span> <span class="tok-id">OasFake\FakeRequest</span>;
+
+<span class="tok-com">// By operation ID</span>
+<span class="tok-var">$request</span> = <span class="tok-id">FakeRequest</span>::<span class="tok-kw">for</span>(<span class="tok-var">$server</span>, <span class="tok-str">&#039;createPet&#039;</span>);
+<span class="tok-var">$request</span> = <span class="tok-id">FakeRequest</span>::<span class="tok-kw">for</span>(<span class="tok-var">$schema</span>, <span class="tok-str">&#039;createPet&#039;</span>, [<span class="tok-str">&#039;alwaysFakeOptionals&#039;</span> =&gt; <span class="tok-id">true</span>]);
+
+<span class="tok-com">// By path and method</span>
+<span class="tok-var">$request</span> = <span class="tok-id">FakeRequest</span>::<span class="tok-id">forPath</span>(<span class="tok-var">$server</span>, <span class="tok-str">&#039;/pets/{petId}&#039;</span>, <span class="tok-str">&#039;GET&#039;</span>);
+<span class="tok-var">$request</span> = <span class="tok-id">FakeRequest</span>::<span class="tok-id">forPath</span>(<span class="tok-var">$schema</span>, <span class="tok-str">&#039;/pets&#039;</span>, <span class="tok-str">&#039;POST&#039;</span>);</code></pre>
+</div><div class="doc-block" data-diff="same"><p>The <code>$source</code> parameter accepts a <code>Server</code> instance (uses its schema and faker options), a <code>Schema</code> instance, or a reusable <code>FakeDataContext</code>.</p>
+</div><div class="doc-block" data-diff="same"><h4>Fluent Overrides</h4>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-var">$request</span> = <span class="tok-id">FakeRequest</span>::<span class="tok-kw">for</span>(<span class="tok-var">$server</span>, <span class="tok-str">&#039;showPetById&#039;</span>)
+    -&gt;<span class="tok-id">withPathParam</span>(<span class="tok-str">&#039;petId&#039;</span>, <span class="tok-str">&#039;42&#039;</span>)
+    -&gt;<span class="tok-id">withQueryParam</span>(<span class="tok-str">&#039;fields&#039;</span>, <span class="tok-str">&#039;name,species&#039;</span>)
+    -&gt;<span class="tok-id">withHeader</span>(<span class="tok-str">&#039;Authorization&#039;</span>, <span class="tok-str">&#039;Bearer token123&#039;</span>)
+    -&gt;<span class="tok-id">withBody</span>(<span class="tok-str">&#039;{&quot;name&quot;: &quot;Buddy&quot;}&#039;</span>);</code></pre>
+</div><div class="doc-block" data-diff="same"><h4>Accessors</h4>
+</div><div class="doc-block" data-diff="same"><div class="table-wrap"><table><thead><tr><th>Method</th><th>Returns</th></tr></thead><tbody><tr><td><code>method()</code></td><td>HTTP method (uppercase)</td></tr><tr><td><code>url()</code></td><td>Full URL with path params and query string applied</td></tr><tr><td><code>body()</code></td><td>Raw request body (<code>?string</code>)</td></tr><tr><td><code>headers()</code></td><td><code>array&lt;string, string&gt;</code></td></tr><tr><td><code>pathParams()</code></td><td><code>array&lt;string, string&gt;</code></td></tr><tr><td><code>queryParams()</code></td><td><code>array&lt;string, string&gt;</code></td></tr></tbody></table></div>
+</div><div class="doc-block" data-diff="same"><h4>Conversion Methods</h4>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-var">$psr7</span> = <span class="tok-var">$request</span>-&gt;<span class="tok-id">toPsr7</span>();   <span class="tok-com">// Psr\Http\Message\ServerRequestInterface</span>
+<span class="tok-var">$curl</span> = <span class="tok-var">$request</span>-&gt;<span class="tok-id">toCurl</span>();   <span class="tok-com">// curl command string</span>
+<span class="tok-var">$array</span> = <span class="tok-var">$request</span>-&gt;<span class="tok-id">toArray</span>();  <span class="tok-com">// [&#039;method&#039; =&gt; ..., &#039;url&#039; =&gt; ..., &#039;headers&#039; =&gt; ..., &#039;body&#039; =&gt; ...]</span></code></pre>
+</div><div class="doc-block" data-diff="same"><h3>FakeResponse</h3>
+</div><div class="doc-block" data-diff="same"><p><code>OasFake\FakeResponse</code> generates fake HTTP responses from an OpenAPI schema:</p>
+</div><div class="doc-block" data-diff="same"><h4>Creating Responses</h4>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-kw">use</span> <span class="tok-id">OasFake\FakeResponse</span>;
+
+<span class="tok-com">// By operation ID (default: first 2xx response status)</span>
+<span class="tok-var">$response</span> = <span class="tok-id">FakeResponse</span>::<span class="tok-kw">for</span>(<span class="tok-var">$server</span>, <span class="tok-str">&#039;listPets&#039;</span>);
+<span class="tok-var">$response</span> = <span class="tok-id">FakeResponse</span>::<span class="tok-kw">for</span>(<span class="tok-var">$schema</span>, <span class="tok-str">&#039;listPets&#039;</span>, <span class="tok-num">404</span>);
+
+<span class="tok-com">// By path and method</span>
+<span class="tok-var">$response</span> = <span class="tok-id">FakeResponse</span>::<span class="tok-id">forPath</span>(<span class="tok-var">$server</span>, <span class="tok-str">&#039;/pets&#039;</span>, <span class="tok-str">&#039;GET&#039;</span>);
+<span class="tok-var">$response</span> = <span class="tok-id">FakeResponse</span>::<span class="tok-id">forPath</span>(<span class="tok-var">$schema</span>, <span class="tok-str">&#039;/pets/{petId}&#039;</span>, <span class="tok-str">&#039;GET&#039;</span>, <span class="tok-num">200</span>, [<span class="tok-str">&#039;alwaysFakeOptionals&#039;</span> =&gt; <span class="tok-id">true</span>]);</code></pre>
+</div><div class="doc-block" data-diff="same"><h4>Accessors</h4>
+</div><div class="doc-block" data-diff="same"><div class="table-wrap"><table><thead><tr><th>Method</th><th>Returns</th></tr></thead><tbody><tr><td><code>statusCode()</code></td><td>HTTP status code</td></tr><tr><td><code>headers()</code></td><td><code>array&lt;string, string&gt;</code></td></tr><tr><td><code>body()</code></td><td>Raw response body string</td></tr><tr><td><code>json()</code></td><td>Decoded JSON body (<code>mixed</code>)</td></tr></tbody></table></div>
+</div><div class="doc-block" data-diff="same"><h4>Conversion Methods</h4>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-var">$psr7</span> = <span class="tok-var">$response</span>-&gt;<span class="tok-id">toPsr7</span>();   <span class="tok-com">// Psr\Http\Message\ResponseInterface</span>
+<span class="tok-var">$array</span> = <span class="tok-var">$response</span>-&gt;<span class="tok-id">toArray</span>();  <span class="tok-com">// [&#039;statusCode&#039; =&gt; ..., &#039;headers&#039; =&gt; ..., &#039;body&#039; =&gt; ...]</span></code></pre>
+</div><div class="doc-block" data-diff="same"><h3>Schema</h3>
+</div><div class="doc-block" data-diff="same"><p><code>OasFake\Schema</code> wraps an OpenAPI specification:</p>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-kw">use</span> <span class="tok-id">OasFake\Schema</span>;
+
+<span class="tok-com">// Load from file (auto-detects JSON/YAML by extension)</span>
+<span class="tok-var">$schema</span> = <span class="tok-id">Schema</span>::<span class="tok-id">fromFile</span>(__DIR__ . <span class="tok-str">&#039;/openapi.yaml&#039;</span>);
+<span class="tok-var">$schema</span> = <span class="tok-id">Schema</span>::<span class="tok-id">fromFile</span>(__DIR__ . <span class="tok-str">&#039;/openapi.json&#039;</span>);
+
+<span class="tok-com">// Parse from string</span>
+<span class="tok-var">$schema</span> = <span class="tok-id">Schema</span>::<span class="tok-id">fromString</span>(<span class="tok-var">$yamlContent</span>);
+<span class="tok-var">$schema</span> = <span class="tok-id">Schema</span>::<span class="tok-id">fromString</span>(<span class="tok-var">$jsonContent</span>, <span class="tok-str">&#039;json&#039;</span>);
+
+<span class="tok-com">// From an existing cebe/php-openapi object</span>
+<span class="tok-var">$schema</span> = <span class="tok-id">Schema</span>::<span class="tok-id">fromOpenApi</span>(<span class="tok-var">$openApiObject</span>);
+
+<span class="tok-com">// Access the underlying OpenApi object</span>
+<span class="tok-var">$openApi</span> = <span class="tok-var">$schema</span>-&gt;<span class="tok-id">openApi</span>();
+
+<span class="tok-com">// Get server URLs (with variables substituted)</span>
+<span class="tok-var">$urls</span> = <span class="tok-var">$schema</span>-&gt;<span class="tok-id">serverUrls</span>(); <span class="tok-com">// [&#039;https://api.example.com&#039;]</span></code></pre>
+</div><div class="doc-block" data-diff="same"><h3>Related</h3>
+</div><div class="doc-block" data-diff="same"><ul><li><a href="../../../../k-kinzal/oas-fake-php/doc/docs/server-configuration.md.html">Server Configuration</a> - Enable/disable validation settings</li><li><a href="../../../../k-kinzal/oas-fake-php/doc/docs/environment-variables.md.html">Environment Variables</a> - Validation env vars</li></ul>
+</div></section>
+</main>
+<footer class="site-footer">Generated by <a href="https://github.com/k-kinzal/php-ai-toolkit">php-ai-toolkit</a> doc-gen</footer>
+</div>
+<script src="../../../../assets/search-index.js" defer></script>
+<script src="../../../../assets/app.js" defer></script>
+</body>
+</html>

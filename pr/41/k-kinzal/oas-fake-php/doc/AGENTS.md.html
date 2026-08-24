@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AGENTS.md — k-kinzal/oas-fake-php</title>
+<link rel="canonical" href="https://k-kinzal.github.io/oas-fake-php/pr/41/k-kinzal/oas-fake-php/doc/AGENTS.md.html">
+<meta name="description" content="AGENTS.md, a document of the k-kinzal/oas-fake-php package.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="k-kinzal/oas-fake-php">
+<meta property="og:title" content="AGENTS.md — k-kinzal/oas-fake-php">
+<meta property="og:description" content="AGENTS.md, a document of the k-kinzal/oas-fake-php package.">
+<meta property="og:url" content="https://k-kinzal.github.io/oas-fake-php/pr/41/k-kinzal/oas-fake-php/doc/AGENTS.md.html">
+<meta property="og:image" content="https://k-kinzal.github.io/oas-fake-php/pr/41/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="k-kinzal/oas-fake-php">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../../assets/style.css">
+<script>try{var t=localStorage.getItem("docgen-theme");if(t){document.documentElement.dataset.theme=t}document.documentElement.dataset.diffMode=localStorage.getItem("docgen-diff-mode")||"inline"}catch(e){}</script>
+</head>
+<body data-root="../../../">
+<nav class="sidebar" id="sidebar"><div class="sb-head"><a class="sb-site" href="../../../index.html">k-kinzal/oas-fake-php</a></div><div class="sb-pkg"><a href="../../../k-kinzal/oas-fake-php/index.html">k-kinzal/oas-fake-php</a></div><nav class="sb-block"><div class="sb-title">Package</div><ul class="sb-list"><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/all-items.html">All items</a></li><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/index.html#documents">Documents</a></li></ul><div class="sb-kind" data-diff="modified">Layers</div><ul class="sb-list"><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/layer.Application.html">Application</a></li><li data-diff="same"><a href="../../../k-kinzal/oas-fake-php/layer.Exception.html">Exception</a></li><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/layer.Generation.html">Generation</a></li><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/layer.Handling.html">Handling</a></li><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/layer.Interception.html">Interception</a></li><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/layer.OpenApi.html">OpenApi</a></li></ul></nav><nav class="sb-block"><div class="sb-title">Namespaces</div><ul class="sb-list"><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/OasFake/index.html" title="OasFake">OasFake</a></li><li data-diff="same"><a href="../../../k-kinzal/oas-fake-php/OasFake/Exception/index.html" title="OasFake\Exception">OasFake\Exception</a></li></ul></nav></nav>
+<div class="page">
+<header class="topbar">
+<button class="nav-toggle" id="nav-toggle" title="Toggle navigation">☰</button>
+<nav class="crumbs"><a href="../../../k-kinzal/oas-fake-php/index.html">k-kinzal/oas-fake-php</a><span class="crumb-sep">::</span><span class="crumb-current">AGENTS.md</span></nav>
+<div class="topbar-tools">
+<input type="search" id="search" placeholder="Search… ( / )" autocomplete="off" spellcheck="false">
+<span class="diff-range" title="Comparing 150b00a to working tree">150b00a <span class="diff-arrow">→</span> working tree</span><div class="diff-modes" id="diff-modes" role="group" aria-label="Diff display mode"><button type="button" class="diff-mode" data-diff-mode="off" title="Documentation of the head revision, without diff marks">Off</button><button type="button" class="diff-mode" data-diff-mode="inline" title="Every page with additions and removals marked">Diff</button><button type="button" class="diff-mode" data-diff-mode="changes" title="Only what the head revision added, changed, or removed">Changes</button></div><a class="repo-link" href="https://github.com/k-kinzal/oas-fake-php" title="Repository: https://github.com/k-kinzal/oas-fake-php" rel="noreferrer">github.com</a>
+<button id="theme-toggle" title="Toggle theme">◐</button>
+</div>
+</header>
+<div class="search-results" id="search-results" hidden></div>
+<main class="content">
+<p class="diff-empty" id="diff-empty" data-changes="Nothing on this page changed between 150b00a and working tree." data-off="This page documents what 150b00a had and working tree no longer has. Switch to Diff to read it." hidden></p>
+<div class="symbol-head"><h1><span class="chip chip-kind k-document">document</span>AGENTS.md</h1><div class="symbol-meta"><span class="src-link">AGENTS.md</span></div></div>
+<section class="readme" data-diff="modified"><div class="doc-block" data-diff="same"><h2>AGENTS.md</h2>
+</div><div class="doc-block" data-diff="same"><p>Fake API server library for PHP testing. Intercepts HTTP requests via PHP-VCR and returns fake responses generated from an OpenAPI schema. No real server process is needed — the fake server runs in-process, validating requests and generating schema-compliant responses automatically.</p>
+</div><div class="doc-block" data-diff="same"><h3>Supported Versions</h3>
+</div><div class="doc-block" data-diff="same"><ul><li>PHP: 8.0 - 8.5</li></ul>
+</div><div class="doc-block" data-diff="same"><h3>Architecture</h3>
+</div><div class="doc-block" data-diff="removed"><pre class="code-block"><code>OasFake (facade)
+  └─ ServerRegistry          # Multi-server lifecycle management
+       └─ Server             # Per-server fluent configuration
+            └─ Interceptor   # PHP-VCR hook, request/response pipeline
+                 ├─ Converter       # VCR ↔ PSR-7 format bridge
+                 ├─ Validator       # OpenAPI request/response validation
+                 ├─ HandlerMap      # Handler lookup by operationId or path/method
+                 │    └─ Handler    # Response strategy (fixed, callback, status)
+                 ├─ FakeResponse    # Schema-based response generation
+                 └─ Middleware[]    # PSR-15 middleware chain
+
+Schema             # OpenAPI spec wrapper (file/string/object)
+OperationLookup    # Indexes operations for fast lookup
+FakeRequest        # Schema-based request generation (standalone use)
+ParameterFaker     # Generates fake path/query/header parameters</code></pre>
+</div><div class="doc-block" data-diff="added"><pre class="code-block"><code>Application    # Facades, server lifecycle/configuration, public fake request/response API
+  ↓
+Interception   # PHP-VCR boundary, cassette lifecycle, VCR ↔ PSR-7 conversion
+  ↓
+Handling       # Request resolution, handlers, validation pipeline, middleware chain
+  ↓
+Generation     # Schema-backed request/response data and wire serialization
+  ↓
+OpenApi        # Schema parsing, operation index, URL/path matching, validation
+  ↓
+Exception      # Stable project exception contracts</code></pre>
+</div><div class="doc-block" data-diff="added"><p>Dependency direction is enforced from the physical directories above; lower layers must never call back into higher layers. PHP namespaces remain unchanged to preserve the published API.</p>
+</div><div class="doc-block" data-diff="same"><p>Request flow: VCR intercept → Converter → Validator → HandlerMap → Handler/FakeResponse → Middleware → Validator → Converter → VCR response.</p>
+</div><div class="doc-block" data-diff="same"><p>Modes: <code>FAKE</code> (generate from schema), <code>RECORD</code> (generate responses and save them to cassettes), <code>REPLAY</code> (playback from cassettes).</p>
+</div><div class="doc-block" data-diff="same"><h3>Public API</h3>
+</div><div class="doc-block" data-diff="same"><p>Users interact with <code>OasFake</code>, <code>Server</code>, <code>Schema</code>, <code>FakeDataContext</code>, <code>FakeRequest</code>, <code>FakeResponse</code>, <code>Handler</code>, <code>Route</code>, <code>Mode</code>, and the documented exception types. <code>Validator</code> is also documented for standalone validation use.</p>
+</div><div class="doc-block" data-diff="same"><p>Pipeline and support classes such as <code>ServerRegistry</code>, <code>Interceptor</code>, <code>Converter</code>, <code>OperationLookup</code>, <code>OperationInfo</code>, <code>HandlerMap</code>, and <code>ParameterFaker</code> are available for advanced use, though most tests should use the higher-level facade and server APIs.</p>
+</div><div class="doc-block" data-diff="same"><h4>OasFake + Server — Fake server in tests</h4>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-com">// 1. Define a server subclass</span>
+<span class="tok-kw">class</span> <span class="tok-id">MyServer</span> <span class="tok-kw">extends</span> <span class="tok-id">Server</span> {
+    <span class="tok-kw">protected</span> <span class="tok-kw">static</span> <span class="tok-id">string</span> <span class="tok-var">$SCHEMA</span> = __DIR__ . <span class="tok-str">&#039;/openapi.yaml&#039;</span>;
+    <span class="tok-kw">protected</span> <span class="tok-kw">static</span> <span class="tok-id">string</span> <span class="tok-var">$CASSETTE_PATH</span> = __DIR__ . <span class="tok-str">&#039;/cassettes&#039;</span>;
+}
+
+<span class="tok-com">// 2. Start and use in tests</span>
+<span class="tok-id">OasFake</span>::<span class="tok-id">start</span>(<span class="tok-id">MyServer</span>::<span class="tok-kw">class</span>);
+<span class="tok-var">$response</span> = <span class="tok-var">$client</span>-&gt;<span class="tok-id">get</span>(<span class="tok-str">&#039;/pets&#039;</span>);  <span class="tok-com">// intercepted, returns fake response</span>
+<span class="tok-id">OasFake</span>::<span class="tok-id">stop</span>();
+
+<span class="tok-com">// 3. Override responses per test via configure callback</span>
+<span class="tok-id">OasFake</span>::<span class="tok-id">start</span>(<span class="tok-id">MyServer</span>::<span class="tok-kw">class</span>, <span class="tok-kw">fn</span> (<span class="tok-id">MyServer</span> <span class="tok-var">$s</span>) =&gt; <span class="tok-var">$s</span>
+    -&gt;<span class="tok-id">withResponse</span>(<span class="tok-str">&#039;listPets&#039;</span>, <span class="tok-num">200</span>, [[<span class="tok-str">&#039;id&#039;</span> =&gt; <span class="tok-num">1</span>, <span class="tok-str">&#039;name&#039;</span> =&gt; <span class="tok-str">&#039;Buddy&#039;</span>]])
+    -&gt;<span class="tok-id">withCallback</span>(<span class="tok-str">&#039;createPet&#039;</span>, <span class="tok-kw">fn</span> (<span class="tok-var">$req</span>, <span class="tok-var">$res</span>) =&gt; <span class="tok-kw">new</span> <span class="tok-id">Response</span>(<span class="tok-num">201</span>, [], <span class="tok-str">&#039;{}&#039;</span>))
+    -&gt;<span class="tok-id">withMiddleware</span>(<span class="tok-kw">new</span> <span class="tok-id">MyMiddleware</span>()));</code></pre>
+</div><div class="doc-block" data-diff="same"><p>Server subclass can also define handler methods directly:</p>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-kw">class</span> <span class="tok-id">MyServer</span> <span class="tok-kw">extends</span> <span class="tok-id">Server</span> {
+    <span class="tok-kw">protected</span> <span class="tok-kw">static</span> <span class="tok-id">string</span> <span class="tok-var">$SCHEMA</span> = __DIR__ . <span class="tok-str">&#039;/openapi.yaml&#039;</span>;
+
+    <span class="tok-com">// Method named after operationId → auto-registered as handler</span>
+    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">listPets</span>(<span class="tok-id">ServerRequestInterface</span> <span class="tok-var">$req</span>, ?<span class="tok-id">ResponseInterface</span> <span class="tok-var">$res</span>): <span class="tok-id">ResponseInterface</span> { ... }
+
+    <span class="tok-com">// Or use #[Route] attribute to map by path/method</span>
+    #[<span class="tok-id">Route</span>(<span class="tok-id">method</span>: <span class="tok-str">&#039;DELETE&#039;</span>, <span class="tok-id">path</span>: <span class="tok-str">&#039;/pets/{petId}&#039;</span>)]
+    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">removePet</span>(<span class="tok-id">ServerRequestInterface</span> <span class="tok-var">$req</span>, ?<span class="tok-id">ResponseInterface</span> <span class="tok-var">$res</span>): <span class="tok-id">ResponseInterface</span> { ... }
+}</code></pre>
+</div><div class="doc-block" data-diff="same"><h4>FakeRequest / FakeResponse — Standalone generation</h4>
+</div><div class="doc-block" data-diff="same"><p>Generate requests/responses from a schema without starting a server.</p>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-var">$schema</span> = <span class="tok-id">Schema</span>::<span class="tok-id">fromFile</span>(<span class="tok-str">&#039;openapi.yaml&#039;</span>);
+<span class="tok-var">$request</span> = <span class="tok-id">FakeRequest</span>::<span class="tok-kw">for</span>(<span class="tok-var">$schema</span>, <span class="tok-str">&#039;createPet&#039;</span>);
+<span class="tok-var">$response</span> = <span class="tok-id">FakeResponse</span>::<span class="tok-kw">for</span>(<span class="tok-var">$schema</span>, <span class="tok-str">&#039;listPets&#039;</span>);</code></pre>
+</div><div class="doc-block" data-diff="same"><h3>Commands</h3>
+</div><div class="doc-block" data-diff="removed"><pre class="code-block"><code>composer test             # Run tests
+composer lint             # Static analysis + format check
+composer format           # Fix code style
+composer format:check     # Check code style without fixing</code></pre>
+</div><div class="doc-block" data-diff="added"><pre class="code-block"><code>composer test              # Parallel modern suite
+composer test:unit         # Modern unit + doctest suites
+composer test:unit:legacy  # PHPUnit 9 suite for PHP 8.0
+composer test:coverage     # Strict coverage metadata + XML
+composer doctest           # Runnable public PHPDoc examples
+composer lint              # All fast toolkit gates below
+composer phpstan           # Toolkit contracts and strict types
+composer compat            # PHPCompatibility for PHP 8.0+
+composer loc-guard         # Size and complexity limits
+composer tree-guard        # Repository layout policy
+composer scope-guard       # @visibility contracts
+composer deptrac           # Architectural dependency direction
+composer doc-gen           # API/architecture site in build/docs
+composer format            # Fix code style
+composer format:check      # Check code style without fixing</code></pre>
+</div><div class="doc-block" data-diff="added"><p>Mutation testing is intentionally a two-step CI gate: generate <code>build/infection-coverage</code>, then run Infection with <code>infection.json5</code>. Do not disable mutators, narrow <code>source.directories</code>, or add ignore annotations to improve the score; improve the asserted behavior or redesign equivalent code instead.</p>
+</div></section>
+</main>
+<footer class="site-footer">Generated by <a href="https://github.com/k-kinzal/php-ai-toolkit">php-ai-toolkit</a> doc-gen</footer>
+</div>
+<script src="../../../assets/search-index.js" defer></script>
+<script src="../../../assets/app.js" defer></script>
+</body>
+</html>

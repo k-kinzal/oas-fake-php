@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Middleware — k-kinzal/oas-fake-php</title>
+<link rel="canonical" href="https://k-kinzal.github.io/oas-fake-php/pr/41/k-kinzal/oas-fake-php/doc/docs/middleware.md.html">
+<meta name="description" content="Middleware, a document of the k-kinzal/oas-fake-php package.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="k-kinzal/oas-fake-php">
+<meta property="og:title" content="Middleware — k-kinzal/oas-fake-php">
+<meta property="og:description" content="Middleware, a document of the k-kinzal/oas-fake-php package.">
+<meta property="og:url" content="https://k-kinzal.github.io/oas-fake-php/pr/41/k-kinzal/oas-fake-php/doc/docs/middleware.md.html">
+<meta property="og:image" content="https://k-kinzal.github.io/oas-fake-php/pr/41/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="k-kinzal/oas-fake-php">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../../../assets/style.css">
+<script>try{var t=localStorage.getItem("docgen-theme");if(t){document.documentElement.dataset.theme=t}document.documentElement.dataset.diffMode=localStorage.getItem("docgen-diff-mode")||"inline"}catch(e){}</script>
+</head>
+<body data-root="../../../../">
+<nav class="sidebar" id="sidebar"><div class="sb-head"><a class="sb-site" href="../../../../index.html">k-kinzal/oas-fake-php</a></div><div class="sb-pkg"><a href="../../../../k-kinzal/oas-fake-php/index.html">k-kinzal/oas-fake-php</a></div><nav class="sb-block"><div class="sb-title">Package</div><ul class="sb-list"><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/all-items.html">All items</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/index.html#documents">Documents</a></li></ul><div class="sb-kind" data-diff="modified">Layers</div><ul class="sb-list"><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.Application.html">Application</a></li><li data-diff="same"><a href="../../../../k-kinzal/oas-fake-php/layer.Exception.html">Exception</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.Generation.html">Generation</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.Handling.html">Handling</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.Interception.html">Interception</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.OpenApi.html">OpenApi</a></li></ul></nav><nav class="sb-block"><div class="sb-title">Namespaces</div><ul class="sb-list"><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/OasFake/index.html" title="OasFake">OasFake</a></li><li data-diff="same"><a href="../../../../k-kinzal/oas-fake-php/OasFake/Exception/index.html" title="OasFake\Exception">OasFake\Exception</a></li></ul></nav></nav>
+<div class="page">
+<header class="topbar">
+<button class="nav-toggle" id="nav-toggle" title="Toggle navigation">☰</button>
+<nav class="crumbs"><a href="../../../../k-kinzal/oas-fake-php/index.html">k-kinzal/oas-fake-php</a><span class="crumb-sep">::</span><span class="crumb-current">docs/middleware.md</span></nav>
+<div class="topbar-tools">
+<input type="search" id="search" placeholder="Search… ( / )" autocomplete="off" spellcheck="false">
+<span class="diff-range" title="Comparing 150b00a to working tree">150b00a <span class="diff-arrow">→</span> working tree</span><div class="diff-modes" id="diff-modes" role="group" aria-label="Diff display mode"><button type="button" class="diff-mode" data-diff-mode="off" title="Documentation of the head revision, without diff marks">Off</button><button type="button" class="diff-mode" data-diff-mode="inline" title="Every page with additions and removals marked">Diff</button><button type="button" class="diff-mode" data-diff-mode="changes" title="Only what the head revision added, changed, or removed">Changes</button></div><a class="repo-link" href="https://github.com/k-kinzal/oas-fake-php" title="Repository: https://github.com/k-kinzal/oas-fake-php" rel="noreferrer">github.com</a>
+<button id="theme-toggle" title="Toggle theme">◐</button>
+</div>
+</header>
+<div class="search-results" id="search-results" hidden></div>
+<main class="content">
+<p class="diff-empty" id="diff-empty" data-changes="Nothing on this page changed between 150b00a and working tree." data-off="This page documents what 150b00a had and working tree no longer has. Switch to Diff to read it." hidden></p>
+<div class="symbol-head"><h1><span class="chip chip-kind k-document">document</span>Middleware</h1><div class="symbol-meta"><span class="src-link">docs/middleware.md</span></div></div>
+<section class="readme" data-diff="same"><div class="doc-block" data-diff="same"><h2>Middleware</h2>
+</div><div class="doc-block" data-diff="same"><p>OasFake supports <a href="https://www.php-fig.org/psr/psr-15/">PSR-15</a> middleware in the request processing pipeline.</p>
+</div><div class="doc-block" data-diff="same"><h3>Registration</h3>
+</div><div class="doc-block" data-diff="same"><h4>Fluent API</h4>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-kw">use</span> <span class="tok-id">OasFake\OasFake</span>;
+
+<span class="tok-var">$server</span> = <span class="tok-id">OasFake</span>::<span class="tok-id">start</span>(<span class="tok-id">MyServer</span>::<span class="tok-kw">class</span>, <span class="tok-kw">fn</span> (<span class="tok-var">$s</span>) =&gt; <span class="tok-var">$s</span>
+    -&gt;<span class="tok-id">withMiddleware</span>(<span class="tok-kw">new</span> <span class="tok-id">LoggingMiddleware</span>())
+    -&gt;<span class="tok-id">withMiddleware</span>(<span class="tok-kw">new</span> <span class="tok-id">RequestIdMiddleware</span>())
+);</code></pre>
+</div><div class="doc-block" data-diff="same"><h4>Static Declaration</h4>
+</div><div class="doc-block" data-diff="same"><p>Override the <code>middleware()</code> method in your server subclass:</p>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-kw">use</span> <span class="tok-id">OasFake\Server</span>;
+<span class="tok-kw">use</span> <span class="tok-id">Psr\Http\Server\MiddlewareInterface</span>;
+
+<span class="tok-kw">final</span> <span class="tok-kw">class</span> <span class="tok-id">MyServer</span> <span class="tok-kw">extends</span> <span class="tok-id">Server</span>
+{
+    <span class="tok-kw">protected</span> <span class="tok-kw">static</span> <span class="tok-id">string</span> <span class="tok-var">$SCHEMA</span> = __DIR__ . <span class="tok-str">&#039;/openapi.yaml&#039;</span>;
+
+    <span class="tok-kw">protected</span> <span class="tok-kw">static</span> <span class="tok-kw">function</span> <span class="tok-id">middleware</span>(): <span class="tok-kw">array</span>
+    {
+        <span class="tok-kw">return</span> [
+            <span class="tok-kw">new</span> <span class="tok-id">LoggingMiddleware</span>(),
+            <span class="tok-kw">new</span> <span class="tok-id">RequestIdMiddleware</span>(),
+        ];
+    }
+}</code></pre>
+</div><div class="doc-block" data-diff="same"><h4>Combining Both</h4>
+</div><div class="doc-block" data-diff="same"><p>Static middleware and fluent middleware are merged. Static middleware runs first, followed by fluent middleware in the order they were added.</p>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-com">// Static middleware: [LoggingMiddleware]</span>
+<span class="tok-com">// Fluent middleware: [RequestIdMiddleware, RateLimitMiddleware]</span>
+<span class="tok-com">// Execution order: LoggingMiddleware -&gt; RequestIdMiddleware -&gt; RateLimitMiddleware -&gt; Handler</span></code></pre>
+</div><div class="doc-block" data-diff="same"><h3>Writing Middleware</h3>
+</div><div class="doc-block" data-diff="same"><p>Implement <code>Psr\Http\Server\MiddlewareInterface</code>:</p>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-kw">use</span> <span class="tok-id">Psr\Http\Message\ResponseInterface</span>;
+<span class="tok-kw">use</span> <span class="tok-id">Psr\Http\Message\ServerRequestInterface</span>;
+<span class="tok-kw">use</span> <span class="tok-id">Psr\Http\Server\MiddlewareInterface</span>;
+<span class="tok-kw">use</span> <span class="tok-id">Psr\Http\Server\RequestHandlerInterface</span>;
+
+<span class="tok-kw">final</span> <span class="tok-kw">class</span> <span class="tok-id">RequestIdMiddleware</span> <span class="tok-kw">implements</span> <span class="tok-id">MiddlewareInterface</span>
+{
+    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">process</span>(
+        <span class="tok-id">ServerRequestInterface</span> <span class="tok-var">$request</span>,
+        <span class="tok-id">RequestHandlerInterface</span> <span class="tok-var">$handler</span>,
+    ): <span class="tok-id">ResponseInterface</span> {
+        <span class="tok-var">$response</span> = <span class="tok-var">$handler</span>-&gt;<span class="tok-id">handle</span>(<span class="tok-var">$request</span>);
+
+        <span class="tok-kw">return</span> <span class="tok-var">$response</span>-&gt;<span class="tok-id">withHeader</span>(<span class="tok-str">&#039;X-Request-Id&#039;</span>, <span class="tok-id">bin2hex</span>(<span class="tok-id">random_bytes</span>(<span class="tok-num">8</span>)));
+    }
+}</code></pre>
+</div><div class="doc-block" data-diff="same"><h3>Examples</h3>
+</div><div class="doc-block" data-diff="same"><h4>Request Recording</h4>
+</div><div class="doc-block" data-diff="same"><p>Track all intercepted requests for assertions in tests:</p>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-kw">final</span> <span class="tok-kw">class</span> <span class="tok-id">RequestRecorderMiddleware</span> <span class="tok-kw">implements</span> <span class="tok-id">MiddlewareInterface</span>
+{
+    <span class="tok-kw">private</span> <span class="tok-kw">array</span> <span class="tok-var">$calls</span> = [];
+
+    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">process</span>(
+        <span class="tok-id">ServerRequestInterface</span> <span class="tok-var">$request</span>,
+        <span class="tok-id">RequestHandlerInterface</span> <span class="tok-var">$handler</span>,
+    ): <span class="tok-id">ResponseInterface</span> {
+        <span class="tok-var">$this</span>-&gt;<span class="tok-id">calls</span>[] = [
+            <span class="tok-str">&#039;method&#039;</span> =&gt; <span class="tok-var">$request</span>-&gt;<span class="tok-id">getMethod</span>(),
+            <span class="tok-str">&#039;path&#039;</span> =&gt; <span class="tok-var">$request</span>-&gt;<span class="tok-id">getUri</span>()-&gt;<span class="tok-id">getPath</span>(),
+        ];
+
+        <span class="tok-kw">return</span> <span class="tok-var">$handler</span>-&gt;<span class="tok-id">handle</span>(<span class="tok-var">$request</span>);
+    }
+
+    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">getCalls</span>(): <span class="tok-kw">array</span>
+    {
+        <span class="tok-kw">return</span> <span class="tok-var">$this</span>-&gt;<span class="tok-id">calls</span>;
+    }
+}
+
+<span class="tok-com">// Usage in test</span>
+<span class="tok-var">$recorder</span> = <span class="tok-kw">new</span> <span class="tok-id">RequestRecorderMiddleware</span>();
+<span class="tok-var">$server</span> = <span class="tok-id">OasFake</span>::<span class="tok-id">start</span>(<span class="tok-id">MyServer</span>::<span class="tok-kw">class</span>, <span class="tok-kw">fn</span> (<span class="tok-var">$s</span>) =&gt; <span class="tok-var">$s</span>
+    -&gt;<span class="tok-id">withMiddleware</span>(<span class="tok-var">$recorder</span>)
+);
+
+<span class="tok-var">$client</span>-&gt;<span class="tok-id">get</span>(<span class="tok-str">&#039;/pets&#039;</span>);
+<span class="tok-var">$client</span>-&gt;<span class="tok-id">post</span>(<span class="tok-str">&#039;/pets&#039;</span>, [<span class="tok-str">&#039;json&#039;</span> =&gt; [<span class="tok-str">&#039;name&#039;</span> =&gt; <span class="tok-str">&#039;Buddy&#039;</span>]]);
+
+<span class="tok-id">assert</span>(<span class="tok-var">$recorder</span>-&gt;<span class="tok-id">getCalls</span>() === [
+    [<span class="tok-str">&#039;method&#039;</span> =&gt; <span class="tok-str">&#039;GET&#039;</span>, <span class="tok-str">&#039;path&#039;</span> =&gt; <span class="tok-str">&#039;/pets&#039;</span>],
+    [<span class="tok-str">&#039;method&#039;</span> =&gt; <span class="tok-str">&#039;POST&#039;</span>, <span class="tok-str">&#039;path&#039;</span> =&gt; <span class="tok-str">&#039;/pets&#039;</span>],
+]);</code></pre>
+</div><div class="doc-block" data-diff="same"><h4>Response Header Injection</h4>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-kw">final</span> <span class="tok-kw">class</span> <span class="tok-id">CorsMiddleware</span> <span class="tok-kw">implements</span> <span class="tok-id">MiddlewareInterface</span>
+{
+    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">process</span>(
+        <span class="tok-id">ServerRequestInterface</span> <span class="tok-var">$request</span>,
+        <span class="tok-id">RequestHandlerInterface</span> <span class="tok-var">$handler</span>,
+    ): <span class="tok-id">ResponseInterface</span> {
+        <span class="tok-var">$response</span> = <span class="tok-var">$handler</span>-&gt;<span class="tok-id">handle</span>(<span class="tok-var">$request</span>);
+
+        <span class="tok-kw">return</span> <span class="tok-var">$response</span>
+            -&gt;<span class="tok-id">withHeader</span>(<span class="tok-str">&#039;Access-Control-Allow-Origin&#039;</span>, <span class="tok-str">&#039;*&#039;</span>)
+            -&gt;<span class="tok-id">withHeader</span>(<span class="tok-str">&#039;Access-Control-Allow-Methods&#039;</span>, <span class="tok-str">&#039;GET, POST, PUT, DELETE&#039;</span>);
+    }
+}</code></pre>
+</div><div class="doc-block" data-diff="same"><h3>Related</h3>
+</div><div class="doc-block" data-diff="same"><ul><li><a href="../../../../k-kinzal/oas-fake-php/doc/docs/server-configuration.md.html">Server Configuration</a> - Middleware configuration options</li><li><a href="../../../../k-kinzal/oas-fake-php/doc/docs/getting-started.md.html">Getting Started</a> - Request interception flow</li></ul>
+</div></section>
+</main>
+<footer class="site-footer">Generated by <a href="https://github.com/k-kinzal/php-ai-toolkit">php-ai-toolkit</a> doc-gen</footer>
+</div>
+<script src="../../../../assets/search-index.js" defer></script>
+<script src="../../../../assets/app.js" defer></script>
+</body>
+</html>

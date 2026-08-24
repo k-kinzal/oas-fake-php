@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Server Configuration — k-kinzal/oas-fake-php</title>
+<link rel="canonical" href="https://k-kinzal.github.io/oas-fake-php/pr/41/k-kinzal/oas-fake-php/doc/docs/server-configuration.md.html">
+<meta name="description" content="Server Configuration, a document of the k-kinzal/oas-fake-php package.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="k-kinzal/oas-fake-php">
+<meta property="og:title" content="Server Configuration — k-kinzal/oas-fake-php">
+<meta property="og:description" content="Server Configuration, a document of the k-kinzal/oas-fake-php package.">
+<meta property="og:url" content="https://k-kinzal.github.io/oas-fake-php/pr/41/k-kinzal/oas-fake-php/doc/docs/server-configuration.md.html">
+<meta property="og:image" content="https://k-kinzal.github.io/oas-fake-php/pr/41/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="k-kinzal/oas-fake-php">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../../../assets/style.css">
+<script>try{var t=localStorage.getItem("docgen-theme");if(t){document.documentElement.dataset.theme=t}document.documentElement.dataset.diffMode=localStorage.getItem("docgen-diff-mode")||"inline"}catch(e){}</script>
+</head>
+<body data-root="../../../../">
+<nav class="sidebar" id="sidebar"><div class="sb-head"><a class="sb-site" href="../../../../index.html">k-kinzal/oas-fake-php</a></div><div class="sb-pkg"><a href="../../../../k-kinzal/oas-fake-php/index.html">k-kinzal/oas-fake-php</a></div><nav class="sb-block"><div class="sb-title">Package</div><ul class="sb-list"><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/all-items.html">All items</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/index.html#documents">Documents</a></li></ul><div class="sb-kind" data-diff="modified">Layers</div><ul class="sb-list"><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.Application.html">Application</a></li><li data-diff="same"><a href="../../../../k-kinzal/oas-fake-php/layer.Exception.html">Exception</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.Generation.html">Generation</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.Handling.html">Handling</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.Interception.html">Interception</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.OpenApi.html">OpenApi</a></li></ul></nav><nav class="sb-block"><div class="sb-title">Namespaces</div><ul class="sb-list"><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/OasFake/index.html" title="OasFake">OasFake</a></li><li data-diff="same"><a href="../../../../k-kinzal/oas-fake-php/OasFake/Exception/index.html" title="OasFake\Exception">OasFake\Exception</a></li></ul></nav></nav>
+<div class="page">
+<header class="topbar">
+<button class="nav-toggle" id="nav-toggle" title="Toggle navigation">☰</button>
+<nav class="crumbs"><a href="../../../../k-kinzal/oas-fake-php/index.html">k-kinzal/oas-fake-php</a><span class="crumb-sep">::</span><span class="crumb-current">docs/server-configuration.md</span></nav>
+<div class="topbar-tools">
+<input type="search" id="search" placeholder="Search… ( / )" autocomplete="off" spellcheck="false">
+<span class="diff-range" title="Comparing 150b00a to working tree">150b00a <span class="diff-arrow">→</span> working tree</span><div class="diff-modes" id="diff-modes" role="group" aria-label="Diff display mode"><button type="button" class="diff-mode" data-diff-mode="off" title="Documentation of the head revision, without diff marks">Off</button><button type="button" class="diff-mode" data-diff-mode="inline" title="Every page with additions and removals marked">Diff</button><button type="button" class="diff-mode" data-diff-mode="changes" title="Only what the head revision added, changed, or removed">Changes</button></div><a class="repo-link" href="https://github.com/k-kinzal/oas-fake-php" title="Repository: https://github.com/k-kinzal/oas-fake-php" rel="noreferrer">github.com</a>
+<button id="theme-toggle" title="Toggle theme">◐</button>
+</div>
+</header>
+<div class="search-results" id="search-results" hidden></div>
+<main class="content">
+<p class="diff-empty" id="diff-empty" data-changes="Nothing on this page changed between 150b00a and working tree." data-off="This page documents what 150b00a had and working tree no longer has. Switch to Diff to read it." hidden></p>
+<div class="symbol-head"><h1><span class="chip chip-kind k-document">document</span>Server Configuration</h1><div class="symbol-meta"><span class="src-link">docs/server-configuration.md</span></div></div>
+<section class="readme" data-diff="same"><div class="doc-block" data-diff="same"><h2>Server Configuration</h2>
+</div><div class="doc-block" data-diff="same"><p>Servers can be configured via static properties on a subclass, the fluent API, or environment variables. These approaches can be combined freely.</p>
+</div><div class="doc-block" data-diff="same"><h3>Configuration Approaches</h3>
+</div><div class="doc-block" data-diff="same"><h4>Static Properties (Subclass)</h4>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-kw">use</span> <span class="tok-id">OasFake\Server</span>;
+
+<span class="tok-kw">final</span> <span class="tok-kw">class</span> <span class="tok-id">MyServer</span> <span class="tok-kw">extends</span> <span class="tok-id">Server</span>
+{
+    <span class="tok-kw">protected</span> <span class="tok-kw">static</span> <span class="tok-id">string</span> <span class="tok-var">$SCHEMA</span> = __DIR__ . <span class="tok-str">&#039;/openapi.yaml&#039;</span>;
+    <span class="tok-kw">protected</span> <span class="tok-kw">static</span> <span class="tok-id">string</span> <span class="tok-var">$MODE</span> = <span class="tok-str">&#039;fake&#039;</span>;
+    <span class="tok-kw">protected</span> <span class="tok-kw">static</span> <span class="tok-id">string</span> <span class="tok-var">$CASSETTE_PATH</span> = __DIR__ . <span class="tok-str">&#039;/cassettes&#039;</span>;
+    <span class="tok-kw">protected</span> <span class="tok-kw">static</span> <span class="tok-id">string</span> <span class="tok-var">$CASSETTE_NAME</span> = <span class="tok-str">&#039;my-server&#039;</span>;
+    <span class="tok-kw">protected</span> <span class="tok-kw">static</span> <span class="tok-id">bool</span> <span class="tok-var">$VALIDATE_REQUESTS</span> = <span class="tok-id">true</span>;
+    <span class="tok-kw">protected</span> <span class="tok-kw">static</span> <span class="tok-id">bool</span> <span class="tok-var">$VALIDATE_RESPONSES</span> = <span class="tok-id">true</span>;
+    <span class="tok-kw">protected</span> <span class="tok-kw">static</span> <span class="tok-kw">array</span> <span class="tok-var">$FAKER_OPTIONS</span> = [
+        <span class="tok-str">&#039;alwaysFakeOptionals&#039;</span> =&gt; <span class="tok-id">true</span>,
+        <span class="tok-str">&#039;minItems&#039;</span> =&gt; <span class="tok-num">1</span>,
+        <span class="tok-str">&#039;maxItems&#039;</span> =&gt; <span class="tok-num">5</span>,
+    ];
+}</code></pre>
+</div><div class="doc-block" data-diff="same"><h4>Fluent API (Configure Callback)</h4>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-kw">use</span> <span class="tok-id">OasFake\OasFake</span>;
+<span class="tok-kw">use</span> <span class="tok-id">OasFake\Mode</span>;
+
+<span class="tok-var">$server</span> = <span class="tok-id">OasFake</span>::<span class="tok-id">start</span>(<span class="tok-id">MyServer</span>::<span class="tok-kw">class</span>, <span class="tok-kw">fn</span> (<span class="tok-var">$s</span>) =&gt; <span class="tok-var">$s</span>
+    -&gt;<span class="tok-id">withMode</span>(<span class="tok-id">Mode</span>::<span class="tok-id">RECORD</span>)
+    -&gt;<span class="tok-id">withCassettePath</span>(<span class="tok-str">&#039;./fixtures/cassettes&#039;</span>)
+    -&gt;<span class="tok-id">withRequestValidation</span>(<span class="tok-id">false</span>)
+    -&gt;<span class="tok-id">withFakerOptions</span>([<span class="tok-str">&#039;alwaysFakeOptionals&#039;</span> =&gt; <span class="tok-id">true</span>])
+);</code></pre>
+</div><div class="doc-block" data-diff="same"><h4>Fluent API (Instance)</h4>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-kw">use</span> <span class="tok-id">OasFake\OasFake</span>;
+<span class="tok-kw">use</span> <span class="tok-id">OasFake\Server</span>;
+<span class="tok-kw">use</span> <span class="tok-id">OasFake\Mode</span>;
+
+<span class="tok-var">$server</span> = (<span class="tok-kw">new</span> <span class="tok-id">Server</span>())
+    -&gt;<span class="tok-id">withSchema</span>(__DIR__ . <span class="tok-str">&#039;/openapi.yaml&#039;</span>)
+    -&gt;<span class="tok-id">withMode</span>(<span class="tok-id">Mode</span>::<span class="tok-id">FAKE</span>)
+    -&gt;<span class="tok-id">withRequestValidation</span>(<span class="tok-id">true</span>)
+    -&gt;<span class="tok-id">withResponseValidation</span>(<span class="tok-id">true</span>);
+
+<span class="tok-id">OasFake</span>::<span class="tok-id">start</span>(<span class="tok-var">$server</span>);</code></pre>
+</div><div class="doc-block" data-diff="same"><p>Fluent configuration methods must be called before the server is started. Once a server is running, stop it and start a freshly configured instance to change schema, mode, validation, faker options, middleware, or handlers.</p>
+</div><div class="doc-block" data-diff="same"><h3>Configuration Options</h3>
+</div><div class="doc-block" data-diff="same"><div class="table-wrap"><table><thead><tr><th>Static Property</th><th>Fluent Method</th><th>Description</th><th>Default</th></tr></thead><tbody><tr><td><code>$SCHEMA</code></td><td><code>withSchema(string)</code></td><td>Path to OpenAPI JSON or YAML file</td><td><code>&#039;&#039;</code> (required)</td></tr><tr><td><code>$MODE</code></td><td><code>withMode(string)</code></td><td>Operating mode</td><td><code>&#039;fake&#039;</code></td></tr><tr><td><code>$CASSETTE_PATH</code></td><td><code>withCassettePath(string)</code></td><td>Directory for cassette files</td><td><code>&#039;./cassettes&#039;</code></td></tr><tr><td><code>$CASSETTE_NAME</code></td><td><code>withCassetteName(string)</code></td><td>Cassette file name for record/replay</td><td>Server class name</td></tr><tr><td><code>$VALIDATE_REQUESTS</code></td><td><code>withRequestValidation(bool)</code></td><td>Validate requests against schema</td><td><code>true</code></td></tr><tr><td><code>$VALIDATE_RESPONSES</code></td><td><code>withResponseValidation(bool)</code></td><td>Validate responses against schema</td><td><code>true</code></td></tr><tr><td><code>$FAKER_OPTIONS</code></td><td><code>withFakerOptions(array)</code></td><td>Options for fake data generation</td><td><code>[]</code></td></tr><tr><td><code>middleware()</code></td><td><code>withMiddleware(MiddlewareInterface)</code></td><td>PSR-15 middleware pipeline</td><td><code>[]</code></td></tr></tbody></table></div>
+</div><div class="doc-block" data-diff="same"><h3>Operating Modes</h3>
+</div><div class="doc-block" data-diff="same"><p>The <code>OasFake\Mode</code> class defines three operating modes:</p>
+</div><div class="doc-block" data-diff="same"><div class="table-wrap"><table><thead><tr><th>Mode</th><th>Value</th><th>Description</th></tr></thead><tbody><tr><td><code>Mode::FAKE</code></td><td><code>&#039;fake&#039;</code></td><td>Intercept requests and return generated/stubbed responses (default)</td></tr><tr><td><code>Mode::RECORD</code></td><td><code>&#039;record&#039;</code></td><td>Generate responses and record them as cassettes for later replay</td></tr><tr><td><code>Mode::REPLAY</code></td><td><code>&#039;replay&#039;</code></td><td>Replay previously recorded cassette responses</td></tr></tbody></table></div>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-kw">use</span> <span class="tok-id">OasFake\Mode</span>;
+
+<span class="tok-com">// Constants</span>
+<span class="tok-id">Mode</span>::<span class="tok-id">FAKE</span>;
+<span class="tok-id">Mode</span>::<span class="tok-id">RECORD</span>;
+<span class="tok-id">Mode</span>::<span class="tok-id">REPLAY</span>;
+
+<span class="tok-com">// Parse from string (case-insensitive) into a normalized Mode instance</span>
+<span class="tok-var">$mode</span> = <span class="tok-id">Mode</span>::<span class="tok-id">fromString</span>(<span class="tok-str">&#039;record&#039;</span>);
+<span class="tok-var">$mode</span>-&gt;<span class="tok-id">value</span>(); <span class="tok-com">// &#039;record&#039;</span>
+
+<span class="tok-com">// Resolve from OAS_FAKE_MODE env var (falls back to FAKE)</span>
+<span class="tok-id">Mode</span>::<span class="tok-id">fromEnvironment</span>();</code></pre>
+</div><div class="doc-block" data-diff="same"><h3>Configuration Resolution Order</h3>
+</div><div class="doc-block" data-diff="same"><p>Each setting is resolved with the following priority (highest first):</p>
+</div><div class="doc-block" data-diff="same"><ol><li><strong>Environment variable</strong> (e.g., <code>OAS_FAKE_MODE</code>)</li><li><strong>Fluent API</strong> (e.g., <code>withMode(Mode::RECORD)</code>)</li><li><strong>Static property</strong> (e.g., <code>protected static string $MODE = &#039;fake&#039;</code>)</li></ol>
+</div><div class="doc-block" data-diff="same"><p>This allows tests to override configuration without changing code:</p>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code># Override mode in CI
+OAS_FAKE_MODE=record composer test</code></pre>
+</div><div class="doc-block" data-diff="same"><h3>Faker Options</h3>
+</div><div class="doc-block" data-diff="same"><p>The <code>$FAKER_OPTIONS</code> array (or <code>withFakerOptions()</code>) controls how fake response data is generated from the OpenAPI schema:</p>
+</div><div class="doc-block" data-diff="same"><div class="table-wrap"><table><thead><tr><th>Option</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>alwaysFakeOptionals</code></td><td><code>bool</code></td><td>Generate values for optional properties (default: only required)</td></tr><tr><td><code>minItems</code></td><td><code>int</code></td><td>Minimum number of items in generated arrays</td></tr><tr><td><code>maxItems</code></td><td><code>int</code></td><td>Maximum number of items in generated arrays</td></tr></tbody></table></div>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code><span class="tok-com">// Via static property</span>
+<span class="tok-kw">protected</span> <span class="tok-kw">static</span> <span class="tok-kw">array</span> <span class="tok-var">$FAKER_OPTIONS</span> = [
+    <span class="tok-str">&#039;alwaysFakeOptionals&#039;</span> =&gt; <span class="tok-id">true</span>,
+    <span class="tok-str">&#039;minItems&#039;</span> =&gt; <span class="tok-num">2</span>,
+    <span class="tok-str">&#039;maxItems&#039;</span> =&gt; <span class="tok-num">5</span>,
+];
+
+<span class="tok-com">// Via fluent API</span>
+<span class="tok-var">$server</span>-&gt;<span class="tok-id">withFakerOptions</span>([
+    <span class="tok-str">&#039;alwaysFakeOptionals&#039;</span> =&gt; <span class="tok-id">true</span>,
+    <span class="tok-str">&#039;minItems&#039;</span> =&gt; <span class="tok-num">2</span>,
+    <span class="tok-str">&#039;maxItems&#039;</span> =&gt; <span class="tok-num">5</span>,
+]);</code></pre>
+</div><div class="doc-block" data-diff="same"><h3>Related</h3>
+</div><div class="doc-block" data-diff="same"><ul><li><a href="../../../../k-kinzal/oas-fake-php/doc/docs/environment-variables.md.html">Environment Variables</a> - Full list of env vars</li><li><a href="../../../../k-kinzal/oas-fake-php/doc/docs/custom-responses.md.html">Custom Responses</a> - Override responses for specific operations</li><li><a href="../../../../k-kinzal/oas-fake-php/doc/docs/middleware.md.html">Middleware</a> - PSR-15 middleware configuration</li></ul>
+</div></section>
+</main>
+<footer class="site-footer">Generated by <a href="https://github.com/k-kinzal/php-ai-toolkit">php-ai-toolkit</a> doc-gen</footer>
+</div>
+<script src="../../../../assets/search-index.js" defer></script>
+<script src="../../../../assets/app.js" defer></script>
+</body>
+</html>

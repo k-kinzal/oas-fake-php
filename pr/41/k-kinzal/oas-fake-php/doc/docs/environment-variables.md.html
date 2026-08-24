@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Environment Variables — k-kinzal/oas-fake-php</title>
+<link rel="canonical" href="https://k-kinzal.github.io/oas-fake-php/pr/41/k-kinzal/oas-fake-php/doc/docs/environment-variables.md.html">
+<meta name="description" content="Environment Variables, a document of the k-kinzal/oas-fake-php package.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="k-kinzal/oas-fake-php">
+<meta property="og:title" content="Environment Variables — k-kinzal/oas-fake-php">
+<meta property="og:description" content="Environment Variables, a document of the k-kinzal/oas-fake-php package.">
+<meta property="og:url" content="https://k-kinzal.github.io/oas-fake-php/pr/41/k-kinzal/oas-fake-php/doc/docs/environment-variables.md.html">
+<meta property="og:image" content="https://k-kinzal.github.io/oas-fake-php/pr/41/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="k-kinzal/oas-fake-php">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../../../assets/style.css">
+<script>try{var t=localStorage.getItem("docgen-theme");if(t){document.documentElement.dataset.theme=t}document.documentElement.dataset.diffMode=localStorage.getItem("docgen-diff-mode")||"inline"}catch(e){}</script>
+</head>
+<body data-root="../../../../">
+<nav class="sidebar" id="sidebar"><div class="sb-head"><a class="sb-site" href="../../../../index.html">k-kinzal/oas-fake-php</a></div><div class="sb-pkg"><a href="../../../../k-kinzal/oas-fake-php/index.html">k-kinzal/oas-fake-php</a></div><nav class="sb-block"><div class="sb-title">Package</div><ul class="sb-list"><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/all-items.html">All items</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/index.html#documents">Documents</a></li></ul><div class="sb-kind" data-diff="modified">Layers</div><ul class="sb-list"><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.Application.html">Application</a></li><li data-diff="same"><a href="../../../../k-kinzal/oas-fake-php/layer.Exception.html">Exception</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.Generation.html">Generation</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.Handling.html">Handling</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.Interception.html">Interception</a></li><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/layer.OpenApi.html">OpenApi</a></li></ul></nav><nav class="sb-block"><div class="sb-title">Namespaces</div><ul class="sb-list"><li data-diff="modified"><a href="../../../../k-kinzal/oas-fake-php/OasFake/index.html" title="OasFake">OasFake</a></li><li data-diff="same"><a href="../../../../k-kinzal/oas-fake-php/OasFake/Exception/index.html" title="OasFake\Exception">OasFake\Exception</a></li></ul></nav></nav>
+<div class="page">
+<header class="topbar">
+<button class="nav-toggle" id="nav-toggle" title="Toggle navigation">☰</button>
+<nav class="crumbs"><a href="../../../../k-kinzal/oas-fake-php/index.html">k-kinzal/oas-fake-php</a><span class="crumb-sep">::</span><span class="crumb-current">docs/environment-variables.md</span></nav>
+<div class="topbar-tools">
+<input type="search" id="search" placeholder="Search… ( / )" autocomplete="off" spellcheck="false">
+<span class="diff-range" title="Comparing 150b00a to working tree">150b00a <span class="diff-arrow">→</span> working tree</span><div class="diff-modes" id="diff-modes" role="group" aria-label="Diff display mode"><button type="button" class="diff-mode" data-diff-mode="off" title="Documentation of the head revision, without diff marks">Off</button><button type="button" class="diff-mode" data-diff-mode="inline" title="Every page with additions and removals marked">Diff</button><button type="button" class="diff-mode" data-diff-mode="changes" title="Only what the head revision added, changed, or removed">Changes</button></div><a class="repo-link" href="https://github.com/k-kinzal/oas-fake-php" title="Repository: https://github.com/k-kinzal/oas-fake-php" rel="noreferrer">github.com</a>
+<button id="theme-toggle" title="Toggle theme">◐</button>
+</div>
+</header>
+<div class="search-results" id="search-results" hidden></div>
+<main class="content">
+<p class="diff-empty" id="diff-empty" data-changes="Nothing on this page changed between 150b00a and working tree." data-off="This page documents what 150b00a had and working tree no longer has. Switch to Diff to read it." hidden></p>
+<div class="symbol-head"><h1><span class="chip chip-kind k-document">document</span>Environment Variables</h1><div class="symbol-meta"><span class="src-link">docs/environment-variables.md</span></div></div>
+<section class="readme" data-diff="same"><div class="doc-block" data-diff="same"><h2>Environment Variables</h2>
+</div><div class="doc-block" data-diff="same"><p>Environment variables override both static properties and fluent API settings, making them useful for CI/CD pipelines and local development overrides.</p>
+</div><div class="doc-block" data-diff="same"><h3>Available Variables</h3>
+</div><div class="doc-block" data-diff="same"><div class="table-wrap"><table><thead><tr><th>Variable</th><th>Values</th><th>Default</th><th>Description</th></tr></thead><tbody><tr><td><code>OAS_FAKE_MODE</code></td><td><code>fake</code>, <code>record</code>, <code>replay</code></td><td><code>fake</code></td><td>Operating mode</td></tr><tr><td><code>OAS_FAKE_CASSETTE_PATH</code></td><td>directory path</td><td><code>./cassettes</code></td><td>Directory for cassette files</td></tr><tr><td><code>OAS_FAKE_CASSETTE_NAME</code></td><td>file name</td><td>server class name</td><td>Cassette file name for record/replay</td></tr><tr><td><code>OAS_FAKE_VALIDATE_REQUESTS</code></td><td><code>true</code>, <code>false</code></td><td><code>true</code></td><td>Enable/disable request validation</td></tr><tr><td><code>OAS_FAKE_VALIDATE_RESPONSES</code></td><td><code>true</code>, <code>false</code></td><td><code>true</code></td><td>Enable/disable response validation</td></tr></tbody></table></div>
+</div><div class="doc-block" data-diff="same"><h3>Precedence Rules</h3>
+</div><div class="doc-block" data-diff="same"><p>Each setting is resolved with the following priority (highest first):</p>
+</div><div class="doc-block" data-diff="same"><ol><li><strong>Environment variable</strong></li><li><strong>Fluent API</strong> (<code>withMode()</code>, <code>withCassettePath()</code>, etc.)</li><li><strong>Static property</strong> (<code>$MODE</code>, <code>$CASSETTE_PATH</code>, etc.)</li></ol>
+</div><div class="doc-block" data-diff="same"><p>For example, if <code>OAS_FAKE_MODE=record</code> is set, it overrides both <code>$MODE = &#039;fake&#039;</code> on the class and any <code>withMode()</code> call.</p>
+</div><div class="doc-block" data-diff="same"><h3>CI/CD Usage</h3>
+</div><div class="doc-block" data-diff="same"><h4>Record generated cassettes in CI</h4>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code>OAS_FAKE_MODE=record composer test</code></pre>
+</div><div class="doc-block" data-diff="same"><h4>Replay cassettes without validation</h4>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code>OAS_FAKE_MODE=replay OAS_FAKE_VALIDATE_REQUESTS=false composer test</code></pre>
+</div><div class="doc-block" data-diff="same"><h4>Disable validation for fast local runs</h4>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code>OAS_FAKE_VALIDATE_REQUESTS=false OAS_FAKE_VALIDATE_RESPONSES=false composer test</code></pre>
+</div><div class="doc-block" data-diff="same"><h4>PHPUnit configuration</h4>
+</div><div class="doc-block" data-diff="same"><p>Set environment variables in <code>phpunit.xml</code>:</p>
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code>&lt;phpunit&gt;
+    &lt;php&gt;
+        &lt;env name=&quot;OAS_FAKE_MODE&quot; value=&quot;fake&quot;/&gt;
+        &lt;env name=&quot;OAS_FAKE_VALIDATE_REQUESTS&quot; value=&quot;true&quot;/&gt;
+        &lt;env name=&quot;OAS_FAKE_VALIDATE_RESPONSES&quot; value=&quot;true&quot;/&gt;
+    &lt;/php&gt;
+&lt;/phpunit&gt;</code></pre>
+</div><div class="doc-block" data-diff="same"><h3>Related</h3>
+</div><div class="doc-block" data-diff="same"><ul><li><a href="../../../../k-kinzal/oas-fake-php/doc/docs/server-configuration.md.html">Server Configuration</a> - Full configuration options</li></ul>
+</div></section>
+</main>
+<footer class="site-footer">Generated by <a href="https://github.com/k-kinzal/php-ai-toolkit">php-ai-toolkit</a> doc-gen</footer>
+</div>
+<script src="../../../../assets/search-index.js" defer></script>
+<script src="../../../../assets/app.js" defer></script>
+</body>
+</html>
