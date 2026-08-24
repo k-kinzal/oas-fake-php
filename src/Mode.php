@@ -28,8 +28,24 @@ final class Mode
 
     private const ENV_VAR = 'OAS_FAKE_MODE';
 
-    private function __construct(private string $value)
+    private string $value;
+
+    /**
+     * Create a mode from a case-insensitive string value.
+     *
+     * @throws InvalidArgumentException If the value does not match a valid mode
+     */
+    public function __construct(string $value)
     {
+        $normalized = strtolower(trim($value));
+        $this->value = match ($normalized) {
+            'fake' => self::FAKE,
+            'record' => self::RECORD,
+            'replay' => self::REPLAY,
+            default => throw new InvalidArgumentException(
+                sprintf('Invalid mode "%s". Valid modes are: %s', $value, implode(', ', [self::FAKE, self::RECORD, self::REPLAY])),
+            ),
+        };
     }
 
     /**
@@ -69,16 +85,7 @@ final class Mode
      */
     public static function fromString(string $value): self
     {
-        $normalized = strtolower(trim($value));
-
-        return match ($normalized) {
-            'fake' => new self(self::FAKE),
-            'record' => new self(self::RECORD),
-            'replay' => new self(self::REPLAY),
-            default => throw new InvalidArgumentException(
-                sprintf('Invalid mode "%s". Valid modes are: %s', $value, implode(', ', [self::FAKE, self::RECORD, self::REPLAY])),
-            ),
-        };
+        return new self($value);
     }
 
     /**

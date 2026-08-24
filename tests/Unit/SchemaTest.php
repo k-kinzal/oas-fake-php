@@ -6,6 +6,7 @@ namespace OasFake\Tests\Unit;
 
 use cebe\openapi\spec\OpenApi;
 use OasFake\Exception\SchemaNotFoundException;
+use OasFake\Exception\SchemaParseException;
 use OasFake\Schema;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -13,6 +14,13 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Schema::class)]
 final class SchemaTest extends TestCase
 {
+    public function testFromStringWrapsParserFailure(): void
+    {
+        $this->expectException(SchemaParseException::class);
+
+        Schema::fromString('openapi: [invalid');
+    }
+
     private string $fixturesPath;
 
     protected function setUp(): void

@@ -12,6 +12,11 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Mode::class)]
 final class ModeTest extends TestCase
 {
+    public function testConstructorNormalizesAndValidatesValue(): void
+    {
+        self::assertSame(Mode::RECORD, (new Mode(' Record '))->value());
+    }
+
     public function testAllCasesHaveCorrectValues(): void
     {
         self::assertSame('fake', Mode::FAKE);

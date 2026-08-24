@@ -8,6 +8,9 @@ use cebe\openapi\spec\Schema as CebeSchema;
 
 use function strtoupper;
 
+use Vural\OpenAPIFaker\Exception\NoPath;
+use Vural\OpenAPIFaker\Exception\NoRequest;
+use Vural\OpenAPIFaker\Exception\NoResponse;
 use Vural\OpenAPIFaker\OpenAPIFaker;
 use Vural\OpenAPIFaker\Options;
 use Vural\OpenAPIFaker\SchemaFaker\SchemaFaker;
@@ -62,6 +65,9 @@ final class FakeDataContext
 
     /**
      * Generate fake request data for an operation path and method.
+     *
+     * @throws NoPath when the path does not exist in the schema
+     * @throws NoRequest when the operation has no request definition
      */
     public function mockRequest(string $path, string $method): mixed
     {
@@ -70,6 +76,9 @@ final class FakeDataContext
 
     /**
      * Generate fake response data for an operation path, method, and status.
+     *
+     * @throws NoPath when the path does not exist in the schema
+     * @throws NoResponse when the operation has no response for the status
      */
     public function mockResponse(string $path, string $method, int $statusCode): mixed
     {

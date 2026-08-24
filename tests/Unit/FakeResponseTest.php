@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
+use GuzzleHttp\Psr7\Response;
 use OasFake\Exception\OperationNotFoundException;
 use OasFake\FakeDataContext;
 use OasFake\FakeResponse;
@@ -235,5 +236,14 @@ final class FakeResponseTest extends TestCase
 
         self::assertInstanceOf(ResponseInterface::class, $psr7);
         self::assertSame(200, $psr7->getStatusCode());
+    }
+
+    public function testFromPsr7PreservesStatusHeadersAndBody(): void
+    {
+        $response = FakeResponse::fromPsr7(new Response(202, ['X-Test' => ['one', 'two']], 'accepted'));
+
+        self::assertSame(202, $response->statusCode());
+        self::assertSame('one, two', $response->headers()['X-Test']);
+        self::assertSame('accepted', $response->body());
     }
 }

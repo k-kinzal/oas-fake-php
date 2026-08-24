@@ -15,7 +15,10 @@ class ValidationException extends OasFakeException
 {
     private ValidationFailed $validationError;
 
-    private function __construct(string $message, ValidationFailed $validationError)
+    /**
+     * Create a validation exception with its structured underlying failure.
+     */
+    public function __construct(string $message, ValidationFailed $validationError)
     {
         $this->validationError = $validationError;
         parent::__construct($message, 0, $validationError);

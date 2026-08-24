@@ -12,13 +12,9 @@ use function spl_object_id;
  *
  * Provides static methods to manage Server instances through a shared ServerRegistry.
  */
-final class OasFake
+abstract class OasFake
 {
     private static ?ServerRegistry $registry = null;
-
-    private function __construct()
-    {
-    }
 
     /**
      * Start a fake server and return its instance.
@@ -41,7 +37,10 @@ final class OasFake
             $server = $configure($server);
         }
 
-        self::registry()->register(self::serverKey($server), $server);
+        (self::$registry ??= new ServerRegistry())->register(
+            $server::class . '#' . spl_object_id($server),
+            $server,
+        );
 
         return $server;
     }
@@ -56,21 +55,11 @@ final class OasFake
         }
 
         if ($server !== null) {
-            self::$registry->unregister(self::serverKey($server));
+            self::$registry->unregister($server::class . '#' . spl_object_id($server));
 
             return;
         }
 
         self::$registry->unregisterAll();
-    }
-
-    private static function registry(): ServerRegistry
-    {
-        return self::$registry ??= new ServerRegistry();
-    }
-
-    private static function serverKey(Server $server): string
-    {
-        return $server::class . '#' . spl_object_id($server);
     }
 }

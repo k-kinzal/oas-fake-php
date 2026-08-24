@@ -4,22 +4,10 @@ declare(strict_types=1);
 
 namespace OasFake;
 
-use Closure;
-
-use function in_array;
-
-use League\OpenAPIValidation\PSR7\OperationAddress;
-use LogicException;
 use OasFake\Exception\ReplayMismatchError;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
-use VCR\Cassette;
-use VCR\Configuration;
 use VCR\Request as VcrRequest;
 use VCR\Response as VcrResponse;
-use VCR\Storage\Json;
 
 /**
  * Request handler with OpenAPI validation, fake response generation, and cassette management.
@@ -37,18 +25,13 @@ final class Interceptor
 
     private Converter $converter;
 
-    private ?Cassette $cassette = null;
-
-    private OperationLookup $operationLookup;
-
-    private OperationPathResolver $operationPathResolver;
-
-    private OperationResponder $operationResponder;
-
     private MiddlewarePipeline $middlewarePipeline;
 
-    /** @var array<string, int> */
-    private array $indexTable = [];
+    private CassetteSession $cassetteSession;
+
+    private OperationRequestResolver $operationResolver;
+
+    private SchemaRequestHandler $requestHandler;
 
     /**
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $fakerOptions
@@ -56,23 +39,34 @@ final class Interceptor
      */
     public function __construct(
         string|Mode $mode,
-        private string $cassettePath,
-        private Schema $schema,
-        private Validator $validator,
+        string $cassettePath,
+        Schema $schema,
+        Validator $validator,
         array $fakerOptions,
         HandlerMap $handlers,
-        private bool $validateRequests,
-        private bool $validateResponses,
+        bool $validateRequests,
+        bool $validateResponses,
         array $middleware = [],
-        private string $cassetteName = 'recording',
+        string $cassetteName = 'recording',
     ) {
         $this->mode = Mode::from($mode);
         $this->converter = new Converter();
         $fakeDataContext = new FakeDataContext($schema, $fakerOptions);
-        $this->operationLookup = $fakeDataContext->operationLookup();
-        $this->operationPathResolver = new OperationPathResolver();
-        $this->operationResponder = new OperationResponder($fakeDataContext, $handlers);
+        $this->operationResolver = new OperationRequestResolver(
+            $schema,
+            $fakeDataContext->operationLookup(),
+            new OperationPathResolver(),
+            $validator,
+            $validateRequests,
+        );
+        $this->requestHandler = new SchemaRequestHandler(
+            $this->operationResolver,
+            new OperationResponder($fakeDataContext, $handlers),
+            $validator,
+            $validateResponses,
+        );
         $this->middlewarePipeline = new MiddlewarePipeline($middleware);
+        $this->cassetteSession = new CassetteSession($cassettePath, $cassetteName);
     }
 
     /**
@@ -85,7 +79,7 @@ final class Interceptor
         }
 
         if ($this->mode->isRecord() || $this->mode->isReplay()) {
-            $this->initCassette();
+            $this->cassetteSession->start();
         }
 
         $this->running = true;
@@ -100,8 +94,7 @@ final class Interceptor
             return;
         }
 
-        $this->cassette = null;
-        $this->indexTable = [];
+        $this->cassetteSession->stop();
         $this->running = false;
     }
 
@@ -131,36 +124,16 @@ final class Interceptor
         $psrRequest = $this->converter->requestToPsr7($vcrRequest);
         $response = $this->middlewarePipeline->handle(
             $psrRequest,
-            $this->requestHandler(fn (ServerRequestInterface $request): ResponseInterface => $this->respondTo($request)),
+            $this->requestHandler,
         );
 
         $vcrResponse = $this->converter->psr7ToVcrResponse($response);
 
         if ($this->mode->isRecord()) {
-            $this->recordToCassette($vcrRequest, $vcrResponse);
+            $this->cassetteSession->record($vcrRequest, $vcrResponse);
         }
 
         return $vcrResponse;
-    }
-
-    private function respondTo(ServerRequestInterface $psrRequest): ResponseInterface
-    {
-        $resolvedPath = $this->operationPathResolver->resolveWithServerUrl($this->schema, $psrRequest);
-        $path = $resolvedPath['path'];
-        $method = $psrRequest->getMethod();
-        $operationInfo = $this->operationLookup->findByRequestPathAndMethod($path, $method);
-        if ($operationInfo !== null && !$this->operationMatchesServer($operationInfo, $resolvedPath['serverUrl'])) {
-            $operationInfo = null;
-        }
-
-        $operation = $this->resolveOperation($psrRequest, $operationInfo);
-        $response = $this->operationResponder->respond($psrRequest, $path, $method, $operationInfo);
-
-        if ($this->validateResponses && $operation !== null) {
-            $this->validator->validateResponse($operation, $response);
-        }
-
-        return $response;
     }
 
     /**
@@ -178,112 +151,11 @@ final class Interceptor
     public function replay(VcrRequest $request): VcrResponse
     {
         $psrRequest = $this->converter->requestToPsr7($request);
-        $resolvedPath = $this->operationPathResolver->resolveWithServerUrl($this->schema, $psrRequest);
-        $operationInfo = $this->operationLookup->findByRequestPathAndMethod($resolvedPath['path'], $psrRequest->getMethod());
-        if ($operationInfo !== null && !$this->operationMatchesServer($operationInfo, $resolvedPath['serverUrl'])) {
-            $operationInfo = null;
-        }
-
-        $operation = $this->resolveOperation($psrRequest, $operationInfo);
-        $response = $this->converter->vcrResponseToPsr7($this->playback($request));
+        $operationRequest = $this->operationResolver->resolve($psrRequest);
+        $response = $this->converter->vcrResponseToPsr7($this->cassetteSession->playback($request));
         $response = $this->middlewarePipeline->process($psrRequest, $response);
-
-        if ($this->validateResponses && $operation !== null) {
-            $this->validator->validateResponse($operation, $response);
-        }
+        $this->requestHandler->validateResponse($operationRequest, $response);
 
         return $this->converter->psr7ToVcrResponse($response);
-    }
-
-    private function operationMatchesServer(OperationInfo $operationInfo, ?string $serverUrl): bool
-    {
-        return $serverUrl === null || in_array($serverUrl, $operationInfo->serverUrls, true);
-    }
-
-    private function playback(VcrRequest $request): VcrResponse
-    {
-        if ($this->cassette === null) {
-            throw ReplayMismatchError::forRequest(
-                $request,
-                new LogicException('No cassette loaded for replay'),
-            );
-        }
-
-        $index = $this->nextIndex($request);
-        $response = $this->cassette->playback($request, $index);
-
-        if ($response === null) {
-            throw ReplayMismatchError::forRequest(
-                $request,
-                new LogicException('No matching cassette recording'),
-            );
-        }
-
-        return $response;
-    }
-
-    private function resolveOperation(ServerRequestInterface $request, ?OperationInfo $operationInfo): ?OperationAddress
-    {
-        if ($this->validateRequests) {
-            return $this->validator->validateRequest($request);
-        }
-
-        if ($operationInfo === null) {
-            return null;
-        }
-
-        return new OperationAddress($operationInfo->pathPattern, $operationInfo->method);
-    }
-
-    /**
-     * @param callable(ServerRequestInterface): ResponseInterface $callback
-     */
-    private function requestHandler(callable $callback): RequestHandlerInterface
-    {
-        return new class ($callback) implements RequestHandlerInterface {
-            /**
-             * @var Closure(ServerRequestInterface): ResponseInterface
-             */
-            private Closure $callback;
-
-            /**
-             * @param callable(ServerRequestInterface): ResponseInterface $callback
-             */
-            public function __construct(callable $callback)
-            {
-                $this->callback = Closure::fromCallable($callback);
-            }
-
-            public function handle(ServerRequestInterface $request): ResponseInterface
-            {
-                return ($this->callback)($request);
-            }
-        };
-    }
-
-    private function initCassette(): void
-    {
-        $storage = new Json($this->cassettePath, $this->cassetteName);
-        $config = new Configuration();
-        $this->cassette = new Cassette($this->cassetteName, $config, $storage);
-    }
-
-    private function recordToCassette(VcrRequest $request, VcrResponse $response): void
-    {
-        if ($this->cassette === null) {
-            return;
-        }
-
-        $this->cassette->record($request, $response, $this->nextIndex($request));
-    }
-
-    private function nextIndex(VcrRequest $request): int
-    {
-        $key = $request->getMethod() . ' ' . ($request->getUrl() ?? '');
-        if (!isset($this->indexTable[$key])) {
-            $this->indexTable[$key] = -1;
-        }
-
-        return ++$this->indexTable[$key];
     }
 }

@@ -4,17 +4,9 @@ declare(strict_types=1);
 
 namespace OasFake;
 
-use cebe\openapi\spec\MediaType;
-use cebe\openapi\spec\RequestBody as CebeRequestBody;
-use cebe\openapi\spec\Schema as CebeSchema;
 use GuzzleHttp\Psr7\Query;
 use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Uri;
-
-use function is_array;
-use function is_int;
-use function is_string;
-
 use OasFake\Exception\OperationNotFoundException;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -32,7 +24,7 @@ final class FakeRequest
      * @param array<string, list<string>|string> $queryParams
      * @param array<string, string> $headerParams
      */
-    private function __construct(
+    public function __construct(
         private string $method,
         private string $baseUrl,
         private string $pathPattern,
@@ -48,14 +40,14 @@ final class FakeRequest
      */
     public static function for(Server|Schema|FakeDataContext $source, string $operationId, array $options = []): self
     {
-        $context = self::resolveSource($source, $options);
+        $context = (new FakeDataContextResolver())->resolve($source, $options);
         $info = $context->operationLookup()->findByOperationId($operationId);
 
         if ($info === null) {
             throw OperationNotFoundException::forOperationId($operationId);
         }
 
-        return self::buildFromInfo($context, $info);
+        return (new FakeRequestFactory())->create($context, $info);
     }
 
     /**
@@ -63,14 +55,14 @@ final class FakeRequest
      */
     public static function forPath(Server|Schema|FakeDataContext $source, string $path, string $method, array $options = []): self
     {
-        $context = self::resolveSource($source, $options);
+        $context = (new FakeDataContextResolver())->resolve($source, $options);
         $info = $context->operationLookup()->findByPathAndMethod($path, $method);
 
         if ($info === null) {
             throw OperationNotFoundException::forPathAndMethod($path, $method);
         }
 
-        return self::buildFromInfo($context, $info);
+        return (new FakeRequestFactory())->create($context, $info);
     }
 
     /**
@@ -209,27 +201,23 @@ final class FakeRequest
     {
         $parts = ['curl'];
         $method = strtoupper($this->method);
+        $quote = static fn (string $value): string => "'" . str_replace("'", "'\\''", $value) . "'";
 
         if ($method !== 'GET') {
             $parts[] = '-X ' . $method;
         }
 
-        $parts[] = self::shellQuote($this->url());
+        $parts[] = $quote($this->url());
 
         foreach ($this->headerParams as $name => $value) {
-            $parts[] = '-H ' . self::shellQuote($name . ': ' . $value);
+            $parts[] = '-H ' . $quote($name . ': ' . $value);
         }
 
         if ($this->rawBody !== null) {
-            $parts[] = '-d ' . self::shellQuote($this->rawBody);
+            $parts[] = '-d ' . $quote($this->rawBody);
         }
 
         return implode(" \\\n  ", $parts);
-    }
-
-    private static function shellQuote(string $value): string
-    {
-        return "'" . str_replace("'", "'\\''", $value) . "'";
     }
 
     /**
@@ -243,94 +231,5 @@ final class FakeRequest
             'headers' => $this->headerParams,
             'body' => $this->rawBody,
         ];
-    }
-
-    private static function buildFromInfo(FakeDataContext $context, OperationInfo $info): self
-    {
-        $paramFaker = new ParameterFaker($context->fakerOptions());
-        $params = $paramFaker->generate($info->parameters);
-
-        $body = null;
-        $headers = $params['header'];
-
-        if ($info->operation->requestBody !== null) {
-            $mediaType = self::requestMediaType($info);
-            $schema = self::requestSchema($info, $mediaType);
-            $fakeData = $schema instanceof CebeSchema && !PayloadSerializer::isJsonMediaType($mediaType)
-                ? $context->mockSchema($schema)
-                : $context->mockRequest($info->pathPattern, $info->method);
-
-            if (is_array($fakeData) || $fakeData !== null) {
-                $body = PayloadSerializer::serialize($fakeData, $mediaType);
-                $headers['Content-Type'] ??= $mediaType;
-            }
-        }
-
-        $baseUrl = $info->serverUrls[0] ?? '/';
-
-        return new self(
-            method: $info->method,
-            baseUrl: $baseUrl,
-            pathPattern: $info->pathPattern,
-            pathParams: $params['path'],
-            queryParams: $params['query'],
-            headerParams: $headers,
-            rawBody: $body,
-        );
-    }
-
-    private static function requestMediaType(OperationInfo $info): string
-    {
-        $requestBody = $info->operation->requestBody;
-        if (!$requestBody instanceof CebeRequestBody || $requestBody->content === null || $requestBody->content === []) {
-            return 'application/json';
-        }
-
-        $mediaTypes = [];
-        foreach ($requestBody->content as $mediaType => $_content) {
-            if (!is_int($mediaType) && !is_string($mediaType)) {
-                continue;
-            }
-            $mediaTypes[] = (string) $mediaType;
-        }
-
-        return PayloadSerializer::preferredMediaType($mediaTypes);
-    }
-
-    private static function requestSchema(OperationInfo $info, string $mediaType): ?CebeSchema
-    {
-        $requestBody = $info->operation->requestBody;
-        if (!$requestBody instanceof CebeRequestBody || $requestBody->content === null) {
-            return null;
-        }
-
-        foreach ($requestBody->content as $candidateMediaType => $content) {
-            if ((!is_int($candidateMediaType) && !is_string($candidateMediaType)) || (string) $candidateMediaType !== $mediaType || !$content instanceof MediaType) {
-                continue;
-            }
-
-            return $content->schema instanceof CebeSchema ? $content->schema : null;
-        }
-
-        return null;
-    }
-
-    /**
-     * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
-     */
-    private static function resolveSource(Server|Schema|FakeDataContext $source, array $options): FakeDataContext
-    {
-        if ($source instanceof FakeDataContext) {
-            return $source;
-        }
-
-        if ($source instanceof Server) {
-            $schema = $source->schema();
-            $fakerOptions = $options !== [] ? $options : $source->fakerOptions();
-
-            return new FakeDataContext($schema, $fakerOptions);
-        }
-
-        return new FakeDataContext($source, $options);
     }
 }

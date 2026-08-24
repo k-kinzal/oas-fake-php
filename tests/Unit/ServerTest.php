@@ -364,16 +364,16 @@ final class ServerTest extends TestCase
         self::assertSame(['https://api.petstore.example.com'], $server->serverUrls());
     }
 
-    public function testStartThrowsWithoutSchema(): void
+    public function testResolveSchemaThrowsWithoutConfiguredPath(): void
     {
         $server = new Server();
 
         $this->expectException(\OasFake\Exception\SchemaNotFoundException::class);
         $this->expectExceptionMessage('No schema configured');
-        $server->start();
+        $server->resolveSchema();
     }
 
-    public function testRegisterInRegistryRejectsDifferentOwner(): void
+    public function testAssertCanRegisterInRegistryRejectsDifferentOwner(): void
     {
         $server = (new Server())->withSchema($this->petstorePath);
         $registry = new ServerRegistry();
@@ -381,7 +381,7 @@ final class ServerTest extends TestCase
         $server->registerInRegistry($registry, 'PetServer');
 
         try {
-            $server->registerInRegistry(new ServerRegistry(), 'OtherServer');
+            $server->assertCanRegisterInRegistry(new ServerRegistry(), 'OtherServer');
         } catch (LogicException $exception) {
             self::assertStringContainsString('already registered', $exception->getMessage());
 
@@ -391,6 +391,20 @@ final class ServerTest extends TestCase
         }
 
         self::fail('Expected LogicException was not thrown.');
+    }
+
+    public function testRegisterInRegistryStoresOwnership(): void
+    {
+        $server = new Server();
+        $registry = new ServerRegistry();
+        $server->registerInRegistry($registry, 'PetServer');
+
+        try {
+            $server->assertCanRegisterInRegistry($registry, 'PetServer');
+            $this->addToAssertionCount(1);
+        } finally {
+            $server->unregisterFromRegistry($registry, 'PetServer');
+        }
     }
 
     public function testUnregisterFromRegistryStopsInterceptor(): void
@@ -432,14 +446,21 @@ final class ServerTest extends TestCase
         self::assertSame('record', getenv('OAS_FAKE_MODE'));
     }
 
-    public function testEnvVarOverridesCassettePath(): void
+    public function testResolveCassettePathPrefersEnvironment(): void
     {
         putenv('OAS_FAKE_CASSETTE_PATH=/env/cassettes');
 
         $server = new Server();
         $server->withCassettePath('/fluent/cassettes');
 
-        self::assertSame('/env/cassettes', getenv('OAS_FAKE_CASSETTE_PATH'));
+        self::assertSame('/env/cassettes', $server->resolveCassettePath());
+    }
+
+    public function testResolveCassetteNameNormalizesConfiguredName(): void
+    {
+        $server = (new Server())->withCassetteName('My API Cassette');
+
+        self::assertSame('my-api-cassette', $server->resolveCassetteName());
     }
 
     public function testResolveModeUsesEnvironmentVariable(): void
@@ -455,24 +476,59 @@ final class ServerTest extends TestCase
         }
     }
 
-    public function testEnvVarOverridesValidateRequests(): void
+    public function testResolveRequestValidationPrefersEnvironment(): void
     {
         putenv('OAS_FAKE_VALIDATE_REQUESTS=false');
 
         $server = new Server();
         $server->withRequestValidation(true);
 
-        self::assertSame('false', getenv('OAS_FAKE_VALIDATE_REQUESTS'));
+        self::assertFalse($server->resolveRequestValidation());
     }
 
-    public function testEnvVarOverridesValidateResponses(): void
+    public function testResolveResponseValidationPrefersEnvironment(): void
     {
         putenv('OAS_FAKE_VALIDATE_RESPONSES=false');
 
         $server = new Server();
         $server->withResponseValidation(true);
 
-        self::assertSame('false', getenv('OAS_FAKE_VALIDATE_RESPONSES'));
+        self::assertFalse($server->resolveResponseValidation());
+    }
+
+    public function testResolveMiddlewareIncludesFluentMiddleware(): void
+    {
+        $middleware = new class () implements MiddlewareInterface {
+            public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+            {
+                return $handler->handle($request);
+            }
+        };
+        $server = (new Server())->withMiddleware($middleware);
+
+        self::assertSame([$middleware], $server->resolveMiddleware());
+    }
+
+    public function testResolvedOptionsCapturesEffectiveConfiguration(): void
+    {
+        $schema = \OasFake\Schema::fromFile($this->petstorePath);
+        $server = (new Server())
+            ->withMode(Mode::RECORD)
+            ->withCassettePath('/tmp/cassettes')
+            ->withCassetteName('Pet Store')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false)
+            ->withFakerOptions(['alwaysFakeOptionals' => true]);
+
+        $options = $server->resolvedOptions($schema);
+
+        self::assertSame($schema, $options->schema);
+        self::assertSame(Mode::RECORD, $options->mode->value());
+        self::assertSame('/tmp/cassettes', $options->cassettePath);
+        self::assertSame('pet-store', $options->cassetteName);
+        self::assertFalse($options->validateRequests);
+        self::assertFalse($options->validateResponses);
+        self::assertSame(['alwaysFakeOptionals' => true], $options->fakerOptions);
     }
 
     public function testSubclassMethodsAreAutoRegisteredAsStubs(): void

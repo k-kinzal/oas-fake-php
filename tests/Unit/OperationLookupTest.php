@@ -143,4 +143,10 @@ final class OperationLookupTest extends TestCase
         $lookup = new OperationLookup($schema);
         self::assertNull($lookup->findByOperationId('anything'));
     }
+
+    public function testMatchesPathUsesOpenApiTemplateSegments(): void
+    {
+        self::assertTrue($this->lookup->matchesPath('/pets/{petId}', '/pets/123'));
+        self::assertFalse($this->lookup->matchesPath('/pets/{petId}', '/pets/123/owner'));
+    }
 }

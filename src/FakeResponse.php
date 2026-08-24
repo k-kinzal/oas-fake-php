@@ -4,17 +4,13 @@ declare(strict_types=1);
 
 namespace OasFake;
 
-use cebe\openapi\spec\MediaType;
-use cebe\openapi\spec\Response as CebeResponse;
-use cebe\openapi\spec\Schema as CebeSchema;
 use GuzzleHttp\Psr7\Response;
 
-use function is_int;
-use function is_string;
 use function json_decode;
 
 use const JSON_THROW_ON_ERROR;
 
+use JsonException;
 use OasFake\Exception\OperationNotFoundException;
 use Psr\Http\Message\ResponseInterface;
 
@@ -26,7 +22,7 @@ final class FakeResponse
     /**
      * @param array<string, string> $headers
      */
-    private function __construct(
+    public function __construct(
         private int $statusCode,
         private array $headers,
         private string $rawBody,
@@ -38,15 +34,15 @@ final class FakeResponse
      */
     public static function for(Server|Schema|FakeDataContext $source, string $operationId, ?int $statusCode = null, array $options = []): self
     {
-        $context = self::resolveSource($source, $options);
-        $info = $context->operationLookup()->findByOperationId($operationId);
+        $context = (new FakeDataContextResolver())->resolve($source, $options);
+        $definition = $context->operationLookup()->findByOperationId($operationId);
 
-        if ($info === null) {
+        if ($definition === null) {
             throw OperationNotFoundException::forOperationId($operationId);
         }
 
-        $statusCode ??= self::defaultStatusCode($info);
-        $response = self::generateResponse($context, $info->pathPattern, $info->method, $statusCode);
+        $statusCode ??= (new OperationResponseResolver())->defaultStatusCode($definition);
+        $response = self::generateResponse($context, $definition->pathPattern, $definition->method, $statusCode);
 
         return self::fromPsr7($response);
     }
@@ -56,15 +52,15 @@ final class FakeResponse
      */
     public static function forPath(Server|Schema|FakeDataContext $source, string $path, string $method, ?int $statusCode = null, array $options = []): self
     {
-        $context = self::resolveSource($source, $options);
-        $info = $context->operationLookup()->findByPathAndMethod($path, $method);
+        $context = (new FakeDataContextResolver())->resolve($source, $options);
+        $definition = $context->operationLookup()->findByPathAndMethod($path, $method);
 
-        if ($info === null) {
+        if ($definition === null) {
             throw OperationNotFoundException::forPathAndMethod($path, $method);
         }
 
-        $statusCode ??= self::defaultStatusCode($info);
-        $response = self::generateResponse($context, $info->pathPattern, $info->method, $statusCode);
+        $statusCode ??= (new OperationResponseResolver())->defaultStatusCode($definition);
+        $response = self::generateResponse($context, $definition->pathPattern, $definition->method, $statusCode);
 
         return self::fromPsr7($response);
     }
@@ -97,6 +93,8 @@ final class FakeResponse
 
     /**
      * Decode the response body as JSON.
+     *
+     * @throws JsonException when the generated body is not valid JSON
      */
     public function json(): mixed
     {
@@ -129,19 +127,14 @@ final class FakeResponse
     public static function generateResponse(Schema|FakeDataContext $source, string $path, string $method, int $statusCode = 200, array $options = []): ResponseInterface
     {
         $context = $source instanceof FakeDataContext ? $source : new FakeDataContext($source, $options);
-        $operationInfo = $context->operationLookup()->findByPathAndMethod($path, $method);
-        $mediaType = $operationInfo === null ? 'application/json' : self::responseMediaType($operationInfo, $statusCode);
-        $fakeData = self::responseData($context, $operationInfo, $path, $method, $statusCode, $mediaType);
 
-        return self::buildResponse($fakeData, $statusCode, $mediaType);
+        return (new FakeResponseFactory())->create($context, $path, $method, $statusCode);
     }
 
-    private static function buildResponse(mixed $data, int $statusCode, string $mediaType): ResponseInterface
-    {
-        return new Response($statusCode, ['Content-Type' => $mediaType], PayloadSerializer::serialize($data, $mediaType));
-    }
-
-    private static function fromPsr7(ResponseInterface $response): self
+    /**
+     * Create a fake response value from a PSR-7 response.
+     */
+    public static function fromPsr7(ResponseInterface $response): self
     {
         $headers = [];
         foreach ($response->getHeaders() as $name => $values) {
@@ -153,113 +146,5 @@ final class FakeResponse
             $headers,
             (string) $response->getBody(),
         );
-    }
-
-    private static function defaultStatusCode(OperationInfo $operationInfo): int
-    {
-        if ($operationInfo->operation->responses !== null) {
-            foreach ($operationInfo->operation->responses as $code => $response) {
-                if (!is_int($code) && !is_string($code)) {
-                    continue;
-                }
-
-                $numericCode = (int) $code;
-                if ($numericCode >= 200 && $numericCode < 300) {
-                    return $numericCode;
-                }
-            }
-        }
-
-        return 200;
-    }
-
-    private static function responseMediaType(OperationInfo $operationInfo, int $statusCode): string
-    {
-        $response = self::responseForStatus($operationInfo, $statusCode);
-
-        if ($response === null || $response->content === null || $response->content === []) {
-            return 'application/json';
-        }
-
-        $mediaTypes = [];
-        foreach ($response->content as $mediaType => $_content) {
-            if (is_int($mediaType) || is_string($mediaType)) {
-                $mediaTypes[] = (string) $mediaType;
-            }
-        }
-
-        return PayloadSerializer::preferredMediaType($mediaTypes);
-    }
-
-    private static function responseData(
-        FakeDataContext $context,
-        ?OperationInfo $operationInfo,
-        string $path,
-        string $method,
-        int $statusCode,
-        string $mediaType,
-    ): mixed {
-        $schema = $operationInfo === null ? null : self::responseSchema($operationInfo, $statusCode, $mediaType);
-        if ($schema instanceof CebeSchema && !PayloadSerializer::isJsonMediaType($mediaType)) {
-            return $context->mockSchema($schema);
-        }
-
-        return $context->mockResponse($path, $method, $statusCode);
-    }
-
-    private static function responseSchema(OperationInfo $operationInfo, int $statusCode, string $mediaType): ?CebeSchema
-    {
-        $response = self::responseForStatus($operationInfo, $statusCode);
-        if ($response === null || $response->content === null) {
-            return null;
-        }
-
-        foreach ($response->content as $candidateMediaType => $content) {
-            if ((!is_int($candidateMediaType) && !is_string($candidateMediaType)) || (string) $candidateMediaType !== $mediaType || !$content instanceof MediaType) {
-                continue;
-            }
-
-            return $content->schema instanceof CebeSchema ? $content->schema : null;
-        }
-
-        return null;
-    }
-
-    private static function responseForStatus(OperationInfo $operationInfo, int $statusCode): ?CebeResponse
-    {
-        if ($operationInfo->operation->responses === null) {
-            return null;
-        }
-
-        foreach ($operationInfo->operation->responses as $code => $response) {
-            if (!is_int($code) && !is_string($code)) {
-                continue;
-            }
-
-            if ((string) $code === (string) $statusCode && $response instanceof CebeResponse) {
-                return $response;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
-     */
-    private static function resolveSource(Server|Schema|FakeDataContext $source, array $options): FakeDataContext
-    {
-        if ($source instanceof FakeDataContext) {
-            return $source;
-        }
-
-        if ($source instanceof Server) {
-            $schema = $source->schema();
-            $fakerOptions = $options !== [] ? $options : $source->fakerOptions();
-
-            return new FakeDataContext($schema, $fakerOptions);
-        }
-
-        return new FakeDataContext($source, $options);
     }
 }

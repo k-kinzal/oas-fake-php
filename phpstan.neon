@@ -10,10 +10,15 @@ parameters:
     checkImplicitMixed: true
     checkBenevolentUnionTypes: true
 
-    ignoreErrors:
-        -
-            identifier: customRules.overrideMustHaveAttribute
-            path: src/Exception/ValidationException.php
+    exceptions:
+        implicitThrows: false
+        check:
+            missingCheckedExceptionInThrows: true
+            tooWideThrowType: true
+        uncheckedExceptionClasses:
+            - LogicException
+            - RuntimeException
+            - Error
 
     treatPhpDocTypesAsCertain: false
     reportUnmatchedIgnoredErrors: true

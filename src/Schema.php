@@ -4,22 +4,28 @@ declare(strict_types=1);
 
 namespace OasFake;
 
+use cebe\openapi\exceptions\IOException;
+use cebe\openapi\exceptions\TypeErrorException;
+use cebe\openapi\exceptions\UnresolvableReferenceException;
+use cebe\openapi\json\InvalidJsonPointerSyntaxException;
 use cebe\openapi\Reader;
 use cebe\openapi\spec\OpenApi;
 use cebe\openapi\spec\Operation;
 use cebe\openapi\spec\PathItem;
-use cebe\openapi\spec\Server as CebeServer;
-
-use function is_string;
-
 use OasFake\Exception\SchemaNotFoundException;
+use OasFake\Exception\SchemaParseException;
+use Symfony\Component\Yaml\Exception\ParseException as YamlParseException;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Wrapper around an OpenAPI specification with factory methods for loading.
  */
 final class Schema
 {
-    private function __construct(private OpenApi $openApi)
+    /**
+     * Create a schema wrapper for a parsed OpenAPI document.
+     */
+    public function __construct(private OpenApi $openApi)
     {
     }
 
@@ -31,6 +37,7 @@ final class Schema
      * @param string $path Path to the OpenAPI schema file
      *
      * @throws SchemaNotFoundException If the file does not exist
+     * @throws SchemaParseException If the schema cannot be parsed
      */
     public static function fromFile(string $path): self
     {
@@ -44,9 +51,17 @@ final class Schema
         }
 
         $ext = strtolower(pathinfo($resolvedPath, PATHINFO_EXTENSION));
-        $openApi = $ext === 'json'
-            ? Reader::readFromJsonFile($resolvedPath, OpenApi::class, true)
-            : Reader::readFromYamlFile($resolvedPath, OpenApi::class, true);
+        try {
+            if ($ext !== 'json') {
+                Yaml::parseFile($resolvedPath);
+            }
+
+            $openApi = $ext === 'json'
+                ? Reader::readFromJsonFile($resolvedPath, OpenApi::class, true)
+                : Reader::readFromYamlFile($resolvedPath, OpenApi::class, true);
+        } catch (IOException|TypeErrorException|UnresolvableReferenceException|InvalidJsonPointerSyntaxException|YamlParseException $exception) {
+            throw SchemaParseException::forSource($resolvedPath, $exception);
+        }
 
         return new self($openApi);
     }
@@ -56,12 +71,22 @@ final class Schema
      *
      * @param string $content The raw schema content
      * @param string $format The format of the content ('yaml' or 'json')
+     *
+     * @throws SchemaParseException If the schema cannot be parsed
      */
     public static function fromString(string $content, string $format = 'yaml'): self
     {
-        $openApi = $format === 'json'
-            ? Reader::readFromJson($content, OpenApi::class)
-            : Reader::readFromYaml($content, OpenApi::class);
+        try {
+            if ($format !== 'json') {
+                Yaml::parse($content);
+            }
+
+            $openApi = $format === 'json'
+                ? Reader::readFromJson($content, OpenApi::class)
+                : Reader::readFromYaml($content, OpenApi::class);
+        } catch (TypeErrorException|YamlParseException $exception) {
+            throw SchemaParseException::forSource('inline ' . $format, $exception);
+        }
 
         return new self($openApi);
     }
@@ -91,28 +116,7 @@ final class Schema
      */
     public function serverUrls(): array
     {
-        $urls = [];
-
-        if ($this->openApi->paths !== null) {
-            /** @var PathItem $pathItem */
-            foreach ($this->openApi->paths as $path => $pathItem) {
-                if (!is_string($path)) {
-                    continue;
-                }
-
-                foreach ($pathItem->getOperations() as $operation) {
-                    foreach ($this->effectiveServerUrls($pathItem, $operation) as $url) {
-                        $urls[$url] = true;
-                    }
-                }
-            }
-        }
-
-        if ($urls === []) {
-            return $this->effectiveServerUrls();
-        }
-
-        return array_keys($urls);
+        return (new OpenApiServerResolver())->all($this->openApi);
     }
 
     /**
@@ -124,44 +128,6 @@ final class Schema
      */
     public function effectiveServerUrls(?PathItem $pathItem = null, ?Operation $operation = null): array
     {
-        if ($operation !== null && $operation->servers !== null && $operation->servers !== []) {
-            return $this->resolveServerUrls($operation->servers);
-        }
-
-        if ($pathItem !== null && $pathItem->servers !== null && $pathItem->servers !== []) {
-            return $this->resolveServerUrls($pathItem->servers);
-        }
-
-        if ($this->openApi->servers !== null && $this->openApi->servers !== []) {
-            return $this->resolveServerUrls($this->openApi->servers);
-        }
-
-        return ['/'];
-    }
-
-    /**
-     * @param array<int|string, CebeServer> $servers
-     *
-     * @return list<string>
-     */
-    private function resolveServerUrls(array $servers): array
-    {
-        $urls = [];
-
-        foreach ($servers as $server) {
-            if (!$server instanceof CebeServer) {
-                continue;
-            }
-
-            $url = $server->url;
-            if ($server->variables !== null) {
-                foreach ($server->variables as $name => $variable) {
-                    $url = str_replace('{' . $name . '}', $variable->default, $url);
-                }
-            }
-            $urls[] = $url;
-        }
-
-        return $urls === [] ? ['/'] : $urls;
+        return (new OpenApiServerResolver())->effective($this->openApi, $pathItem, $operation);
     }
 }

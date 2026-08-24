@@ -91,6 +91,27 @@ final class ServerRegistryTest extends TestCase
         self::assertSame($server2, $this->registry->get('TestServer'));
     }
 
+    public function testRejectedReplacementKeepsExistingServerRegistered(): void
+    {
+        $existing = $this->createMock(Server::class);
+        $replacement = (new Server())
+            ->withSchema(__DIR__ . '/../Fixtures/openapi/petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false);
+        $otherRegistry = new ServerRegistry();
+        $otherRegistry->register('OwnedServer', $replacement);
+        $this->registry->register('TestServer', $existing);
+
+        try {
+            $this->registry->register('TestServer', $replacement);
+            self::fail('Expected replacement owned by another registry to be rejected.');
+        } catch (LogicException) {
+            self::assertSame($existing, $this->registry->get('TestServer'));
+        } finally {
+            $otherRegistry->unregisterAll();
+        }
+    }
+
     public function testDispatchRoutesToCorrectServer(): void
     {
         $petServer = (new Server())

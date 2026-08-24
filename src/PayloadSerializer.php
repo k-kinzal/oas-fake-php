@@ -14,6 +14,8 @@ use function json_encode;
 
 use const JSON_THROW_ON_ERROR;
 
+use JsonException;
+
 use function strtolower;
 use function trim;
 
@@ -24,6 +26,8 @@ final class PayloadSerializer
 {
     /**
      * Serialize generated payload data for the given media type.
+     *
+     * @throws JsonException when the payload cannot be encoded
      */
     public static function serialize(mixed $data, string $mediaType): string
     {
@@ -66,7 +70,12 @@ final class PayloadSerializer
         return $mediaTypes[0] ?? 'application/json';
     }
 
-    private static function toJson(mixed $data): string
+    /**
+     * Serialize JSON-compatible generated data.
+     *
+     * @throws JsonException when the payload cannot be encoded
+     */
+    public static function toJson(mixed $data): string
     {
         if (is_array($data) || is_scalar($data) || $data === null) {
             return json_encode($data, JSON_THROW_ON_ERROR);
@@ -75,7 +84,12 @@ final class PayloadSerializer
         return json_encode(null, JSON_THROW_ON_ERROR);
     }
 
-    private static function toText(mixed $data): string
+    /**
+     * Serialize scalar text, falling back to JSON for structured data.
+     *
+     * @throws JsonException when structured data cannot be encoded
+     */
+    public static function toText(mixed $data): string
     {
         if (is_scalar($data) || $data === null) {
             return (string) $data;
@@ -84,7 +98,10 @@ final class PayloadSerializer
         return self::toJson($data);
     }
 
-    private static function normalizeMediaType(string $mediaType): string
+    /**
+     * Normalize a media type by removing parameters and folding its case.
+     */
+    public static function normalizeMediaType(string $mediaType): string
     {
         return strtolower(trim(explode(';', $mediaType, 2)[0]));
     }

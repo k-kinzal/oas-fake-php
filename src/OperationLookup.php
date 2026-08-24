@@ -4,11 +4,6 @@ declare(strict_types=1);
 
 namespace OasFake;
 
-use cebe\openapi\spec\Operation;
-use cebe\openapi\spec\Parameter;
-use cebe\openapi\spec\PathItem;
-
-use function is_string;
 use function preg_match;
 use function preg_quote;
 use function preg_replace;
@@ -20,12 +15,12 @@ use function strtolower;
 final class OperationLookup
 {
     /**
-     * @var array<string, OperationInfo> keyed by operationId
+     * @var array<string, OperationDefinition> keyed by operationId
      */
     private array $byOperationId = [];
 
     /**
-     * @var array<string, OperationInfo> keyed by "METHOD:/path"
+     * @var array<string, OperationDefinition> keyed by "METHOD:/path"
      */
     private array $byPathMethod = [];
 
@@ -34,7 +29,9 @@ final class OperationLookup
      */
     public function __construct(Schema $schema)
     {
-        $this->index($schema);
+        $indexes = (new OperationIndexBuilder())->build($schema);
+        $this->byOperationId = $indexes['byOperationId'];
+        $this->byPathMethod = $indexes['byPathMethod'];
     }
 
     /**
@@ -42,7 +39,7 @@ final class OperationLookup
      *
      * @param string $operationId The OpenAPI operationId
      */
-    public function findByOperationId(string $operationId): ?OperationInfo
+    public function findByOperationId(string $operationId): ?OperationDefinition
     {
         return $this->byOperationId[$operationId] ?? null;
     }
@@ -53,7 +50,7 @@ final class OperationLookup
      * @param string $path The OpenAPI path pattern
      * @param string $method The HTTP method (case-insensitive)
      */
-    public function findByPathAndMethod(string $path, string $method): ?OperationInfo
+    public function findByPathAndMethod(string $path, string $method): ?OperationDefinition
     {
         $key = strtolower($method) . ':' . $path;
 
@@ -68,7 +65,7 @@ final class OperationLookup
      * @param string $path The request path, for example "/pets/123"
      * @param string $method The HTTP method (case-insensitive)
      */
-    public function findByRequestPathAndMethod(string $path, string $method): ?OperationInfo
+    public function findByRequestPathAndMethod(string $path, string $method): ?OperationDefinition
     {
         $normalizedMethod = strtolower($method);
         $exact = $this->findByPathAndMethod($path, $normalizedMethod);
@@ -81,7 +78,7 @@ final class OperationLookup
                 continue;
             }
 
-            if ($this->pathMatches($info->pathPattern, $path)) {
+            if ($this->matchesPath($info->pathPattern, $path)) {
                 return $info;
             }
         }
@@ -89,131 +86,10 @@ final class OperationLookup
         return null;
     }
 
-    private function index(Schema $schema): void
-    {
-        $openApi = $schema->openApi();
-
-        if ($openApi->paths === null) {
-            return;
-        }
-
-        /** @var PathItem $pathItem */
-        foreach ($openApi->paths as $pathPattern => $pathItem) {
-            if (!is_string($pathPattern)) {
-                continue;
-            }
-
-            $pathLevelParams = $this->extractParameters($pathItem);
-
-            foreach ($this->httpMethods() as $method) {
-                $operation = $this->getOperation($pathItem, $method);
-                if ($operation === null) {
-                    continue;
-                }
-
-                $mergedParams = $this->mergeParameters($pathLevelParams, $this->extractOperationParameters($operation));
-                $operationId = $operation->operationId ?? '';
-                $serverUrls = $schema->effectiveServerUrls($pathItem, $operation);
-
-                $info = new OperationInfo(
-                    pathPattern: $pathPattern,
-                    method: $method,
-                    operationId: $operationId,
-                    operation: $operation,
-                    parameters: $mergedParams,
-                    serverUrls: $serverUrls,
-                );
-
-                if ($operationId !== '') {
-                    $this->byOperationId[$operationId] = $info;
-                }
-
-                $this->byPathMethod[$method . ':' . $pathPattern] = $info;
-            }
-        }
-    }
-
     /**
-     * @return list<Parameter>
+     * Check whether a request path satisfies an OpenAPI templated path.
      */
-    private function extractParameters(PathItem $pathItem): array
-    {
-        if ($pathItem->parameters === null) {
-            return [];
-        }
-
-        $params = [];
-        foreach ($pathItem->parameters as $param) {
-            if ($param instanceof Parameter) {
-                $params[] = $param;
-            }
-        }
-
-        return $params;
-    }
-
-    /**
-     * @return list<Parameter>
-     */
-    private function extractOperationParameters(Operation $operation): array
-    {
-        if ($operation->parameters === null) {
-            return [];
-        }
-
-        $params = [];
-        foreach ($operation->parameters as $param) {
-            if ($param instanceof Parameter) {
-                $params[] = $param;
-            }
-        }
-
-        return $params;
-    }
-
-    /**
-     * Merge path-level and operation-level parameters.
-     * Operation-level parameters take precedence (matched by name+in).
-     *
-     * @param list<Parameter> $pathParams
-     * @param list<Parameter> $operationParams
-     *
-     * @return list<Parameter>
-     */
-    private function mergeParameters(array $pathParams, array $operationParams): array
-    {
-        /** @var array<string, Parameter> $merged */
-        $merged = [];
-
-        foreach ($pathParams as $param) {
-            $key = $param->in . ':' . $param->name;
-            $merged[$key] = $param;
-        }
-
-        foreach ($operationParams as $param) {
-            $key = $param->in . ':' . $param->name;
-            $merged[$key] = $param;
-        }
-
-        return array_values($merged);
-    }
-
-    private function getOperation(PathItem $pathItem, string $method): ?Operation
-    {
-        return match ($method) {
-            'get' => $pathItem->get,
-            'post' => $pathItem->post,
-            'put' => $pathItem->put,
-            'delete' => $pathItem->delete,
-            'patch' => $pathItem->patch,
-            'options' => $pathItem->options,
-            'head' => $pathItem->head,
-            'trace' => $pathItem->trace,
-            default => null,
-        };
-    }
-
-    private function pathMatches(string $pattern, string $path): bool
+    public function matchesPath(string $pattern, string $path): bool
     {
         $quoted = preg_quote($pattern, '#');
         $regex = preg_replace('#\\\\\{[^}/]+\\\\\}#', '[^/]+', $quoted);
@@ -222,13 +98,5 @@ final class OperationLookup
         }
 
         return preg_match('#^' . $regex . '$#', $path) === 1;
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function httpMethods(): array
-    {
-        return ['get', 'post', 'put', 'delete', 'patch', 'options', 'head', 'trace'];
     }
 }

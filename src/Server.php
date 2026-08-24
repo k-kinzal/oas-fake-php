@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace OasFake;
 
 use LogicException;
+use OasFake\Exception\HandlerRegistrationException;
 use OasFake\Exception\SchemaNotFoundException;
 use Psr\Http\Server\MiddlewareInterface;
+use ReflectionException;
 
 /**
  * Base server class providing fluent configuration, handler management, and lifecycle control.
@@ -16,6 +18,8 @@ use Psr\Http\Server\MiddlewareInterface;
  */
 class Server
 {
+    use ServerMiddleware;
+
     protected static string $SCHEMA = '';
     protected static string $MODE = 'fake';
     protected static string $CASSETTE_PATH = './cassettes';
@@ -26,14 +30,6 @@ class Server
      * @var array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int}
      */
     protected static array $FAKER_OPTIONS = [];
-
-    /**
-     * @return list<MiddlewareInterface>
-     */
-    protected static function middleware(): array
-    {
-        return [];
-    }
 
     private ?string $schema = null;
     private ?Mode $mode = null;
@@ -51,10 +47,8 @@ class Server
      */
     private array $additionalMiddleware = [];
     private HandlerMap $handlers;
-    private ?Interceptor $interceptor = null;
     private ?Schema $resolvedSchema = null;
-    private ?ServerRegistry $registry = null;
-    private ?string $registryKey = null;
+    private ServerLifecycle $lifecycle;
 
     /**
      * Create a server instance.
@@ -62,6 +56,7 @@ class Server
     public function __construct()
     {
         $this->handlers = new HandlerMap();
+        $this->lifecycle = new ServerLifecycle();
     }
 
     /**
@@ -71,7 +66,7 @@ class Server
      */
     public function withSchema(string $schemaPath): static
     {
-        $this->assertNotRunning();
+        $this->lifecycle->assertConfigurable();
         $this->schema = $schemaPath;
 
         return $this;
@@ -84,7 +79,7 @@ class Server
      */
     public function withMode(string|Mode $mode): static
     {
-        $this->assertNotRunning();
+        $this->lifecycle->assertConfigurable();
         $this->mode = Mode::from($mode);
 
         return $this;
@@ -97,7 +92,7 @@ class Server
      */
     public function withCassettePath(string $path): static
     {
-        $this->assertNotRunning();
+        $this->lifecycle->assertConfigurable();
         $this->cassettePath = $path;
 
         return $this;
@@ -108,7 +103,7 @@ class Server
      */
     public function withCassetteName(string $name): static
     {
-        $this->assertNotRunning();
+        $this->lifecycle->assertConfigurable();
         $this->cassetteName = $name;
 
         return $this;
@@ -121,7 +116,7 @@ class Server
      */
     public function withRequestValidation(bool $enable = true): static
     {
-        $this->assertNotRunning();
+        $this->lifecycle->assertConfigurable();
         $this->validateRequests = $enable;
 
         return $this;
@@ -134,7 +129,7 @@ class Server
      */
     public function withResponseValidation(bool $enable = true): static
     {
-        $this->assertNotRunning();
+        $this->lifecycle->assertConfigurable();
         $this->validateResponses = $enable;
 
         return $this;
@@ -147,7 +142,7 @@ class Server
      */
     public function withFakerOptions(array $options): static
     {
-        $this->assertNotRunning();
+        $this->lifecycle->assertConfigurable();
         $this->fakerOptions = $options;
 
         return $this;
@@ -160,7 +155,7 @@ class Server
      */
     public function withMiddleware(MiddlewareInterface $middleware): static
     {
-        $this->assertNotRunning();
+        $this->lifecycle->assertConfigurable();
         $this->additionalMiddleware[] = $middleware;
 
         return $this;
@@ -174,7 +169,7 @@ class Server
      */
     public function withHandler(string $operationId, Handler $handler): static
     {
-        $this->assertNotRunning();
+        $this->lifecycle->assertConfigurable();
         $this->handlers->forOperation($operationId, $handler);
 
         return $this;
@@ -206,7 +201,7 @@ class Server
      */
     public function withPathResponse(string $path, string $method, int $status, array|string $body, array $headers = []): static
     {
-        $this->assertNotRunning();
+        $this->lifecycle->assertConfigurable();
         $this->handlers->forPath($path, $method, Handler::response($status, $body, $headers));
 
         return $this;
@@ -221,7 +216,7 @@ class Server
      */
     public function withPathCallback(string $path, string $method, callable $callback): static
     {
-        $this->assertNotRunning();
+        $this->lifecycle->assertConfigurable();
         $this->handlers->forPath($path, $method, Handler::callback($callback));
 
         return $this;
@@ -232,21 +227,27 @@ class Server
      *
      * Creates the Interceptor and initializes cassettes for RECORD/REPLAY modes.
      * Used by ServerRegistry which manages VCR lifecycle externally.
+     *
+     * @throws HandlerRegistrationException when declarative handler reflection fails
      */
     public function buildInterceptor(): void
     {
-        if ($this->interceptor !== null && $this->interceptor->isRunning()) {
+        if ($this->lifecycle->isRunning()) {
             return;
         }
 
         $schema = $this->resolveSchema();
         $this->resolvedSchema = $schema;
         $handlers = clone $this->handlers;
-        (new DeclarativeHandlerRegistrar())->register($this, $handlers, $schema);
+        try {
+            (new DeclarativeHandlerRegistrar())->register($this, $handlers, $schema);
+        } catch (ReflectionException $exception) {
+            throw HandlerRegistrationException::forServer(static::class, $exception);
+        }
 
-        $this->interceptor = (new InterceptorFactory())->create($this->options($schema), $handlers);
-
-        $this->interceptor->start();
+        $interceptor = (new InterceptorFactory())->create($this->resolvedOptions($schema), $handlers);
+        $interceptor->start();
+        $this->lifecycle->replaceInterceptor($interceptor);
     }
 
     /**
@@ -262,13 +263,14 @@ class Server
      */
     public function stop(): void
     {
-        if ($this->registry !== null && $this->registryKey !== null) {
-            $this->registry->unregister($this->registryKey);
+        $registration = $this->lifecycle->registration();
+        if ($registration !== null) {
+            $registration['registry']->unregister($registration['key']);
 
             return;
         }
 
-        $this->stopInterceptor();
+        $this->lifecycle->stopInterceptor();
     }
 
     /**
@@ -278,7 +280,7 @@ class Server
      */
     public function isRunning(): bool
     {
-        return $this->interceptor !== null && $this->interceptor->isRunning();
+        return $this->lifecycle->isRunning();
     }
 
     /**
@@ -288,7 +290,7 @@ class Server
      */
     public function interceptor(): ?Interceptor
     {
-        return $this->interceptor;
+        return $this->lifecycle->interceptor();
     }
 
     /**
@@ -310,7 +312,7 @@ class Server
      */
     public function fakerOptions(): array
     {
-        return $this->resolveFakerOptions();
+        return $this->fakerOptions ?? static::$FAKER_OPTIONS;
     }
 
     /**
@@ -348,23 +350,17 @@ class Server
      */
     public function registerInRegistry(ServerRegistry $registry, string $key): void
     {
-        if ($this->registry === $registry && $this->registryKey === $key) {
-            return;
-        }
-
-        if ($this->registry !== null) {
-            throw new LogicException('Server is already registered in another ServerRegistry. Stop it before registering it again.');
-        }
-
-        $this->registry = $registry;
-        $this->registryKey = $key;
+        $this->lifecycle->register($registry, $key);
     }
 
-    private function assertNotRunning(): void
+    /**
+     * Assert that this server can be attached to the given registry.
+     *
+     * @throws LogicException when another registry owns the server
+     */
+    public function assertCanRegisterInRegistry(ServerRegistry $registry, string $key): void
     {
-        if ($this->isRunning()) {
-            throw new LogicException('Cannot change server configuration while the server is running. Configure the server before start().');
-        }
+        $this->lifecycle->assertCanRegister($registry, $key);
     }
 
     /**
@@ -372,15 +368,15 @@ class Server
      */
     public function unregisterFromRegistry(ServerRegistry $registry, string $key): void
     {
-        if ($this->registry === $registry && $this->registryKey === $key) {
-            $this->registry = null;
-            $this->registryKey = null;
-        }
-
-        $this->stopInterceptor();
+        $this->lifecycle->unregister($registry, $key);
     }
 
-    private function resolveSchema(): Schema
+    /**
+     * Resolve the configured schema file into a schema object.
+     *
+     * @throws SchemaNotFoundException when no schema path is configured
+     */
+    public function resolveSchema(): Schema
     {
         $path = $this->schema ?? static::$SCHEMA;
         if ($path === '') {
@@ -390,7 +386,10 @@ class Server
         return Schema::fromFile($path);
     }
 
-    private function resolveCassettePath(): string
+    /**
+     * Resolve the cassette directory with environment precedence.
+     */
+    public function resolveCassettePath(): string
     {
         $env = getenv('OAS_FAKE_CASSETTE_PATH');
         if ($env !== false && $env !== '') {
@@ -400,86 +399,72 @@ class Server
         return $this->cassettePath ?? static::$CASSETTE_PATH;
     }
 
-    private function resolveCassetteName(): string
+    /**
+     * Resolve and normalize the cassette name with environment precedence.
+     */
+    public function resolveCassetteName(): string
     {
+        $normalizer = new CassetteNameNormalizer();
         $env = getenv('OAS_FAKE_CASSETTE_NAME');
         if ($env !== false && $env !== '') {
-            return $this->sanitizeCassetteName($env);
+            return $normalizer->normalize($env);
         }
 
         if ($this->cassetteName !== null) {
-            return $this->sanitizeCassetteName($this->cassetteName);
+            return $normalizer->normalize($this->cassetteName);
         }
 
         if (static::$CASSETTE_NAME !== '') {
-            return $this->sanitizeCassetteName(static::$CASSETTE_NAME);
+            return $normalizer->normalize(static::$CASSETTE_NAME);
         }
 
-        return $this->sanitizeCassetteName(static::class);
-    }
-
-    private function resolveValidateRequests(): bool
-    {
-        return $this->resolveBoolEnv('OAS_FAKE_VALIDATE_REQUESTS', $this->validateRequests, static::$VALIDATE_REQUESTS);
-    }
-
-    private function resolveValidateResponses(): bool
-    {
-        return $this->resolveBoolEnv('OAS_FAKE_VALIDATE_RESPONSES', $this->validateResponses, static::$VALIDATE_RESPONSES);
-    }
-
-    private function resolveBoolEnv(string $envVar, ?bool $fluent, bool $static): bool
-    {
-        $env = getenv($envVar);
-        if ($env !== false && $env !== '') {
-            return filter_var($env, FILTER_VALIDATE_BOOLEAN);
-        }
-
-        return $fluent ?? $static;
+        return $normalizer->normalize(static::class);
     }
 
     /**
-     * @return array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int}
+     * Resolve the request-validation policy with environment precedence.
      */
-    private function resolveFakerOptions(): array
+    public function resolveRequestValidation(): bool
     {
-        return $this->fakerOptions ?? static::$FAKER_OPTIONS;
+        $env = getenv('OAS_FAKE_VALIDATE_REQUESTS');
+
+        return $env !== false && $env !== ''
+            ? filter_var($env, FILTER_VALIDATE_BOOLEAN)
+            : ($this->validateRequests ?? static::$VALIDATE_REQUESTS);
     }
 
-    private function sanitizeCassetteName(string $name): string
+    /**
+     * Resolve the response-validation policy with environment precedence.
+     */
+    public function resolveResponseValidation(): bool
     {
-        $normalized = strtolower(str_replace('\\', '-', $name));
-        $normalized = preg_replace('/[^a-z0-9_.-]+/', '-', $normalized) ?? '';
-        $normalized = trim($normalized, '-');
+        $env = getenv('OAS_FAKE_VALIDATE_RESPONSES');
 
-        return $normalized === '' ? 'recording' : $normalized;
-    }
-
-    private function stopInterceptor(): void
-    {
-        if ($this->interceptor !== null) {
-            $this->interceptor->stop();
-            $this->interceptor = null;
-        }
+        return $env !== false && $env !== ''
+            ? filter_var($env, FILTER_VALIDATE_BOOLEAN)
+            : ($this->validateResponses ?? static::$VALIDATE_RESPONSES);
     }
 
     /**
      * @return list<MiddlewareInterface>
      */
-    private function resolveMiddleware(): array
+    public function resolveMiddleware(): array
     {
         return array_merge(static::middleware(), $this->additionalMiddleware);
     }
 
-    private function options(Schema $schema): ServerOptions
+    /**
+     * Resolve all effective configuration into an interceptor contract.
+     */
+    public function resolvedOptions(Schema $schema): ServerOptions
     {
         return new ServerOptions(
             schema: $schema,
             mode: $this->resolveMode(),
             cassettePath: $this->resolveCassettePath(),
-            validateRequests: $this->resolveValidateRequests(),
-            validateResponses: $this->resolveValidateResponses(),
-            fakerOptions: $this->resolveFakerOptions(),
+            validateRequests: $this->resolveRequestValidation(),
+            validateResponses: $this->resolveResponseValidation(),
+            fakerOptions: $this->fakerOptions(),
             middleware: $this->resolveMiddleware(),
             cassetteName: $this->resolveCassetteName(),
         );

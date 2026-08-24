@@ -7,6 +7,7 @@ namespace OasFake\Tests\Unit;
 use OasFake\PayloadSerializer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 #[CoversClass(PayloadSerializer::class)]
 final class PayloadSerializerTest extends TestCase
@@ -35,5 +36,22 @@ final class PayloadSerializerTest extends TestCase
     {
         self::assertTrue(PayloadSerializer::isJsonMediaType('application/problem+json'));
         self::assertFalse(PayloadSerializer::isJsonMediaType('text/plain'));
+    }
+
+    public function testToJsonSerializesSupportedValuesAndNormalizesObjects(): void
+    {
+        self::assertSame('[1,2]', PayloadSerializer::toJson([1, 2]));
+        self::assertSame('null', PayloadSerializer::toJson(new stdClass()));
+    }
+
+    public function testToTextUsesScalarsAndJsonForStructures(): void
+    {
+        self::assertSame('ok', PayloadSerializer::toText('ok'));
+        self::assertSame('{"ok":true}', PayloadSerializer::toText(['ok' => true]));
+    }
+
+    public function testNormalizeMediaTypeRemovesParametersAndFoldsCase(): void
+    {
+        self::assertSame('application/json', PayloadSerializer::normalizeMediaType('Application/JSON; charset=utf-8'));
     }
 }

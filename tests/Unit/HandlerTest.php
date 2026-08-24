@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
+use Closure;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\ServerRequest;
+use InvalidArgumentException;
 use OasFake\Handler;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -15,6 +17,25 @@ use Psr\Http\Message\ServerRequestInterface;
 #[CoversClass(Handler::class)]
 final class HandlerTest extends TestCase
 {
+    public function testConstructorRejectsMixedCallbackAndFixedResponseState(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        new Handler(
+            200,
+            ['ok' => true],
+            [],
+            Closure::fromCallable(static fn (ServerRequestInterface $request): ResponseInterface => new Response(200)),
+        );
+    }
+
+    public function testConstructorRejectsFixedResponseWithoutStatus(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        new Handler(null, ['ok' => true], [], null);
+    }
+
     public function testResponseFactoryCreatesHandlerWithCorrectStatusBodyAndHeaders(): void
     {
         $handler = Handler::response(201, ['id' => 1], ['X-Custom' => 'value']);
