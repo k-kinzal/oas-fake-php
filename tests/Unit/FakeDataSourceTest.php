@@ -10,6 +10,9 @@ use OasFake\Schema;
 use PHPUnit\Framework\Attributes\CoversClassesThatImplementInterface;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @coversNothing
+ */
 #[CoversClassesThatImplementInterface(FakeDataSource::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(FakeDataContextResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]

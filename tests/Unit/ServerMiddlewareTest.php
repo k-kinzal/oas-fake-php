@@ -9,6 +9,9 @@ use OasFake\ServerMiddleware;
 use PHPUnit\Framework\Attributes\CoversTrait;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @coversNothing
+ */
 #[CoversTrait(ServerMiddleware::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Server::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerConfiguration::class)]

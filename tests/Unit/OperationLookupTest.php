@@ -64,6 +64,9 @@ final class OperationLookupTest extends TestCase
         self::assertSame('path', $info->parameters[0]->in);
     }
 
+    /**
+     * @dataProvider providerOperationIds
+     */
     #[DataProvider('providerOperationIds')]
     public function testOperationIsIndexed(string $operationId): void
     {

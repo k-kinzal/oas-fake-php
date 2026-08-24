@@ -318,6 +318,9 @@ final class ServerTest extends TestCase
         }
     }
 
+    /**
+     * @dataProvider providerConfigurationMutations
+     */
     #[DataProvider('providerConfigurationMutations')]
     public function testConfigurationCannotChangeWhileRunning(Closure $mutation): void
     {
