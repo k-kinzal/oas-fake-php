@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OasFake\Tests\Unit;
 
 use Closure;
+use OasFake\Exception\ValidationException;
 use OasFake\Handler;
 use OasFake\Mode;
 use OasFake\Server;
@@ -40,6 +41,7 @@ use VCR\Request as VcrRequest;
  * @uses \OasFake\DeclarativeHandlerInspector
  * @uses \OasFake\DeclarativeHandlerRegistrar
  * @uses \OasFake\EnvironmentResolver
+ * @uses \OasFake\Exception\ValidationException
  * @uses \OasFake\FakeDataContext
  * @uses \OasFake\FakeResponse
  * @uses \OasFake\FakeResponseFactory
@@ -49,6 +51,7 @@ use VCR\Request as VcrRequest;
  * @uses \OasFake\InterceptorFactory
  * @uses \OasFake\InterceptorRouter
  * @uses \OasFake\MiddlewarePipeline
+ * @uses \OasFake\MiddlewareRequestHandler
  * @uses \OasFake\Mode
  * @uses \OasFake\OasFake
  * @uses \OasFake\OpenApiServerResolver
@@ -88,6 +91,7 @@ use VCR\Request as VcrRequest;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\DeclarativeHandlerInspector::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\DeclarativeHandlerRegistrar::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\EnvironmentResolver::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(ValidationException::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeDataContext::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeResponse::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeResponseFactory::class)]
@@ -97,6 +101,7 @@ use VCR\Request as VcrRequest;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\InterceptorFactory::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\InterceptorRouter::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\MiddlewarePipeline::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\MiddlewareRequestHandler::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Mode::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OasFake::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
@@ -657,6 +662,177 @@ final class ServerTest extends TestCase
         } finally {
             $server->stop();
         }
+    }
+
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
+    public function testChangingSchemaInvalidatesTheResolvedSchema(): void
+    {
+        $server = (new Server())->withSchema(Petstore::path());
+        self::assertSame(['https://api.petstore.example.com'], $server->schema()->serverUrls());
+
+        $server->withSchema(__DIR__ . '/../../Fixtures/openapi/bookstore.yaml');
+
+        self::assertSame(['https://api.bookstore.example.com'], $server->schema()->serverUrls());
+    }
+
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
+    public function testRequestValidationIsEnabledWhenCalledWithoutAnArgument(): void
+    {
+        $server = (new Server())
+            ->withSchema(Petstore::path())
+            ->withRequestValidation()
+            ->withResponseValidation(false);
+
+        try {
+            $server->buildInterceptor();
+            $this->expectException(ValidationException::class);
+            $server->interceptor()?->handle(new VcrRequest('GET', 'https://api.petstore.example.com/unknown', []));
+        } finally {
+            $server->stop();
+        }
+    }
+
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
+    public function testResponseValidationIsEnabledWhenCalledWithoutAnArgument(): void
+    {
+        $server = (new Server())
+            ->withSchema(Petstore::path())
+            ->withRequestValidation(false)
+            ->withResponseValidation()
+            ->withResponse('listPets', 200, ['not' => 'a list']);
+
+        try {
+            $server->buildInterceptor();
+            $this->expectException(ValidationException::class);
+            $server->interceptor()?->handle(new VcrRequest('GET', 'https://api.petstore.example.com/pets', []));
+        } finally {
+            $server->stop();
+        }
+    }
+
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
+    public function testHandlerAndMiddlewareConfigurationAffectResponses(): void
+    {
+        $middleware = new class () implements MiddlewareInterface {
+            public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+            {
+                return $handler->handle($request)->withHeader('X-Middleware', 'applied');
+            }
+        };
+        $server = (new Server())
+            ->withSchema(Petstore::path())
+            ->withRequestValidation(false)
+            ->withResponseValidation(false)
+            ->withHandler('listPets', Handler::response(202, [['id' => 1, 'name' => 'configured']]))
+            ->withMiddleware($middleware);
+
+        try {
+            $server->buildInterceptor();
+            $response = $server->interceptor()?->handle(new VcrRequest('GET', 'https://api.petstore.example.com/pets', []));
+            self::assertNotNull($response);
+            self::assertSame(202, $response->getStatusCode());
+            self::assertSame('applied', $response->getHeaders()['X-Middleware']);
+            self::assertStringContainsString('configured', $response->getBody());
+        } finally {
+            $server->stop();
+        }
+    }
+
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
+    public function testPathResponseConfigurationAffectsResponses(): void
+    {
+        $server = (new Server())
+            ->withSchema(Petstore::path())
+            ->withRequestValidation(false)
+            ->withResponseValidation(false)
+            ->withPathResponse('/pets', 'GET', 206, [['id' => 1, 'name' => 'path response']]);
+
+        try {
+            $server->buildInterceptor();
+            $response = $server->interceptor()?->handle(new VcrRequest('GET', 'https://api.petstore.example.com/pets', []));
+            self::assertNotNull($response);
+            self::assertSame(206, $response->getStatusCode());
+            self::assertStringContainsString('path response', $response->getBody());
+        } finally {
+            $server->stop();
+        }
+    }
+
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
+    public function testPathCallbackConfigurationAffectsResponses(): void
+    {
+        $server = (new Server())
+            ->withSchema(Petstore::path())
+            ->withRequestValidation(false)
+            ->withResponseValidation(false)
+            ->withPathCallback('/pets', 'GET', static fn (): ResponseInterface => new \GuzzleHttp\Psr7\Response(207, [], 'callback'));
+
+        try {
+            $server->buildInterceptor();
+            $response = $server->interceptor()?->handle(new VcrRequest('GET', 'https://api.petstore.example.com/pets', []));
+            self::assertNotNull($response);
+            self::assertSame(207, $response->getStatusCode());
+            self::assertSame('callback', $response->getBody());
+        } finally {
+            $server->stop();
+        }
+    }
+
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
+    public function testStopReleasesADirectlyBuiltInterceptor(): void
+    {
+        $server = (new Server())
+            ->withSchema(Petstore::path())
+            ->withRequestValidation(false)
+            ->withResponseValidation(false);
+        $server->buildInterceptor();
+        self::assertTrue($server->isRunning());
+
+        $server->stop();
+
+        self::assertFalse($server->isRunning());
+        self::assertNull($server->interceptor());
     }
 
     public function testFluentChaining(): void

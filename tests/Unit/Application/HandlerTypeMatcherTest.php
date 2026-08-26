@@ -10,6 +10,7 @@ use OasFake\HandlerTypeMatcher;
 use OasFake\Testing\InspectorServer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ResponseInterface;
 use ReflectionException;
 
 /**
@@ -33,6 +34,11 @@ use ReflectionException;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerRuntime::class)]
 final class HandlerTypeMatcherTest extends TestCase
 {
+    public function testAllowsNullableRejectsAMissingTypeDeclaration(): void
+    {
+        self::assertFalse((new HandlerTypeMatcher())->allowsNullable(null, ResponseInterface::class));
+    }
+
     /**
      * @throws ReflectionException when a handler declaration cannot be inspected
      */

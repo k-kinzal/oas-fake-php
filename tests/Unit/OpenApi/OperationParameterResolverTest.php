@@ -29,10 +29,11 @@ final class OperationParameterResolverTest extends TestCase
      */
     public function testForPathReturnsDeclaredParameters(): void
     {
-        $parameter = new Parameter(['name' => 'petId', 'in' => 'path']);
-        $pathItem = new PathItem(['parameters' => [$parameter]]);
+        $petId = new Parameter(['name' => 'petId', 'in' => 'path']);
+        $locale = new Parameter(['name' => 'locale', 'in' => 'query']);
+        $pathItem = new PathItem(['parameters' => [$petId, $locale]]);
 
-        self::assertSame([$parameter], (new OperationParameterResolver())->forPath($pathItem));
+        self::assertSame([$petId, $locale], (new OperationParameterResolver())->forPath($pathItem));
     }
 
     public function testForPathReturnsOnlyPathLevelParameters(): void
@@ -67,12 +68,13 @@ final class OperationParameterResolverTest extends TestCase
     public function testMergeUsesOperationParametersAsOverrides(): void
     {
         $pathParameter = new Parameter(['name' => 'petId', 'in' => 'path', 'description' => 'path default']);
+        $localeParameter = new Parameter(['name' => 'locale', 'in' => 'query']);
         $operationParameter = new Parameter(['name' => 'petId', 'in' => 'path', 'description' => 'operation override']);
         $queryParameter = new Parameter(['name' => 'expand', 'in' => 'query']);
         $operation = new Operation(['responses' => [], 'parameters' => [$operationParameter, $queryParameter]]);
 
-        $parameters = (new OperationParameterResolver())->merge([$pathParameter], $operation);
+        $parameters = (new OperationParameterResolver())->merge([$pathParameter, $localeParameter], $operation);
 
-        self::assertSame([$operationParameter, $queryParameter], $parameters);
+        self::assertSame([$operationParameter, $localeParameter, $queryParameter], $parameters);
     }
 }

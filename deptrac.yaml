@@ -29,6 +29,30 @@ deptrac:
       collectors:
         - type: directory
           value: src/Exception/.*
+    - name: PsrHttpContracts
+      collectors:
+        - type: classLike
+          value: ^Psr\\Http\\
+    - name: Psr7Implementation
+      collectors:
+        - type: classLike
+          value: ^GuzzleHttp\\Psr7\\
+    - name: OpenApiSchemaLibrary
+      collectors:
+        - type: classLike
+          value: ^cebe\\openapi\\
+    - name: OpenApiFakerLibrary
+      collectors:
+        - type: classLike
+          value: ^Vural\\OpenAPIFaker\\
+    - name: OpenApiValidatorLibrary
+      collectors:
+        - type: classLike
+          value: ^League\\OpenAPIValidation\\
+    - name: PhpVcrLibrary
+      collectors:
+        - type: classLike
+          value: ^VCR\\
   ruleset:
     Application:
       - Interception
@@ -36,17 +60,45 @@ deptrac:
       - Generation
       - OpenApi
       - Exception
+      - PsrHttpContracts
+      - Psr7Implementation
+      - OpenApiSchemaLibrary
+      - OpenApiFakerLibrary
+      - PhpVcrLibrary
     Interception:
       - Handling
       - Generation
       - OpenApi
       - Exception
+      - PsrHttpContracts
+      - Psr7Implementation
+      - PhpVcrLibrary
     Handling:
       - Generation
       - OpenApi
       - Exception
+      - PsrHttpContracts
+      - Psr7Implementation
+      - OpenApiFakerLibrary
+      - OpenApiValidatorLibrary
     Generation:
       - OpenApi
+      - PsrHttpContracts
+      - Psr7Implementation
+      - OpenApiSchemaLibrary
+      - OpenApiFakerLibrary
     OpenApi:
       - Exception
-    Exception: ~
+      - PsrHttpContracts
+      - OpenApiSchemaLibrary
+      - OpenApiValidatorLibrary
+    Exception:
+      - PsrHttpContracts
+      - OpenApiValidatorLibrary
+      - PhpVcrLibrary
+    PsrHttpContracts: ~
+    Psr7Implementation: ~
+    OpenApiSchemaLibrary: ~
+    OpenApiFakerLibrary: ~
+    OpenApiValidatorLibrary: ~
+    PhpVcrLibrary: ~

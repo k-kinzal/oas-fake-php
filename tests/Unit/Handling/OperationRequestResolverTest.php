@@ -61,4 +61,40 @@ final class OperationRequestResolverTest extends TestCase
         self::assertSame('listPets', $resolved->definition?->operationId);
         self::assertSame('/pets', $resolved->address?->path());
     }
+
+    public function testResolveRejectsAnOperationOutsideItsEffectiveServer(): void
+    {
+        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+            openapi: 3.0.0
+            info: {title: Scoped API, version: 1.0.0}
+            servers:
+              - url: https://api.example.com/v1
+            paths:
+              /health:
+                get:
+                  operationId: health
+                  responses:
+                    '204': {description: Healthy}
+              /pets:
+                get:
+                  operationId: listPets
+                  servers:
+                    - url: https://api.example.com
+                  responses:
+                    '200': {description: OK}
+            YAML);
+        $resolver = new OperationRequestResolver(
+            $schema,
+            new OperationLookup($schema),
+            new OperationPathResolver(),
+            new Validator($schema),
+            false,
+        );
+
+        $resolved = $resolver->resolve(new ServerRequest('GET', 'https://api.example.com/v1/pets'));
+
+        self::assertSame('/pets', $resolved->path);
+        self::assertNull($resolved->definition);
+        self::assertNull($resolved->address);
+    }
 }

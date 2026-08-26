@@ -45,7 +45,6 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerLifecycle::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerRuntime::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\HandlerMap::class)]
-#[\PHPUnit\Framework\Attributes\UsesTrait(\OasFake\ServerMiddleware::class)]
 final class FakeDataContextResolverTest extends TestCase
 {
     /**

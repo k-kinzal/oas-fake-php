@@ -95,7 +95,6 @@ use VCR\Request as VcrRequest;
 #[\PHPUnit\Framework\Attributes\UsesClass(Server::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerConfiguration::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerLifecycle::class)]
-#[\PHPUnit\Framework\Attributes\UsesTrait(\OasFake\ServerMiddleware::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerOptions::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerUrlMatcher::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Validator::class)]
@@ -161,6 +160,7 @@ final class ServerRegistryTest extends TestCase
 
         self::assertTrue($registry->isEmpty());
         self::assertNull($registry->get('TestServer'));
+        self::assertSame(1, $server->unregisterCount);
     }
 
     public function testUnregisterNonExistentDoesNothing(): void
@@ -193,6 +193,8 @@ final class ServerRegistryTest extends TestCase
         $registry->unregisterAll();
 
         self::assertTrue($registry->isEmpty());
+        self::assertSame(1, $server1->unregisterCount);
+        self::assertSame(1, $server2->unregisterCount);
     }
 
     /**
@@ -214,6 +216,32 @@ final class ServerRegistryTest extends TestCase
         $registry->register('TestServer', $server2);
 
         self::assertSame($server2, $registry->get('TestServer'));
+        self::assertSame(1, $server1->unregisterCount);
+        self::assertSame(0, $server2->unregisterCount);
+    }
+
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
+    public function testUnregisterAllStopsServersAndClearsRoutes(): void
+    {
+        $registryContext = new ServerRegistryContext();
+        $registry = $registryContext->registry();
+        $server = (new Server())
+            ->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')
+            ->withRequestValidation(false)
+            ->withResponseValidation(false);
+        $registry->register('PetServer', $server);
+
+        $registry->unregisterAll();
+
+        self::assertFalse($server->isRunning());
+        $response = $registry->dispatch(new VcrRequest('GET', 'https://api.petstore.example.com/pets', []));
+        self::assertSame(502, $response->getStatusCode());
     }
 
     /**

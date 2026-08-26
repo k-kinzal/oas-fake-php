@@ -33,7 +33,7 @@
     "require-dev": {
         "brianium/paratest": "^6.11 || ^7",
         "deptrac/deptrac": "^0.24 || ^3.0 || ^4.7",
-        "friendsofphp/php-cs-fixer": "^3.95",
+        "friendsofphp/php-cs-fixer": "3.4.0 || ^3.95",
         "guzzlehttp/guzzle": "^7.0",
         "infection/infection": "0.26.19 || ^0.28.1 || 0.29.11",
         "k-kinzal/php-ai-toolkit": "dev-main",
@@ -94,7 +94,7 @@
         "compat": "phpcs",
         "loc-guard": "loc-guard --config=loc.yaml",
         "tree-guard": "tree-guard --config=tree.yaml",
-        "deptrac": "@php deptrac.php analyse --config-file=deptrac.yaml",
+        "deptrac": "@php deptrac-runner.php analyse --config-file=deptrac.yaml --fail-on-uncovered --report-uncovered --no-progress",
         "docgen": "docgen --coverage=build/coverage-xml",
         "docgen:serve": "@docgen --serve",
         "docgen:diff": "@docgen --diff=main --serve",

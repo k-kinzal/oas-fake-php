@@ -412,6 +412,7 @@ final class FakeRequestTest extends TestCase
         $modified = $request->withQueryParam('limit', '10');
 
         self::assertSame('10', $modified->queryParams()['limit']);
+        self::assertSame([], $request->queryParams());
         self::assertSame('https://api.petstore.example.com/pets?limit=10', $modified->url());
         self::assertSame([], $request->queryParams());
         self::assertSame('https://api.petstore.example.com/pets', $request->url());
@@ -515,6 +516,7 @@ final class FakeRequestTest extends TestCase
         $modified = $request->withHeader('Authorization', 'Bearer token');
 
         self::assertSame('Bearer token', $modified->headers()['Authorization']);
+        self::assertArrayNotHasKey('Authorization', $request->headers());
     }
 
     /**

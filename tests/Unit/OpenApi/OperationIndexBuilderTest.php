@@ -37,4 +37,23 @@ final class OperationIndexBuilderTest extends TestCase
         self::assertArrayHasKey('get:/pets', $indexes['byPathMethod']);
         self::assertSame('petId', $indexes['byOperationId']['getPetById']->parameters[0]->name);
     }
+
+    public function testBuildContinuesPastMethodsMissingFromAPath(): void
+    {
+        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+            openapi: 3.0.0
+            info: {title: Commands, version: 1.0.0}
+            paths:
+              /commands:
+                post:
+                  operationId: createCommand
+                  responses:
+                    '202': {description: Accepted}
+            YAML);
+
+        $indexes = (new OperationIndexBuilder())->build($schema);
+
+        self::assertArrayHasKey('createCommand', $indexes['byOperationId']);
+        self::assertArrayHasKey('post:/commands', $indexes['byPathMethod']);
+    }
 }

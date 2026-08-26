@@ -46,9 +46,11 @@ final class FormQueryParameterSerializer
         }
 
         if ($values->isList($value)) {
-            return [$name => $parameter->explode
+            $serialized = $parameter->explode
                 ? array_map(fn ($item): string => $values->scalar($item), array_values($value))
-                : $values->delimitedValue($value, ',', false)];
+                : $values->delimitedValue($value, ',', false);
+
+            return [$name => $serialized];
         }
 
         if (!$parameter->explode) {

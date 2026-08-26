@@ -7,30 +7,27 @@ namespace OasFake\Tests\Unit;
 use OasFake\Mode;
 use OasFake\Server;
 use OasFake\ServerRuntime;
-use OasFake\ServerRuntimeState;
-use PHPUnit\Framework\Attributes\CoversTrait;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \OasFake\ServerRuntimeState
+ * @covers \OasFake\Server
  *
  * @uses \OasFake\Mode
- * @uses \OasFake\Server
  * @uses \OasFake\ServerConfiguration
  * @uses \OasFake\ServerLifecycle
  * @uses \OasFake\ServerRuntime
+ * @uses \OasFake\ServerRuntimeState
  * @uses \OasFake\HandlerMap
  * @uses \OasFake\ServerMiddleware
  * @uses \OasFake\EnvironmentResolver
  */
-#[CoversTrait(ServerRuntimeState::class)]
+#[CoversClass(Server::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Mode::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(Server::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerConfiguration::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerLifecycle::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(ServerRuntime::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\HandlerMap::class)]
-#[\PHPUnit\Framework\Attributes\UsesTrait(\OasFake\ServerMiddleware::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\EnvironmentResolver::class)]
 final class ServerRuntimeStateTest extends TestCase
 {

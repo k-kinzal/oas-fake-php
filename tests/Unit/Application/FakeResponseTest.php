@@ -202,6 +202,22 @@ final class FakeResponseTest extends TestCase
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
      */
+    public function testForPathHonorsAnExplicitStatusCode(): void
+    {
+        $response = FakeResponse::forPath(Petstore::schema(), '/pets/{petId}', 'GET', 404);
+
+        self::assertSame(404, $response->statusCode());
+    }
+
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoResponse when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testHeadersReturnsResponseHeaders(): void
     {
         $response = FakeResponse::for(Petstore::schema(), 'listPets');
@@ -408,6 +424,18 @@ final class FakeResponseTest extends TestCase
     public function testGenerateResponseStaticMethod(): void
     {
         $psr7 = FakeResponse::generateResponse(Petstore::schema(), '/pets', 'GET', 200);
+
+        self::assertSame(200, $psr7->getStatusCode());
+    }
+
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoResponse when the exercised contract propagates it
+     */
+    public function testGenerateResponseDefaultsToOk(): void
+    {
+        $psr7 = FakeResponse::generateResponse(Petstore::schema(), '/pets', 'GET');
 
         self::assertSame(200, $psr7->getStatusCode());
     }

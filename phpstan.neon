@@ -7,6 +7,9 @@ includes:
 
 parameters:
     level: max
+    scanFiles:
+        - tests/Stubs/PHPUnitAttributes.stub
+        - tests/Stubs/Override.stub
     checkUninitializedProperties: true
     checkImplicitMixed: true
     checkBenevolentUnionTypes: true

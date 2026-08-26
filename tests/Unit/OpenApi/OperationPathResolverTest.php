@@ -113,4 +113,24 @@ final class OperationPathResolverTest extends TestCase
 
         self::assertSame('/v1/pets', (new OperationPathResolver())->resolve($schema, $request));
     }
+
+    public function testResolveContinuesPastANonMatchingServer(): void
+    {
+        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+            openapi: 3.0.0
+            info: {title: Multi-host API, version: 1.0.0}
+            servers:
+              - url: https://other.example.com/v1
+              - url: https://api.example.com/v1
+            paths:
+              /pets:
+                get:
+                  operationId: listPets
+                  responses:
+                    '200': {description: OK}
+            YAML);
+        $request = new ServerRequest('GET', 'https://api.example.com/v1/pets');
+
+        self::assertSame('/pets', (new OperationPathResolver())->resolve($schema, $request));
+    }
 }
