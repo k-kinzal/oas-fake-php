@@ -20,7 +20,7 @@
 <script>try{var t=localStorage.getItem("docgen-theme");if(t){document.documentElement.dataset.theme=t}document.documentElement.dataset.diffMode=localStorage.getItem("docgen-diff-mode")||"inline"}catch(e){}</script>
 </head>
 <body data-root="../../../">
-<nav class="sidebar" id="sidebar"><div class="sb-head"><a class="sb-site" href="../../../index.html">k-kinzal/oas-fake-php</a></div><div class="sb-pkg"><a href="../../../k-kinzal/oas-fake-php/index.html">k-kinzal/oas-fake-php</a></div><nav class="sb-block"><div class="sb-title">Package</div><ul class="sb-list"><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/all-items.html">All items</a></li><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/index.html#documents">Documents</a></li></ul><div class="sb-kind" data-diff="modified">Layers</div><ul class="sb-list"><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/layer.Application.html">Application</a></li><li data-diff="same"><a href="../../../k-kinzal/oas-fake-php/layer.Exception.html">Exception</a></li><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/layer.Generation.html">Generation</a></li><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/layer.Handling.html">Handling</a></li><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/layer.Interception.html">Interception</a></li><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/layer.OpenApi.html">OpenApi</a></li></ul></nav><nav class="sb-block"><div class="sb-title">Namespaces</div><ul class="sb-list"><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/OasFake/index.html" title="OasFake">OasFake</a></li><li data-diff="same"><a href="../../../k-kinzal/oas-fake-php/OasFake/Exception/index.html" title="OasFake\Exception">OasFake\Exception</a></li></ul></nav></nav>
+<nav class="sidebar" id="sidebar"><div class="sb-head"><a class="sb-site" href="../../../index.html">k-kinzal/oas-fake-php</a></div><div class="sb-pkg"><a href="../../../k-kinzal/oas-fake-php/index.html">k-kinzal/oas-fake-php</a></div><nav class="sb-block"><div class="sb-title">Package</div><ul class="sb-list"><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/all-items.html">All items</a></li><li data-diff="same"><a href="../../../k-kinzal/oas-fake-php/index.html#documents">Documents</a></li></ul><div class="sb-kind" data-diff="modified">Layers</div><ul class="sb-list"><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/layer.Application.html">Application</a></li><li data-diff="same"><a href="../../../k-kinzal/oas-fake-php/layer.Exception.html">Exception</a></li><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/layer.Generation.html">Generation</a></li><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/layer.Handling.html">Handling</a></li><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/layer.Interception.html">Interception</a></li><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/layer.OpenApi.html">OpenApi</a></li></ul></nav><nav class="sb-block"><div class="sb-title">Namespaces</div><ul class="sb-list"><li data-diff="modified"><a href="../../../k-kinzal/oas-fake-php/OasFake/index.html" title="OasFake">OasFake</a></li><li data-diff="same"><a href="../../../k-kinzal/oas-fake-php/OasFake/Exception/index.html" title="OasFake\Exception">OasFake\Exception</a></li></ul></nav></nav>
 <div class="page">
 <header class="topbar">
 <button class="nav-toggle" id="nav-toggle" title="Toggle navigation">☰</button>
@@ -35,12 +35,12 @@
 <main class="content">
 <p class="diff-empty" id="diff-empty" data-changes="Nothing on this page changed between 150b00a and working tree." data-off="This page documents what 150b00a had and working tree no longer has. Switch to Diff to read it." hidden></p>
 <div class="symbol-head"><h1><span class="chip chip-kind k-document">document</span>AGENTS.md</h1><div class="symbol-meta"><span class="src-link">AGENTS.md</span></div></div>
-<section class="readme" data-diff="modified"><div class="doc-block" data-diff="same"><h2>AGENTS.md</h2>
+<section class="readme" data-diff="same"><div class="doc-block" data-diff="same"><h2>AGENTS.md</h2>
 </div><div class="doc-block" data-diff="same"><p>Fake API server library for PHP testing. Intercepts HTTP requests via PHP-VCR and returns fake responses generated from an OpenAPI schema. No real server process is needed — the fake server runs in-process, validating requests and generating schema-compliant responses automatically.</p>
 </div><div class="doc-block" data-diff="same"><h3>Supported Versions</h3>
 </div><div class="doc-block" data-diff="same"><ul><li>PHP: 8.0 - 8.5</li></ul>
 </div><div class="doc-block" data-diff="same"><h3>Architecture</h3>
-</div><div class="doc-block" data-diff="removed"><pre class="code-block"><code>OasFake (facade)
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code>OasFake (facade)
   └─ ServerRegistry          # Multi-server lifecycle management
        └─ Server             # Per-server fluent configuration
             └─ Interceptor   # PHP-VCR hook, request/response pipeline
@@ -55,18 +55,6 @@ Schema             # OpenAPI spec wrapper (file/string/object)
 OperationLookup    # Indexes operations for fast lookup
 FakeRequest        # Schema-based request generation (standalone use)
 ParameterFaker     # Generates fake path/query/header parameters</code></pre>
-</div><div class="doc-block" data-diff="added"><pre class="code-block"><code>Application    # Facades, server lifecycle/configuration, public fake request/response API
-  ↓
-Interception   # PHP-VCR boundary, cassette lifecycle, VCR ↔ PSR-7 conversion
-  ↓
-Handling       # Request resolution, handlers, validation pipeline, middleware chain
-  ↓
-Generation     # Schema-backed request/response data and wire serialization
-  ↓
-OpenApi        # Schema parsing, operation index, URL/path matching, validation
-  ↓
-Exception      # Stable project exception contracts</code></pre>
-</div><div class="doc-block" data-diff="added"><p>Dependency direction is enforced from the physical directories above; lower layers must never call back into higher layers. PHP namespaces remain unchanged to preserve the published API.</p>
 </div><div class="doc-block" data-diff="same"><p>Request flow: VCR intercept → Converter → Validator → HandlerMap → Handler/FakeResponse → Middleware → Validator → Converter → VCR response.</p>
 </div><div class="doc-block" data-diff="same"><p>Modes: <code>FAKE</code> (generate from schema), <code>RECORD</code> (generate responses and save them to cassettes), <code>REPLAY</code> (playback from cassettes).</p>
 </div><div class="doc-block" data-diff="same"><h3>Public API</h3>
@@ -106,29 +94,13 @@ Exception      # Stable project exception contracts</code></pre>
 <span class="tok-var">$request</span> = <span class="tok-id">FakeRequest</span>::<span class="tok-kw">for</span>(<span class="tok-var">$schema</span>, <span class="tok-str">&#039;createPet&#039;</span>);
 <span class="tok-var">$response</span> = <span class="tok-id">FakeResponse</span>::<span class="tok-kw">for</span>(<span class="tok-var">$schema</span>, <span class="tok-str">&#039;listPets&#039;</span>);</code></pre>
 </div><div class="doc-block" data-diff="same"><h3>Commands</h3>
-</div><div class="doc-block" data-diff="removed"><pre class="code-block"><code>composer test             # Run tests
+</div><div class="doc-block" data-diff="same"><pre class="code-block"><code>composer test             # Run tests
 composer lint             # Static analysis + format check
 composer format           # Fix code style
 composer format:check     # Check code style without fixing</code></pre>
-</div><div class="doc-block" data-diff="added"><pre class="code-block"><code>composer test              # Parallel modern suite
-composer test:unit         # Modern unit + doctest suites
-composer test:unit:legacy  # PHPUnit 9 suite for PHP 8.0
-composer test:coverage     # Strict coverage metadata + XML
-composer doctest           # Runnable public PHPDoc examples
-composer lint              # All fast toolkit gates below
-composer phpstan           # Toolkit contracts and strict types
-composer compat            # PHPCompatibility for PHP 8.0+
-composer loc-guard         # Size and complexity limits
-composer tree-guard        # Repository layout policy
-composer scope-guard       # @visibility contracts
-composer deptrac           # Architectural dependency direction
-composer doc-gen           # API/architecture site in build/docs
-composer format            # Fix code style
-composer format:check      # Check code style without fixing</code></pre>
-</div><div class="doc-block" data-diff="added"><p>Mutation testing is intentionally a two-step CI gate: generate <code>build/infection-coverage</code>, then run Infection with <code>infection.json5</code>. Do not disable mutators, narrow <code>source.directories</code>, or add ignore annotations to improve the score; improve the asserted behavior or redesign equivalent code instead.</p>
 </div></section>
 </main>
-<footer class="site-footer">Generated by <a href="https://github.com/k-kinzal/php-ai-toolkit">php-ai-toolkit</a> doc-gen</footer>
+<footer class="site-footer">Generated by <a href="https://github.com/k-kinzal/php-ai-toolkit">php-ai-toolkit</a> docgen</footer>
 </div>
 <script src="../../../assets/search-index.js" defer></script>
 <script src="../../../assets/app.js" defer></script>

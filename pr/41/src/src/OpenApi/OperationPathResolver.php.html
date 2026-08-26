@@ -82,7 +82,7 @@
 <span class="src-line" id="L44" data-diff="added"><a class="ln" href="#L44">44</a>                <span class="tok-kw">continue</span>;</span>
 <span class="src-line" id="L45" data-diff="added"><a class="ln" href="#L45">45</a>            }</span>
 <span class="src-line" id="L46" data-diff="added"><a class="ln" href="#L46">46</a></span>
-<span class="src-line" id="L47" data-diff="added"><a class="ln" href="#L47">47</a>            <span class="tok-var">$basePath</span> = <span class="tok-var">$urlMatcher</span>-&gt;<span class="tok-id">normalizePath</span>((string) (<span class="tok-var">$base</span>[<span class="tok-str">&#039;path&#039;</span>] ?? <span class="tok-str">&#039;/&#039;</span>));</span>
+<span class="src-line" id="L47" data-diff="added"><a class="ln" href="#L47">47</a>            <span class="tok-var">$basePath</span> = <span class="tok-var">$urlMatcher</span>-&gt;<span class="tok-id">normalizePath</span>(<span class="tok-var">$base</span>[<span class="tok-str">&#039;path&#039;</span>] ?? <span class="tok-str">&#039;/&#039;</span>);</span>
 <span class="src-line" id="L48" data-diff="added"><a class="ln" href="#L48">48</a>            <span class="tok-var">$operationPath</span> = <span class="tok-var">$urlMatcher</span>-&gt;<span class="tok-id">stripBasePath</span>(<span class="tok-var">$path</span>, <span class="tok-var">$basePath</span>);</span>
 <span class="src-line" id="L49" data-diff="added"><a class="ln" href="#L49">49</a>            <span class="tok-kw">if</span> (<span class="tok-var">$operationPath</span> === <span class="tok-id">null</span>) {</span>
 <span class="src-line" id="L50" data-diff="added"><a class="ln" href="#L50">50</a>                <span class="tok-kw">continue</span>;</span>
@@ -98,23 +98,21 @@
 <span class="src-line" id="L60" data-diff="added"><a class="ln" href="#L60">60</a>            }</span>
 <span class="src-line" id="L61" data-diff="added"><a class="ln" href="#L61">61</a>        }</span>
 <span class="src-line" id="L62" data-diff="added"><a class="ln" href="#L62">62</a></span>
-<span class="src-line" id="L63" data-diff="added"><a class="ln" href="#L63">63</a>        <span class="tok-kw">if</span> (<span class="tok-var">$match</span> === <span class="tok-id">null</span>) {</span>
-<span class="src-line" id="L64" data-diff="added"><a class="ln" href="#L64">64</a>            <span class="tok-kw">return</span> [</span>
+<span class="src-line" id="L63" data-diff="added"><a class="ln" href="#L63">63</a>        <span class="tok-kw">return</span> <span class="tok-var">$match</span> === <span class="tok-id">null</span></span>
+<span class="src-line" id="L64" data-diff="added"><a class="ln" href="#L64">64</a>            ? [</span>
 <span class="src-line" id="L65" data-diff="added"><a class="ln" href="#L65">65</a>                <span class="tok-str">&#039;path&#039;</span> =&gt; <span class="tok-var">$path</span>,</span>
 <span class="src-line" id="L66" data-diff="added"><a class="ln" href="#L66">66</a>                <span class="tok-str">&#039;serverUrl&#039;</span> =&gt; <span class="tok-id">null</span>,</span>
-<span class="src-line" id="L67" data-diff="added"><a class="ln" href="#L67">67</a>            ];</span>
-<span class="src-line" id="L68" data-diff="added"><a class="ln" href="#L68">68</a>        }</span>
-<span class="src-line" id="L69" data-diff="added"><a class="ln" href="#L69">69</a></span>
-<span class="src-line" id="L70" data-diff="added"><a class="ln" href="#L70">70</a>        <span class="tok-kw">return</span> [</span>
-<span class="src-line" id="L71" data-diff="added"><a class="ln" href="#L71">71</a>            <span class="tok-str">&#039;path&#039;</span> =&gt; <span class="tok-var">$match</span>[<span class="tok-str">&#039;path&#039;</span>],</span>
-<span class="src-line" id="L72" data-diff="added"><a class="ln" href="#L72">72</a>            <span class="tok-str">&#039;serverUrl&#039;</span> =&gt; <span class="tok-var">$match</span>[<span class="tok-str">&#039;serverUrl&#039;</span>],</span>
-<span class="src-line" id="L73" data-diff="added"><a class="ln" href="#L73">73</a>        ];</span>
-<span class="src-line" id="L74" data-diff="added"><a class="ln" href="#L74">74</a>    }</span>
-<span class="src-line" id="L75" data-diff="added"><a class="ln" href="#L75">75</a>}</span>
-<span class="src-line" id="L76" data-diff="added"><a class="ln" href="#L76">76</a></span>
+<span class="src-line" id="L67" data-diff="added"><a class="ln" href="#L67">67</a>            ]</span>
+<span class="src-line" id="L68" data-diff="added"><a class="ln" href="#L68">68</a>            : [</span>
+<span class="src-line" id="L69" data-diff="added"><a class="ln" href="#L69">69</a>                <span class="tok-str">&#039;path&#039;</span> =&gt; <span class="tok-var">$match</span>[<span class="tok-str">&#039;path&#039;</span>],</span>
+<span class="src-line" id="L70" data-diff="added"><a class="ln" href="#L70">70</a>                <span class="tok-str">&#039;serverUrl&#039;</span> =&gt; <span class="tok-var">$match</span>[<span class="tok-str">&#039;serverUrl&#039;</span>],</span>
+<span class="src-line" id="L71" data-diff="added"><a class="ln" href="#L71">71</a>            ];</span>
+<span class="src-line" id="L72" data-diff="added"><a class="ln" href="#L72">72</a>    }</span>
+<span class="src-line" id="L73" data-diff="added"><a class="ln" href="#L73">73</a>}</span>
+<span class="src-line" id="L74" data-diff="added"><a class="ln" href="#L74">74</a></span>
 </code></pre>
 </main>
-<footer class="site-footer">Generated by <a href="https://github.com/k-kinzal/php-ai-toolkit">php-ai-toolkit</a> doc-gen</footer>
+<footer class="site-footer">Generated by <a href="https://github.com/k-kinzal/php-ai-toolkit">php-ai-toolkit</a> docgen</footer>
 </div>
 <script src="../../../assets/search-index.js" defer></script>
 <script src="../../../assets/app.js" defer></script>

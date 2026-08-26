@@ -46,21 +46,24 @@
 <span class="src-line" id="L8" data-diff="added"><a class="ln" href="#L8">8</a><span class="tok-kw">use</span> <span class="tok-id">PHPUnit\Framework\Attributes\CoversClass</span>;</span>
 <span class="src-line" id="L9" data-diff="added"><a class="ln" href="#L9">9</a><span class="tok-kw">use</span> <span class="tok-id">PHPUnit\Framework\TestCase</span>;</span>
 <span class="src-line" id="L10" data-diff="added"><a class="ln" href="#L10">10</a></span>
-<span class="src-line" id="L11" data-diff="added"><a class="ln" href="#L11">11</a>#[<span class="tok-id">CoversClass</span>(<span class="tok-id">CassetteNameNormalizer</span>::<span class="tok-kw">class</span>)]</span>
-<span class="src-line" id="L12" data-diff="added"><a class="ln" href="#L12">12</a><span class="tok-kw">final</span> <span class="tok-kw">class</span> <span class="tok-id">CassetteNameNormalizerTest</span> <span class="tok-kw">extends</span> <span class="tok-id">TestCase</span></span>
-<span class="src-line" id="L13" data-diff="added"><a class="ln" href="#L13">13</a>{</span>
-<span class="src-line" id="L14" data-diff="added"><a class="ln" href="#L14">14</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">testNormalizeProducesPortableFallbackAwareNames</span>(): <span class="tok-id">void</span></span>
-<span class="src-line" id="L15" data-diff="added"><a class="ln" href="#L15">15</a>    {</span>
-<span class="src-line" id="L16" data-diff="added"><a class="ln" href="#L16">16</a>        <span class="tok-var">$normalizer</span> = <span class="tok-kw">new</span> <span class="tok-id">CassetteNameNormalizer</span>();</span>
-<span class="src-line" id="L17" data-diff="added"><a class="ln" href="#L17">17</a></span>
-<span class="src-line" id="L18" data-diff="added"><a class="ln" href="#L18">18</a>        <span class="tok-id">self</span>::<span class="tok-id">assertSame</span>(<span class="tok-str">&#039;oasfake-tests-pet-server&#039;</span>, <span class="tok-var">$normalizer</span>-&gt;<span class="tok-id">normalize</span>(<span class="tok-str">&#039;OasFake\\Tests\\Pet Server&#039;</span>));</span>
-<span class="src-line" id="L19" data-diff="added"><a class="ln" href="#L19">19</a>        <span class="tok-id">self</span>::<span class="tok-id">assertSame</span>(<span class="tok-str">&#039;recording&#039;</span>, <span class="tok-var">$normalizer</span>-&gt;<span class="tok-id">normalize</span>(<span class="tok-str">&#039;!!!&#039;</span>));</span>
-<span class="src-line" id="L20" data-diff="added"><a class="ln" href="#L20">20</a>    }</span>
-<span class="src-line" id="L21" data-diff="added"><a class="ln" href="#L21">21</a>}</span>
-<span class="src-line" id="L22" data-diff="added"><a class="ln" href="#L22">22</a></span>
+<span class="src-line" id="L11" data-diff="added"><a class="ln" href="#L11">11</a><span class="tok-com">/**</span></span>
+<span class="src-line" id="L12" data-diff="added"><a class="ln" href="#L12">12</a><span class="tok-com"> * @covers \OasFake\CassetteNameNormalizer</span></span>
+<span class="src-line" id="L13" data-diff="added"><a class="ln" href="#L13">13</a><span class="tok-com"> */</span></span>
+<span class="src-line" id="L14" data-diff="added"><a class="ln" href="#L14">14</a>#[<span class="tok-id">CoversClass</span>(<span class="tok-id">CassetteNameNormalizer</span>::<span class="tok-kw">class</span>)]</span>
+<span class="src-line" id="L15" data-diff="added"><a class="ln" href="#L15">15</a><span class="tok-kw">final</span> <span class="tok-kw">class</span> <span class="tok-id">CassetteNameNormalizerTest</span> <span class="tok-kw">extends</span> <span class="tok-id">TestCase</span></span>
+<span class="src-line" id="L16" data-diff="added"><a class="ln" href="#L16">16</a>{</span>
+<span class="src-line" id="L17" data-diff="added"><a class="ln" href="#L17">17</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">testNormalizeProducesPortableFallbackAwareNames</span>(): <span class="tok-id">void</span></span>
+<span class="src-line" id="L18" data-diff="added"><a class="ln" href="#L18">18</a>    {</span>
+<span class="src-line" id="L19" data-diff="added"><a class="ln" href="#L19">19</a>        <span class="tok-var">$normalizer</span> = <span class="tok-kw">new</span> <span class="tok-id">CassetteNameNormalizer</span>();</span>
+<span class="src-line" id="L20" data-diff="added"><a class="ln" href="#L20">20</a></span>
+<span class="src-line" id="L21" data-diff="added"><a class="ln" href="#L21">21</a>        <span class="tok-id">self</span>::<span class="tok-id">assertSame</span>(<span class="tok-str">&#039;oasfake-tests-pet-server&#039;</span>, <span class="tok-var">$normalizer</span>-&gt;<span class="tok-id">normalize</span>(<span class="tok-str">&#039;OasFake\\Tests\\Pet Server&#039;</span>));</span>
+<span class="src-line" id="L22" data-diff="added"><a class="ln" href="#L22">22</a>        <span class="tok-id">self</span>::<span class="tok-id">assertSame</span>(<span class="tok-str">&#039;recording&#039;</span>, <span class="tok-var">$normalizer</span>-&gt;<span class="tok-id">normalize</span>(<span class="tok-str">&#039;!!!&#039;</span>));</span>
+<span class="src-line" id="L23" data-diff="added"><a class="ln" href="#L23">23</a>    }</span>
+<span class="src-line" id="L24" data-diff="added"><a class="ln" href="#L24">24</a>}</span>
+<span class="src-line" id="L25" data-diff="added"><a class="ln" href="#L25">25</a></span>
 </code></pre>
 </main>
-<footer class="site-footer">Generated by <a href="https://github.com/k-kinzal/php-ai-toolkit">php-ai-toolkit</a> doc-gen</footer>
+<footer class="site-footer">Generated by <a href="https://github.com/k-kinzal/php-ai-toolkit">php-ai-toolkit</a> docgen</footer>
 </div>
 <script src="../../../../assets/search-index.js" defer></script>
 <script src="../../../../assets/app.js" defer></script>

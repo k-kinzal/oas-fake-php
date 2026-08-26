@@ -42,64 +42,70 @@
 <span class="src-line" id="L4" data-diff="added"><a class="ln" href="#L4">4</a></span>
 <span class="src-line" id="L5" data-diff="added"><a class="ln" href="#L5">5</a><span class="tok-kw">namespace</span> <span class="tok-id">OasFake</span>;</span>
 <span class="src-line" id="L6" data-diff="added"><a class="ln" href="#L6">6</a></span>
-<span class="src-line" id="L7" data-diff="added"><a class="ln" href="#L7">7</a><span class="tok-kw">use</span> <span class="tok-id">OasFake\Exception\ValidationException</span>;</span>
-<span class="src-line" id="L8" data-diff="added"><a class="ln" href="#L8">8</a><span class="tok-kw">use</span> <span class="tok-id">Psr\Http\Message\ResponseInterface</span>;</span>
-<span class="src-line" id="L9" data-diff="added"><a class="ln" href="#L9">9</a><span class="tok-kw">use</span> <span class="tok-id">Psr\Http\Message\ServerRequestInterface</span>;</span>
-<span class="src-line" id="L10" data-diff="added"><a class="ln" href="#L10">10</a><span class="tok-kw">use</span> <span class="tok-id">Psr\Http\Server\RequestHandlerInterface</span>;</span>
-<span class="src-line" id="L11" data-diff="added"><a class="ln" href="#L11">11</a></span>
-<span class="src-line" id="L12" data-diff="added"><a class="ln" href="#L12">12</a><span class="tok-com">/**</span></span>
-<span class="src-line" id="L13" data-diff="added"><a class="ln" href="#L13">13</a><span class="tok-com"> * Handles a PSR-7 request through OpenAPI resolution and response validation.</span></span>
-<span class="src-line" id="L14" data-diff="added"><a class="ln" href="#L14">14</a><span class="tok-com"> *</span></span>
-<span class="src-line" id="L15" data-diff="added"><a class="ln" href="#L15">15</a><span class="tok-com"> * @visibility namespace</span></span>
-<span class="src-line" id="L16" data-diff="added"><a class="ln" href="#L16">16</a><span class="tok-com"> */</span></span>
-<span class="src-line" id="L17" data-diff="added"><a class="ln" href="#L17">17</a><span class="tok-kw">final</span> <span class="tok-kw">class</span> <span class="tok-id">SchemaRequestHandler</span> <span class="tok-kw">implements</span> <span class="tok-id">RequestHandlerInterface</span></span>
-<span class="src-line" id="L18" data-diff="added"><a class="ln" href="#L18">18</a>{</span>
-<span class="src-line" id="L19" data-diff="added"><a class="ln" href="#L19">19</a>    <span class="tok-com">/**</span></span>
-<span class="src-line" id="L20" data-diff="added"><a class="ln" href="#L20">20</a><span class="tok-com">     * Create the terminal request handler for an interceptor pipeline.</span></span>
-<span class="src-line" id="L21" data-diff="added"><a class="ln" href="#L21">21</a><span class="tok-com">     */</span></span>
-<span class="src-line" id="L22" data-diff="added"><a class="ln" href="#L22">22</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">__construct</span>(</span>
-<span class="src-line" id="L23" data-diff="added"><a class="ln" href="#L23">23</a>        <span class="tok-kw">private</span> <span class="tok-id">OperationRequestResolver</span> <span class="tok-var">$operationResolver</span>,</span>
-<span class="src-line" id="L24" data-diff="added"><a class="ln" href="#L24">24</a>        <span class="tok-kw">private</span> <span class="tok-id">OperationResponder</span> <span class="tok-var">$operationResponder</span>,</span>
-<span class="src-line" id="L25" data-diff="added"><a class="ln" href="#L25">25</a>        <span class="tok-kw">private</span> <span class="tok-id">Validator</span> <span class="tok-var">$validator</span>,</span>
-<span class="src-line" id="L26" data-diff="added"><a class="ln" href="#L26">26</a>        <span class="tok-kw">private</span> <span class="tok-id">bool</span> <span class="tok-var">$validateResponses</span>,</span>
-<span class="src-line" id="L27" data-diff="added"><a class="ln" href="#L27">27</a>    ) {</span>
-<span class="src-line" id="L28" data-diff="added"><a class="ln" href="#L28">28</a>    }</span>
-<span class="src-line" id="L29" data-diff="added"><a class="ln" href="#L29">29</a></span>
-<span class="src-line" id="L30" data-diff="added"><a class="ln" href="#L30">30</a>    <span class="tok-com">/**</span></span>
-<span class="src-line" id="L31" data-diff="added"><a class="ln" href="#L31">31</a><span class="tok-com">     * Generate and validate a response for the incoming request.</span></span>
-<span class="src-line" id="L32" data-diff="added"><a class="ln" href="#L32">32</a><span class="tok-com">     *</span></span>
-<span class="src-line" id="L33" data-diff="added"><a class="ln" href="#L33">33</a><span class="tok-com">     * @throws ValidationException when enabled request or response validation fails</span></span>
-<span class="src-line" id="L34" data-diff="added"><a class="ln" href="#L34">34</a><span class="tok-com">     */</span></span>
-<span class="src-line" id="L35" data-diff="added"><a class="ln" href="#L35">35</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">handle</span>(<span class="tok-id">ServerRequestInterface</span> <span class="tok-var">$request</span>): <span class="tok-id">ResponseInterface</span></span>
-<span class="src-line" id="L36" data-diff="added"><a class="ln" href="#L36">36</a>    {</span>
-<span class="src-line" id="L37" data-diff="added"><a class="ln" href="#L37">37</a>        <span class="tok-var">$operationRequest</span> = <span class="tok-var">$this</span>-&gt;<span class="tok-id">operationResolver</span>-&gt;<span class="tok-id">resolve</span>(<span class="tok-var">$request</span>);</span>
-<span class="src-line" id="L38" data-diff="added"><a class="ln" href="#L38">38</a>        <span class="tok-var">$response</span> = <span class="tok-var">$this</span>-&gt;<span class="tok-id">operationResponder</span>-&gt;<span class="tok-id">respond</span>(</span>
-<span class="src-line" id="L39" data-diff="added"><a class="ln" href="#L39">39</a>            <span class="tok-var">$request</span>,</span>
-<span class="src-line" id="L40" data-diff="added"><a class="ln" href="#L40">40</a>            <span class="tok-var">$operationRequest</span>-&gt;<span class="tok-id">path</span>,</span>
-<span class="src-line" id="L41" data-diff="added"><a class="ln" href="#L41">41</a>            <span class="tok-var">$operationRequest</span>-&gt;<span class="tok-id">method</span>,</span>
-<span class="src-line" id="L42" data-diff="added"><a class="ln" href="#L42">42</a>            <span class="tok-var">$operationRequest</span>-&gt;<span class="tok-id">definition</span>,</span>
-<span class="src-line" id="L43" data-diff="added"><a class="ln" href="#L43">43</a>        );</span>
-<span class="src-line" id="L44" data-diff="added"><a class="ln" href="#L44">44</a>        <span class="tok-var">$this</span>-&gt;<span class="tok-id">validateResponse</span>(<span class="tok-var">$operationRequest</span>, <span class="tok-var">$response</span>);</span>
-<span class="src-line" id="L45" data-diff="added"><a class="ln" href="#L45">45</a></span>
-<span class="src-line" id="L46" data-diff="added"><a class="ln" href="#L46">46</a>        <span class="tok-kw">return</span> <span class="tok-var">$response</span>;</span>
-<span class="src-line" id="L47" data-diff="added"><a class="ln" href="#L47">47</a>    }</span>
-<span class="src-line" id="L48" data-diff="added"><a class="ln" href="#L48">48</a></span>
-<span class="src-line" id="L49" data-diff="added"><a class="ln" href="#L49">49</a>    <span class="tok-com">/**</span></span>
-<span class="src-line" id="L50" data-diff="added"><a class="ln" href="#L50">50</a><span class="tok-com">     * Validate a response against a previously resolved operation address.</span></span>
-<span class="src-line" id="L51" data-diff="added"><a class="ln" href="#L51">51</a><span class="tok-com">     *</span></span>
-<span class="src-line" id="L52" data-diff="added"><a class="ln" href="#L52">52</a><span class="tok-com">     * @throws ValidationException when response validation is enabled and fails</span></span>
-<span class="src-line" id="L53" data-diff="added"><a class="ln" href="#L53">53</a><span class="tok-com">     */</span></span>
-<span class="src-line" id="L54" data-diff="added"><a class="ln" href="#L54">54</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">validateResponse</span>(<span class="tok-id">OperationRequest</span> <span class="tok-var">$operationRequest</span>, <span class="tok-id">ResponseInterface</span> <span class="tok-var">$response</span>): <span class="tok-id">void</span></span>
-<span class="src-line" id="L55" data-diff="added"><a class="ln" href="#L55">55</a>    {</span>
-<span class="src-line" id="L56" data-diff="added"><a class="ln" href="#L56">56</a>        <span class="tok-kw">if</span> (<span class="tok-var">$this</span>-&gt;<span class="tok-id">validateResponses</span> &amp;&amp; <span class="tok-var">$operationRequest</span>-&gt;<span class="tok-id">address</span> !== <span class="tok-id">null</span>) {</span>
-<span class="src-line" id="L57" data-diff="added"><a class="ln" href="#L57">57</a>            <span class="tok-var">$this</span>-&gt;<span class="tok-id">validator</span>-&gt;<span class="tok-id">validateResponse</span>(<span class="tok-var">$operationRequest</span>-&gt;<span class="tok-id">address</span>, <span class="tok-var">$response</span>);</span>
-<span class="src-line" id="L58" data-diff="added"><a class="ln" href="#L58">58</a>        }</span>
-<span class="src-line" id="L59" data-diff="added"><a class="ln" href="#L59">59</a>    }</span>
-<span class="src-line" id="L60" data-diff="added"><a class="ln" href="#L60">60</a>}</span>
-<span class="src-line" id="L61" data-diff="added"><a class="ln" href="#L61">61</a></span>
+<span class="src-line" id="L7" data-diff="added"><a class="ln" href="#L7">7</a><span class="tok-kw">use</span> <span class="tok-id">JsonException</span>;</span>
+<span class="src-line" id="L8" data-diff="added"><a class="ln" href="#L8">8</a><span class="tok-kw">use</span> <span class="tok-id">OasFake\Exception\ValidationException</span>;</span>
+<span class="src-line" id="L9" data-diff="added"><a class="ln" href="#L9">9</a><span class="tok-kw">use</span> <span class="tok-id">Psr\Http\Message\ResponseInterface</span>;</span>
+<span class="src-line" id="L10" data-diff="added"><a class="ln" href="#L10">10</a><span class="tok-kw">use</span> <span class="tok-id">Psr\Http\Message\ServerRequestInterface</span>;</span>
+<span class="src-line" id="L11" data-diff="added"><a class="ln" href="#L11">11</a><span class="tok-kw">use</span> <span class="tok-id">Psr\Http\Server\RequestHandlerInterface</span>;</span>
+<span class="src-line" id="L12" data-diff="added"><a class="ln" href="#L12">12</a><span class="tok-kw">use</span> <span class="tok-id">Vural\OpenAPIFaker\Exception\NoPath</span>;</span>
+<span class="src-line" id="L13" data-diff="added"><a class="ln" href="#L13">13</a><span class="tok-kw">use</span> <span class="tok-id">Vural\OpenAPIFaker\Exception\NoResponse</span>;</span>
+<span class="src-line" id="L14" data-diff="added"><a class="ln" href="#L14">14</a></span>
+<span class="src-line" id="L15" data-diff="added"><a class="ln" href="#L15">15</a><span class="tok-com">/**</span></span>
+<span class="src-line" id="L16" data-diff="added"><a class="ln" href="#L16">16</a><span class="tok-com"> * Handles a PSR-7 request through OpenAPI resolution and response validation.</span></span>
+<span class="src-line" id="L17" data-diff="added"><a class="ln" href="#L17">17</a><span class="tok-com"> *</span></span>
+<span class="src-line" id="L18" data-diff="added"><a class="ln" href="#L18">18</a><span class="tok-com"> * @visibility namespace</span></span>
+<span class="src-line" id="L19" data-diff="added"><a class="ln" href="#L19">19</a><span class="tok-com"> */</span></span>
+<span class="src-line" id="L20" data-diff="added"><a class="ln" href="#L20">20</a><span class="tok-kw">final</span> <span class="tok-kw">class</span> <span class="tok-id">SchemaRequestHandler</span> <span class="tok-kw">implements</span> <span class="tok-id">RequestHandlerInterface</span></span>
+<span class="src-line" id="L21" data-diff="added"><a class="ln" href="#L21">21</a>{</span>
+<span class="src-line" id="L22" data-diff="added"><a class="ln" href="#L22">22</a>    <span class="tok-com">/**</span></span>
+<span class="src-line" id="L23" data-diff="added"><a class="ln" href="#L23">23</a><span class="tok-com">     * Create the terminal request handler for an interceptor pipeline.</span></span>
+<span class="src-line" id="L24" data-diff="added"><a class="ln" href="#L24">24</a><span class="tok-com">     */</span></span>
+<span class="src-line" id="L25" data-diff="added"><a class="ln" href="#L25">25</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">__construct</span>(</span>
+<span class="src-line" id="L26" data-diff="added"><a class="ln" href="#L26">26</a>        <span class="tok-kw">private</span> <span class="tok-id">OperationRequestResolver</span> <span class="tok-var">$operationResolver</span>,</span>
+<span class="src-line" id="L27" data-diff="added"><a class="ln" href="#L27">27</a>        <span class="tok-kw">private</span> <span class="tok-id">OperationResponder</span> <span class="tok-var">$operationResponder</span>,</span>
+<span class="src-line" id="L28" data-diff="added"><a class="ln" href="#L28">28</a>        <span class="tok-kw">private</span> <span class="tok-id">Validator</span> <span class="tok-var">$validator</span>,</span>
+<span class="src-line" id="L29" data-diff="added"><a class="ln" href="#L29">29</a>        <span class="tok-kw">private</span> <span class="tok-id">bool</span> <span class="tok-var">$validateResponses</span>,</span>
+<span class="src-line" id="L30" data-diff="added"><a class="ln" href="#L30">30</a>    ) {</span>
+<span class="src-line" id="L31" data-diff="added"><a class="ln" href="#L31">31</a>    }</span>
+<span class="src-line" id="L32" data-diff="added"><a class="ln" href="#L32">32</a></span>
+<span class="src-line" id="L33" data-diff="added"><a class="ln" href="#L33">33</a>    <span class="tok-com">/**</span></span>
+<span class="src-line" id="L34" data-diff="added"><a class="ln" href="#L34">34</a><span class="tok-com">     * Generate and validate a response for the incoming request.</span></span>
+<span class="src-line" id="L35" data-diff="added"><a class="ln" href="#L35">35</a><span class="tok-com">     *</span></span>
+<span class="src-line" id="L36" data-diff="added"><a class="ln" href="#L36">36</a><span class="tok-com">     * @throws JsonException when a generated response body cannot be encoded</span></span>
+<span class="src-line" id="L37" data-diff="added"><a class="ln" href="#L37">37</a><span class="tok-com">     * @throws NoPath when the OpenAPI path cannot be generated</span></span>
+<span class="src-line" id="L38" data-diff="added"><a class="ln" href="#L38">38</a><span class="tok-com">     * @throws NoResponse when the OpenAPI response cannot be generated</span></span>
+<span class="src-line" id="L39" data-diff="added"><a class="ln" href="#L39">39</a><span class="tok-com">     * @throws ValidationException when enabled request or response validation fails</span></span>
+<span class="src-line" id="L40" data-diff="added"><a class="ln" href="#L40">40</a><span class="tok-com">     */</span></span>
+<span class="src-line" id="L41" data-diff="added"><a class="ln" href="#L41">41</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">handle</span>(<span class="tok-id">ServerRequestInterface</span> <span class="tok-var">$request</span>): <span class="tok-id">ResponseInterface</span></span>
+<span class="src-line" id="L42" data-diff="added"><a class="ln" href="#L42">42</a>    {</span>
+<span class="src-line" id="L43" data-diff="added"><a class="ln" href="#L43">43</a>        <span class="tok-var">$operationRequest</span> = <span class="tok-var">$this</span>-&gt;<span class="tok-id">operationResolver</span>-&gt;<span class="tok-id">resolve</span>(<span class="tok-var">$request</span>);</span>
+<span class="src-line" id="L44" data-diff="added"><a class="ln" href="#L44">44</a>        <span class="tok-var">$response</span> = <span class="tok-var">$this</span>-&gt;<span class="tok-id">operationResponder</span>-&gt;<span class="tok-id">respond</span>(</span>
+<span class="src-line" id="L45" data-diff="added"><a class="ln" href="#L45">45</a>            <span class="tok-var">$request</span>,</span>
+<span class="src-line" id="L46" data-diff="added"><a class="ln" href="#L46">46</a>            <span class="tok-var">$operationRequest</span>-&gt;<span class="tok-id">path</span>,</span>
+<span class="src-line" id="L47" data-diff="added"><a class="ln" href="#L47">47</a>            <span class="tok-var">$operationRequest</span>-&gt;<span class="tok-id">method</span>,</span>
+<span class="src-line" id="L48" data-diff="added"><a class="ln" href="#L48">48</a>            <span class="tok-var">$operationRequest</span>-&gt;<span class="tok-id">definition</span>,</span>
+<span class="src-line" id="L49" data-diff="added"><a class="ln" href="#L49">49</a>        );</span>
+<span class="src-line" id="L50" data-diff="added"><a class="ln" href="#L50">50</a>        <span class="tok-var">$this</span>-&gt;<span class="tok-id">validateResponse</span>(<span class="tok-var">$operationRequest</span>, <span class="tok-var">$response</span>);</span>
+<span class="src-line" id="L51" data-diff="added"><a class="ln" href="#L51">51</a></span>
+<span class="src-line" id="L52" data-diff="added"><a class="ln" href="#L52">52</a>        <span class="tok-kw">return</span> <span class="tok-var">$response</span>;</span>
+<span class="src-line" id="L53" data-diff="added"><a class="ln" href="#L53">53</a>    }</span>
+<span class="src-line" id="L54" data-diff="added"><a class="ln" href="#L54">54</a></span>
+<span class="src-line" id="L55" data-diff="added"><a class="ln" href="#L55">55</a>    <span class="tok-com">/**</span></span>
+<span class="src-line" id="L56" data-diff="added"><a class="ln" href="#L56">56</a><span class="tok-com">     * Validate a response against a previously resolved operation address.</span></span>
+<span class="src-line" id="L57" data-diff="added"><a class="ln" href="#L57">57</a><span class="tok-com">     *</span></span>
+<span class="src-line" id="L58" data-diff="added"><a class="ln" href="#L58">58</a><span class="tok-com">     * @throws ValidationException when response validation is enabled and fails</span></span>
+<span class="src-line" id="L59" data-diff="added"><a class="ln" href="#L59">59</a><span class="tok-com">     */</span></span>
+<span class="src-line" id="L60" data-diff="added"><a class="ln" href="#L60">60</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">validateResponse</span>(<span class="tok-id">OperationRequest</span> <span class="tok-var">$operationRequest</span>, <span class="tok-id">ResponseInterface</span> <span class="tok-var">$response</span>): <span class="tok-id">void</span></span>
+<span class="src-line" id="L61" data-diff="added"><a class="ln" href="#L61">61</a>    {</span>
+<span class="src-line" id="L62" data-diff="added"><a class="ln" href="#L62">62</a>        <span class="tok-kw">if</span> (<span class="tok-var">$this</span>-&gt;<span class="tok-id">validateResponses</span> &amp;&amp; <span class="tok-var">$operationRequest</span>-&gt;<span class="tok-id">address</span> !== <span class="tok-id">null</span>) {</span>
+<span class="src-line" id="L63" data-diff="added"><a class="ln" href="#L63">63</a>            <span class="tok-var">$this</span>-&gt;<span class="tok-id">validator</span>-&gt;<span class="tok-id">validateResponse</span>(<span class="tok-var">$operationRequest</span>-&gt;<span class="tok-id">address</span>, <span class="tok-var">$response</span>);</span>
+<span class="src-line" id="L64" data-diff="added"><a class="ln" href="#L64">64</a>        }</span>
+<span class="src-line" id="L65" data-diff="added"><a class="ln" href="#L65">65</a>    }</span>
+<span class="src-line" id="L66" data-diff="added"><a class="ln" href="#L66">66</a>}</span>
+<span class="src-line" id="L67" data-diff="added"><a class="ln" href="#L67">67</a></span>
 </code></pre>
 </main>
-<footer class="site-footer">Generated by <a href="https://github.com/k-kinzal/php-ai-toolkit">php-ai-toolkit</a> doc-gen</footer>
+<footer class="site-footer">Generated by <a href="https://github.com/k-kinzal/php-ai-toolkit">php-ai-toolkit</a> docgen</footer>
 </div>
 <script src="../../../assets/search-index.js" defer></script>
 <script src="../../../assets/app.js" defer></script>
