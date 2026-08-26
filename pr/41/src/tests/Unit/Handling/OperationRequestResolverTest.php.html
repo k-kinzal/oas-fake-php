@@ -99,8 +99,44 @@
 <span class="src-line" id="L61" data-diff="added"><a class="ln" href="#L61">61</a>        <span class="tok-id">self</span>::<span class="tok-id">assertSame</span>(<span class="tok-str">&#039;listPets&#039;</span>, <span class="tok-var">$resolved</span>-&gt;<span class="tok-id">definition</span>?-&gt;<span class="tok-id">operationId</span>);</span>
 <span class="src-line" id="L62" data-diff="added"><a class="ln" href="#L62">62</a>        <span class="tok-id">self</span>::<span class="tok-id">assertSame</span>(<span class="tok-str">&#039;/pets&#039;</span>, <span class="tok-var">$resolved</span>-&gt;<span class="tok-id">address</span>?-&gt;<span class="tok-id">path</span>());</span>
 <span class="src-line" id="L63" data-diff="added"><a class="ln" href="#L63">63</a>    }</span>
-<span class="src-line" id="L64" data-diff="added"><a class="ln" href="#L64">64</a>}</span>
-<span class="src-line" id="L65" data-diff="added"><a class="ln" href="#L65">65</a></span>
+<span class="src-line" id="L64" data-diff="added"><a class="ln" href="#L64">64</a></span>
+<span class="src-line" id="L65" data-diff="added"><a class="ln" href="#L65">65</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">testResolveRejectsAnOperationOutsideItsEffectiveServer</span>(): <span class="tok-id">void</span></span>
+<span class="src-line" id="L66" data-diff="added"><a class="ln" href="#L66">66</a>    {</span>
+<span class="src-line" id="L67" data-diff="added"><a class="ln" href="#L67">67</a>        <span class="tok-var">$schema</span> = <span class="tok-id">\OasFake\Testing\SchemaFixture</span>::<span class="tok-id">fromString</span>(&lt;&lt;&lt;&#039;YAML&#039;</span>
+<span class="src-line" id="L68" data-diff="added"><a class="ln" href="#L68">68</a><span class="tok-str">            openapi: 3.0.0</span></span>
+<span class="src-line" id="L69" data-diff="added"><a class="ln" href="#L69">69</a><span class="tok-str">            info: {title: Scoped API, version: 1.0.0}</span></span>
+<span class="src-line" id="L70" data-diff="added"><a class="ln" href="#L70">70</a><span class="tok-str">            servers:</span></span>
+<span class="src-line" id="L71" data-diff="added"><a class="ln" href="#L71">71</a><span class="tok-str">              - url: https://api.example.com/v1</span></span>
+<span class="src-line" id="L72" data-diff="added"><a class="ln" href="#L72">72</a><span class="tok-str">            paths:</span></span>
+<span class="src-line" id="L73" data-diff="added"><a class="ln" href="#L73">73</a><span class="tok-str">              /health:</span></span>
+<span class="src-line" id="L74" data-diff="added"><a class="ln" href="#L74">74</a><span class="tok-str">                get:</span></span>
+<span class="src-line" id="L75" data-diff="added"><a class="ln" href="#L75">75</a><span class="tok-str">                  operationId: health</span></span>
+<span class="src-line" id="L76" data-diff="added"><a class="ln" href="#L76">76</a><span class="tok-str">                  responses:</span></span>
+<span class="src-line" id="L77" data-diff="added"><a class="ln" href="#L77">77</a><span class="tok-str">                    &#039;204&#039;: {description: Healthy}</span></span>
+<span class="src-line" id="L78" data-diff="added"><a class="ln" href="#L78">78</a><span class="tok-str">              /pets:</span></span>
+<span class="src-line" id="L79" data-diff="added"><a class="ln" href="#L79">79</a><span class="tok-str">                get:</span></span>
+<span class="src-line" id="L80" data-diff="added"><a class="ln" href="#L80">80</a><span class="tok-str">                  operationId: listPets</span></span>
+<span class="src-line" id="L81" data-diff="added"><a class="ln" href="#L81">81</a><span class="tok-str">                  servers:</span></span>
+<span class="src-line" id="L82" data-diff="added"><a class="ln" href="#L82">82</a><span class="tok-str">                    - url: https://api.example.com</span></span>
+<span class="src-line" id="L83" data-diff="added"><a class="ln" href="#L83">83</a><span class="tok-str">                  responses:</span></span>
+<span class="src-line" id="L84" data-diff="added"><a class="ln" href="#L84">84</a><span class="tok-str">                    &#039;200&#039;: {description: OK}</span></span>
+<span class="src-line" id="L85" data-diff="added"><a class="ln" href="#L85">85</a>            YAML);</span>
+<span class="src-line" id="L86" data-diff="added"><a class="ln" href="#L86">86</a>        <span class="tok-var">$resolver</span> = <span class="tok-kw">new</span> <span class="tok-id">OperationRequestResolver</span>(</span>
+<span class="src-line" id="L87" data-diff="added"><a class="ln" href="#L87">87</a>            <span class="tok-var">$schema</span>,</span>
+<span class="src-line" id="L88" data-diff="added"><a class="ln" href="#L88">88</a>            <span class="tok-kw">new</span> <span class="tok-id">OperationLookup</span>(<span class="tok-var">$schema</span>),</span>
+<span class="src-line" id="L89" data-diff="added"><a class="ln" href="#L89">89</a>            <span class="tok-kw">new</span> <span class="tok-id">OperationPathResolver</span>(),</span>
+<span class="src-line" id="L90" data-diff="added"><a class="ln" href="#L90">90</a>            <span class="tok-kw">new</span> <span class="tok-id">Validator</span>(<span class="tok-var">$schema</span>),</span>
+<span class="src-line" id="L91" data-diff="added"><a class="ln" href="#L91">91</a>            <span class="tok-id">false</span>,</span>
+<span class="src-line" id="L92" data-diff="added"><a class="ln" href="#L92">92</a>        );</span>
+<span class="src-line" id="L93" data-diff="added"><a class="ln" href="#L93">93</a></span>
+<span class="src-line" id="L94" data-diff="added"><a class="ln" href="#L94">94</a>        <span class="tok-var">$resolved</span> = <span class="tok-var">$resolver</span>-&gt;<span class="tok-id">resolve</span>(<span class="tok-kw">new</span> <span class="tok-id">ServerRequest</span>(<span class="tok-str">&#039;GET&#039;</span>, <span class="tok-str">&#039;https://api.example.com/v1/pets&#039;</span>));</span>
+<span class="src-line" id="L95" data-diff="added"><a class="ln" href="#L95">95</a></span>
+<span class="src-line" id="L96" data-diff="added"><a class="ln" href="#L96">96</a>        <span class="tok-id">self</span>::<span class="tok-id">assertSame</span>(<span class="tok-str">&#039;/pets&#039;</span>, <span class="tok-var">$resolved</span>-&gt;<span class="tok-id">path</span>);</span>
+<span class="src-line" id="L97" data-diff="added"><a class="ln" href="#L97">97</a>        <span class="tok-id">self</span>::<span class="tok-id">assertNull</span>(<span class="tok-var">$resolved</span>-&gt;<span class="tok-id">definition</span>);</span>
+<span class="src-line" id="L98" data-diff="added"><a class="ln" href="#L98">98</a>        <span class="tok-id">self</span>::<span class="tok-id">assertNull</span>(<span class="tok-var">$resolved</span>-&gt;<span class="tok-id">address</span>);</span>
+<span class="src-line" id="L99" data-diff="added"><a class="ln" href="#L99">99</a>    }</span>
+<span class="src-line" id="L100" data-diff="added"><a class="ln" href="#L100">100</a>}</span>
+<span class="src-line" id="L101" data-diff="added"><a class="ln" href="#L101">101</a></span>
 </code></pre>
 </main>
 <footer class="site-footer">Generated by <a href="https://github.com/k-kinzal/php-ai-toolkit">php-ai-toolkit</a> docgen</footer>
