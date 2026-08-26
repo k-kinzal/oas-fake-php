@@ -10,6 +10,12 @@ use OasFake\ServerOptions;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\ServerOptions
+ *
+ * @uses \OasFake\Mode
+ * @uses \OasFake\Schema
+ */
 #[CoversClass(ServerOptions::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Mode::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]

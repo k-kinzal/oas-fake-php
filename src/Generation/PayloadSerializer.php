@@ -20,6 +20,10 @@ final class PayloadSerializer
     /**
      * Serialize generated payload data for the given media type.
      *
+     * @template TPayload
+     *
+     * @param TPayload $data
+     *
      * @throws JsonException when the payload cannot be encoded
      */
     public static function serialize(mixed $data, string $mediaType): string

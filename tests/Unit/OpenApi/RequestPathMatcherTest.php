@@ -8,6 +8,9 @@ use OasFake\RequestPathMatcher;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\RequestPathMatcher
+ */
 #[CoversClass(RequestPathMatcher::class)]
 final class RequestPathMatcherTest extends TestCase
 {

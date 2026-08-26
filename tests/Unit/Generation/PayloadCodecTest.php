@@ -10,6 +10,9 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
+/**
+ * @covers \OasFake\PayloadCodec
+ */
 #[CoversClass(PayloadCodec::class)]
 final class PayloadCodecTest extends TestCase
 {
@@ -32,6 +35,7 @@ final class PayloadCodecTest extends TestCase
         $codec = new PayloadCodec();
 
         self::assertSame('ok', $codec->encodeText('ok'));
+        self::assertSame('42', $codec->encodeText(42));
         self::assertSame('{"ok":true}', $codec->encodeText(['ok' => true]));
     }
 
@@ -40,6 +44,7 @@ final class PayloadCodecTest extends TestCase
         $codec = new PayloadCodec();
 
         self::assertSame('application/json', $codec->normalizeMediaType('Application/JSON; charset=utf-8'));
+        self::assertSame('application/json', $codec->normalizeMediaType(' Application/JSON ; charset=utf-8'));
     }
 
     public function testIsJsonMediaTypeRecognizesStructuredJson(): void

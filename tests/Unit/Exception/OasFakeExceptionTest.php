@@ -8,6 +8,9 @@ use OasFake\Exception\OasFakeException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\Exception\OasFakeException
+ */
 #[CoversClass(OasFakeException::class)]
 final class OasFakeExceptionTest extends TestCase
 {

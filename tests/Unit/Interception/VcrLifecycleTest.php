@@ -10,6 +10,9 @@ use PHPUnit\Framework\TestCase;
 use VCR\Request;
 use VCR\Response;
 
+/**
+ * @covers \OasFake\VcrLifecycle
+ */
 #[CoversClass(VcrLifecycle::class)]
 final class VcrLifecycleTest extends TestCase
 {

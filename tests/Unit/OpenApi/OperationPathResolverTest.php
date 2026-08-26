@@ -10,6 +10,13 @@ use OasFake\Schema;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\OperationPathResolver
+ *
+ * @uses \OasFake\OpenApiServerResolver
+ * @uses \OasFake\Schema
+ * @uses \OasFake\ServerUrlMatcher
+ */
 #[CoversClass(OperationPathResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
@@ -54,6 +61,35 @@ final class OperationPathResolverTest extends TestCase
         $request = new ServerRequest('GET', 'https://api.example.com/v1/pets');
 
         self::assertSame('/pets', (new OperationPathResolver())->resolve($schema, $request));
+    }
+
+    public function testResolveUsesTheMostSpecificOfMultipleEffectiveServerUrls(): void
+    {
+        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+            openapi: 3.0.0
+            info: {title: Multi Server API, version: 1.0.0}
+            servers:
+              - url: https://api.example.com
+            paths:
+              /health:
+                get:
+                  operationId: health
+                  responses:
+                    '204': {description: Healthy}
+              /pets:
+                servers:
+                  - url: https://api.example.com/v1
+                get:
+                  operationId: listPets
+                  responses:
+                    '204': {description: No content}
+            YAML);
+        $request = new ServerRequest('GET', 'https://api.example.com/v1/pets');
+
+        self::assertSame(
+            ['path' => '/pets', 'serverUrl' => 'https://api.example.com/v1'],
+            (new OperationPathResolver())->resolveWithServerUrl($schema, $request),
+        );
     }
 
     public function testResolveWithServerUrlReturnsMatchedServerUrl(): void

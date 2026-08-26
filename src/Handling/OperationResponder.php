@@ -48,27 +48,26 @@ final class OperationResponder
     ): ResponseInterface {
         $operationId = $operationInfo?->operationId;
         $handler = $this->handlers->find($operationId ?? '', $path, $method, $operationInfo?->pathPattern);
-        $statusCode = $operationInfo === null ? 200 : $this->responseResolver->defaultStatusCode($operationInfo);
 
-        if ($handler !== null) {
-            $fakerDefault = null;
-            if ($operationInfo !== null && $this->responseResolver->hasSuccessfulBody($operationInfo)) {
-                $fakerDefault = (new FakeResponseFactory())->create($this->fakeDataContext, $operationInfo->pathPattern, $method, $statusCode);
+        if ($operationInfo === null) {
+            if ($handler !== null) {
+                return $handler->resolve($request, null);
             }
 
+            return new Response(500, ['Content-Type' => 'application/json'], (string) json_encode([
+                'error' => 'Could not resolve operation from request',
+            ]));
+        }
+
+        $statusCode = $this->responseResolver->defaultStatusCode($operationInfo);
+        $fakerDefault = $this->responseResolver->hasSuccessfulBody($operationInfo)
+            ? (new FakeResponseFactory())->create($this->fakeDataContext, $operationInfo->pathPattern, $method, $statusCode)
+            : null;
+
+        if ($handler !== null) {
             return $handler->resolve($request, $fakerDefault);
         }
 
-        if ($operationInfo !== null) {
-            if ($this->responseResolver->hasSuccessfulBody($operationInfo)) {
-                return (new FakeResponseFactory())->create($this->fakeDataContext, $operationInfo->pathPattern, $method, $statusCode);
-            }
-
-            return new Response($statusCode);
-        }
-
-        return new Response(500, ['Content-Type' => 'application/json'], (string) json_encode([
-            'error' => 'Could not resolve operation from request',
-        ]));
+        return $fakerDefault ?? new Response($statusCode);
     }
 }

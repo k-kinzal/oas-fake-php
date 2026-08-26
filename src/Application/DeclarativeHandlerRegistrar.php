@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OasFake;
 
 use ReflectionClass;
+use ReflectionException;
 use ReflectionMethod;
 
 /**
@@ -16,6 +17,8 @@ final class DeclarativeHandlerRegistrar
 {
     /**
      * Register operationId and Route attribute handlers from the given server.
+     *
+     * @throws ReflectionException when a public handler cannot be bound to its server
      */
     public function register(Server $server, HandlerMap $handlers, ?Schema $schema = null): void
     {
@@ -29,10 +32,6 @@ final class DeclarativeHandlerRegistrar
             }
 
             $closure = $method->getClosure($server);
-            if ($closure === null) {
-                continue;
-            }
-
             $routeAttr = $inspector->route($method);
             if ($routeAttr !== null) {
                 if ($operationLookup !== null && $operationLookup->findByPathAndMethod($routeAttr->path, $routeAttr->method) === null) {

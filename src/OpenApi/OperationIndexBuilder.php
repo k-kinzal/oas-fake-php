@@ -27,21 +27,12 @@ final class OperationIndexBuilder
      */
     public function build(Schema $schema): array
     {
-        $byOperationId = [];
-        $byPathMethod = [];
-        $openApi = $schema->openApi();
+        $byOperationId = $byPathMethod = [];
         $operationResolver = new PathOperationResolver();
         $parameterResolver = new OperationParameterResolver();
 
-        if ($openApi->paths === null) {
-            return [
-                'byOperationId' => $byOperationId,
-                'byPathMethod' => $byPathMethod,
-            ];
-        }
-
         /** @var PathItem $pathItem */
-        foreach ($openApi->paths as $pathPattern => $pathItem) {
+        foreach ($schema->openApi()->paths as $pathPattern => $pathItem) {
             if (!is_string($pathPattern)) {
                 continue;
             }
@@ -53,18 +44,17 @@ final class OperationIndexBuilder
                     continue;
                 }
 
-                $operationId = $operation->operationId ?? '';
-                $definition = new OperationInfo(
-                    pathPattern: $pathPattern,
-                    method: $method,
-                    operationId: $operationId,
-                    operation: $operation,
-                    parameters: $parameterResolver->merge($pathParameters, $operation),
-                    serverUrls: $schema->effectiveServerUrls($pathItem, $operation),
+                $definition = (new OperationInfoFactory())->create(
+                    $schema,
+                    $pathItem,
+                    $pathPattern,
+                    $method,
+                    $operation,
+                    $pathParameters,
                 );
 
-                if ($operationId !== '') {
-                    $byOperationId[$operationId] = $definition;
+                if ($definition->operationId !== '') {
+                    $byOperationId[$definition->operationId] = $definition;
                 }
                 $byPathMethod[$method . ':' . $pathPattern] = $definition;
             }

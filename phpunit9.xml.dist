@@ -1,14 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- NOTE: You do not have permission to overwrite this file. Please ask a human operator to perform the changes for you. -->
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="tests/bootstrap.php"
          colors="true"
+         cacheResultFile=".phpunit.result.cache"
          executionOrder="depends,random"
+         verbose="true"
+         forceCoversAnnotation="true"
+         beStrictAboutCoversAnnotation="true"
+         convertDeprecationsToExceptions="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
          beStrictAboutChangesToGlobalState="true"
          beStrictAboutOutputDuringTests="true"
+         beStrictAboutResourceUsageDuringSmallTests="true"
+         beStrictAboutTestsThatDoNotTestAnything="true"
          failOnEmptyTestSuite="true"
+         failOnIncomplete="true"
          failOnRisky="true"
+         failOnSkipped="true"
          failOnWarning="true"
+         beStrictAboutTodoAnnotatedTests="true"
          enforceTimeLimit="true"
          timeoutForSmallTests="1"
          timeoutForMediumTests="10"
@@ -22,9 +36,10 @@
         </testsuite>
     </testsuites>
     <listeners>
-        <listener class="PhpAiToolkit\PhpUnit\TestReporter\Legacy\LegacyAiTestReporterListener"/>
+        <listener class="Toolkit\PhpUnit\TestReporter\Legacy\LegacyAiTestReporterListener"/>
     </listeners>
-    <coverage>
+    <coverage includeUncoveredFiles="true"
+              disableCodeCoverageIgnore="true">
         <include>
             <directory suffix=".php">src</directory>
         </include>

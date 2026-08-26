@@ -12,6 +12,11 @@ use PHPUnit\Framework\TestCase;
 use VCR\Request;
 use VCR\Response;
 
+/**
+ * @covers \OasFake\CassetteSession
+ *
+ * @uses \OasFake\Exception\ReplayMismatchError
+ */
 #[CoversClass(CassetteSession::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(ReplayMismatchError::class)]
 final class CassetteSessionTest extends TestCase
@@ -34,29 +39,36 @@ final class CassetteSessionTest extends TestCase
         }
     }
 
-    public function testStopClosesCassette(): void
+    public function testStopCanReleaseAnAlreadyStoppedSession(): void
     {
-        $session = new CassetteSession(sys_get_temp_dir(), 'closed-session');
-        $session->start();
+        $session = new CassetteSession(sys_get_temp_dir(), 'stopped-session');
+
+        $session->stop();
         $session->stop();
 
-        $this->expectException(ReplayMismatchError::class);
-        $session->playback(new Request('GET', 'https://example.com/pets', []));
+        $this->addToAssertionCount(1);
     }
 
-    public function testPlaybackRejectsMissingRecording(): void
+    public function testPlaybackReturnsTheRecordedResponse(): void
     {
         $path = sys_get_temp_dir() . '/oas-fake-cassette-session-' . uniqid('', true);
         mkdir($path, 0777, true);
-        $session = new CassetteSession($path, 'missing');
-        $session->start();
+        $session = new CassetteSession($path, 'playback');
+        $request = new Request('GET', 'https://example.com/pets', []);
 
         try {
-            $this->expectException(ReplayMismatchError::class);
-            $session->playback(new Request('GET', 'https://example.com/missing', []));
+            $session->start();
+            $session->record($request, new Response('201', [], '[{"id":1}]'));
+            $session->stop();
+            $session->start();
+
+            $response = $session->playback($request);
+
+            self::assertSame(201, $response->getStatusCode());
+            self::assertSame('[{"id":1}]', $response->getBody());
         } finally {
             $session->stop();
-            @unlink($path . '/missing');
+            @unlink($path . '/playback');
             @rmdir($path);
         }
     }

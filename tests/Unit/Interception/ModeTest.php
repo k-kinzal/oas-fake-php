@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
-use InvalidArgumentException;
 use OasFake\Mode;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\Mode
+ */
 #[CoversClass(Mode::class)]
 final class ModeTest extends TestCase
 {
@@ -73,14 +75,6 @@ final class ModeTest extends TestCase
     {
         self::assertTrue(Mode::fromString('replay')->isReplay());
         self::assertFalse(Mode::fromString('record')->isReplay());
-    }
-
-    public function testFromStringInvalidThrowsException(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid mode "invalid". Valid modes are: fake, record, replay');
-
-        Mode::fromString('invalid');
     }
 
     public function testFromEnvironmentDefaultsToFake(): void

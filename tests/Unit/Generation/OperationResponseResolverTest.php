@@ -12,6 +12,20 @@ use OasFake\Schema;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\OperationResponseResolver
+ *
+ * @uses \OasFake\PayloadCodec
+ * @uses \OasFake\OpenApiServerResolver
+ * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationIndexBuilder
+ * @uses \OasFake\OperationLookup
+ * @uses \OasFake\OperationParameterResolver
+ * @uses \OasFake\PathOperationResolver
+ * @uses \OasFake\PayloadSerializer
+ * @uses \OasFake\Schema
+ * @uses \OasFake\OperationInfoFactory
+ */
 #[CoversClass(OperationResponseResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadCodec::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
@@ -22,6 +36,7 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadSerializer::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
 final class OperationResponseResolverTest extends TestCase
 {
     /**

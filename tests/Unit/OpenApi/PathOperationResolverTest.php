@@ -11,6 +11,11 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\PathOperationResolver
+ *
+ * @uses \OasFake\Schema
+ */
 #[CoversClass(PathOperationResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 final class PathOperationResolverTest extends TestCase
@@ -51,7 +56,6 @@ final class PathOperationResolverTest extends TestCase
     public function testResolveReturnsNullForUnsupportedMethod(): void
     {
         $paths = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')->openApi()->paths;
-        self::assertNotNull($paths);
         $pathItem = $paths->getPath('/pets');
         self::assertNotNull($pathItem);
 

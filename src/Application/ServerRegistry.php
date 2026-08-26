@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace OasFake;
 
+use cebe\openapi\exceptions\IOException;
+use cebe\openapi\exceptions\TypeErrorException;
+use cebe\openapi\exceptions\UnresolvableReferenceException;
+use cebe\openapi\json\InvalidJsonPointerSyntaxException;
 use GuzzleHttp\Psr7\Response;
+use ReflectionException;
 use VCR\Request as VcrRequest;
 use VCR\Response as VcrResponse;
 
@@ -31,6 +36,12 @@ final class ServerRegistry
      *
      * @param string $key Unique identifier for the server (typically the class name)
      * @param Server $server The server instance to register
+     *
+     * @throws IOException when the schema file cannot be read
+     * @throws TypeErrorException when the schema has an invalid structure
+     * @throws UnresolvableReferenceException when a schema reference cannot be resolved
+     * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid
+     * @throws ReflectionException when a declarative handler cannot be bound
      */
     public function register(string $key, Server $server): void
     {

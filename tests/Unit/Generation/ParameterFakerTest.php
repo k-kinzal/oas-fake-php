@@ -11,6 +11,20 @@ use OasFake\Testing\Petstore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\ParameterFaker
+ *
+ * @uses \OasFake\OpenApiServerResolver
+ * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationIndexBuilder
+ * @uses \OasFake\OperationLookup
+ * @uses \OasFake\OperationParameterResolver
+ * @uses \OasFake\ParameterSerializer
+ * @uses \OasFake\PathOperationResolver
+ * @uses \OasFake\Schema
+ * @uses \OasFake\FormQueryParameterSerializer
+ * @uses \OasFake\OperationInfoFactory
+ */
 #[CoversClass(ParameterFaker::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfo::class)]
@@ -20,6 +34,8 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ParameterSerializer::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Schema::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FormQueryParameterSerializer::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
 final class ParameterFakerTest extends TestCase
 {
     /**
@@ -148,6 +164,6 @@ final class ParameterFakerTest extends TestCase
         $faker = new ParameterFaker();
         $result = $faker->generate($info->parameters);
 
-        self::assertIsString($result['path']['petId']);
+        self::assertMatchesRegularExpression('/^.+$/', $result['path']['petId']);
     }
 }

@@ -10,6 +10,9 @@ use OasFake\ResolvedResponseRequestHandler;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\ResolvedResponseRequestHandler
+ */
 #[CoversClass(ResolvedResponseRequestHandler::class)]
 final class ResolvedResponseRequestHandlerTest extends TestCase
 {

@@ -15,6 +15,11 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
+/**
+ * @covers \OasFake\MiddlewareRequestHandler
+ *
+ * @uses \OasFake\ResolvedResponseRequestHandler
+ */
 #[CoversClass(MiddlewareRequestHandler::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(ResolvedResponseRequestHandler::class)]
 final class MiddlewareRequestHandlerTest extends TestCase

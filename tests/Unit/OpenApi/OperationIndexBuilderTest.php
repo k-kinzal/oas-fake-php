@@ -9,7 +9,18 @@ use OasFake\Schema;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\OperationIndexBuilder
+ *
+ * @uses \OasFake\OperationInfoFactory
+ * @uses \OasFake\OpenApiServerResolver
+ * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationParameterResolver
+ * @uses \OasFake\PathOperationResolver
+ * @uses \OasFake\Schema
+ */
 #[CoversClass(OperationIndexBuilder::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfo::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]

@@ -8,6 +8,9 @@ use OasFake\EnvironmentResolver;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\EnvironmentResolver
+ */
 #[CoversClass(EnvironmentResolver::class)]
 final class EnvironmentResolverTest extends TestCase
 {

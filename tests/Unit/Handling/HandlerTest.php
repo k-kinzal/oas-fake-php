@@ -6,15 +6,27 @@ namespace OasFake\Tests\Unit;
 
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\ServerRequest;
+use JsonException;
 use OasFake\Handler;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+/**
+ * @covers \OasFake\Handler
+ *
+ * @uses \OasFake\JsonHandlerBody
+ * @uses \OasFake\StringHandlerBody
+ */
 #[CoversClass(Handler::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\JsonHandlerBody::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\StringHandlerBody::class)]
 final class HandlerTest extends TestCase
 {
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     */
     public function testResponseFactoryCreatesHandlerWithCorrectStatusBodyAndHeaders(): void
     {
         $handler = Handler::response(201, ['id' => 1], ['X-Custom' => 'value']);
@@ -27,6 +39,9 @@ final class HandlerTest extends TestCase
         self::assertSame('value', $response->getHeaderLine('X-Custom'));
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     */
     public function testResponseFactoryDefaultsContentTypeToJson(): void
     {
         $handler = Handler::response(200, ['ok' => true]);
@@ -37,6 +52,9 @@ final class HandlerTest extends TestCase
         self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     */
     public function testResponseFactoryAcceptsStringBody(): void
     {
         $handler = Handler::response(200, '<xml/>');
@@ -47,6 +65,9 @@ final class HandlerTest extends TestCase
         self::assertSame('<xml/>', (string) $response->getBody());
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     */
     public function testResponseFactoryDoesNotOverrideExplicitContentType(): void
     {
         $handler = Handler::response(200, 'text', ['Content-Type' => 'text/plain']);
@@ -57,6 +78,9 @@ final class HandlerTest extends TestCase
         self::assertSame('text/plain', $response->getHeaderLine('Content-Type'));
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     */
     public function testCallbackFactoryInvokesCallbackWithRequestAndDefault(): void
     {
         $expectedResponse = new Response(418);
@@ -83,6 +107,9 @@ final class HandlerTest extends TestCase
         self::assertSame($defaultResponse, $receivedDefault);
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     */
     public function testStatusFactoryCreatesHandlerWithJustStatusCode(): void
     {
         $handler = Handler::status(204);
@@ -94,6 +121,9 @@ final class HandlerTest extends TestCase
         self::assertSame('', (string) $response->getBody());
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     */
     public function testStatusHandlerIgnoresDefaultResponseBody(): void
     {
         $handler = Handler::status(201);
@@ -107,6 +137,9 @@ final class HandlerTest extends TestCase
         self::assertSame('', $response->getHeaderLine('Content-Type'));
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     */
     public function testResolveWithStaticResponseIgnoresDefault(): void
     {
         $handler = Handler::response(200, ['stubbed' => true]);

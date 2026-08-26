@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace OasFake;
 
+use JsonException;
 use OasFake\Exception\ValidationException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Vural\OpenAPIFaker\Exception\NoPath;
+use Vural\OpenAPIFaker\Exception\NoResponse;
 
 /**
  * Handles a PSR-7 request through OpenAPI resolution and response validation.
@@ -30,6 +33,9 @@ final class SchemaRequestHandler implements RequestHandlerInterface
     /**
      * Generate and validate a response for the incoming request.
      *
+     * @throws JsonException when a generated response body cannot be encoded
+     * @throws NoPath when the OpenAPI path cannot be generated
+     * @throws NoResponse when the OpenAPI response cannot be generated
      * @throws ValidationException when enabled request or response validation fails
      */
     public function handle(ServerRequestInterface $request): ResponseInterface

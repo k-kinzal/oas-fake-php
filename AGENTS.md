@@ -9,20 +9,22 @@ Fake API server library for PHP testing. Intercepts HTTP requests via PHP-VCR an
 ## Architecture
 
 ```
-Application    # Facades, server lifecycle/configuration, public fake request/response API
-  ↓
-Interception   # PHP-VCR boundary, cassette lifecycle, VCR ↔ PSR-7 conversion
-  ↓
-Handling       # Request resolution, handlers, validation pipeline, middleware chain
-  ↓
-Generation     # Schema-backed request/response data and wire serialization
-  ↓
-OpenApi        # Schema parsing, operation index, URL/path matching, validation
-  ↓
-Exception      # Stable project exception contracts
-```
+OasFake (facade)
+  └─ ServerRegistry          # Multi-server lifecycle management
+       └─ Server             # Per-server fluent configuration
+            └─ Interceptor   # PHP-VCR hook, request/response pipeline
+                 ├─ Converter       # VCR ↔ PSR-7 format bridge
+                 ├─ Validator       # OpenAPI request/response validation
+                 ├─ HandlerMap      # Handler lookup by operationId or path/method
+                 │    └─ Handler    # Response strategy (fixed, callback, status)
+                 ├─ FakeResponse    # Schema-based response generation
+                 └─ Middleware[]    # PSR-15 middleware chain
 
-Dependency direction is enforced from the physical directories above; lower layers must never call back into higher layers. PHP namespaces remain unchanged to preserve the published API.
+Schema             # OpenAPI spec wrapper (file/string/object)
+OperationLookup    # Indexes operations for fast lookup
+FakeRequest        # Schema-based request generation (standalone use)
+ParameterFaker     # Generates fake path/query/header parameters
+```
 
 Request flow: VCR intercept → Converter → Validator → HandlerMap → Handler/FakeResponse → Middleware → Validator → Converter → VCR response.
 
@@ -83,21 +85,8 @@ $response = FakeResponse::for($schema, 'listPets');
 ## Commands
 
 ```bash
-composer test              # Parallel modern suite
-composer test:unit         # Modern unit + doctest suites
-composer test:unit:legacy  # PHPUnit 9 suite for PHP 8.0
-composer test:coverage     # Strict coverage metadata + XML
-composer doctest           # Runnable public PHPDoc examples
-composer lint              # All fast toolkit gates below
-composer phpstan           # Toolkit contracts and strict types
-composer compat            # PHPCompatibility for PHP 8.0+
-composer loc-guard         # Size and complexity limits
-composer tree-guard        # Repository layout policy
-composer scope-guard       # @visibility contracts
-composer deptrac           # Architectural dependency direction
-composer doc-gen           # API/architecture site in build/docs
-composer format            # Fix code style
-composer format:check      # Check code style without fixing
+composer test             # Run tests
+composer lint             # Static analysis + format check
+composer format           # Fix code style
+composer format:check     # Check code style without fixing
 ```
-
-Mutation testing is intentionally a two-step CI gate: generate `build/infection-coverage`, then run Infection with `infection.json5`. Do not disable mutators, narrow `source.directories`, or add ignore annotations to improve the score; improve the asserted behavior or redesign equivalent code instead.

@@ -4,43 +4,29 @@ declare(strict_types=1);
 
 namespace OasFake;
 
+use cebe\openapi\exceptions\IOException;
+use cebe\openapi\exceptions\TypeErrorException;
+use cebe\openapi\exceptions\UnresolvableReferenceException;
+use cebe\openapi\json\InvalidJsonPointerSyntaxException;
 use Psr\Http\Server\MiddlewareInterface;
+use ReflectionException;
 
 /**
  * Base server class providing fluent configuration, handler management, and lifecycle control.
  *
  * Subclass this to define a persistent server configuration with static properties,
  * or use the fluent API via OasFake::start() to configure on the fly.
+ *
+ * @visibility public
+ *
+ * @example Configuring the fake mode fluently
+ *     $server = (new \OasFake\Server())->withMode(\OasFake\Mode::FAKE);
+ *     $server->resolveMode()->value() // => 'fake'
  */
 class Server
 {
     use ServerMiddleware;
-
-    protected static string $SCHEMA = '';
-    protected static string $MODE = 'fake';
-    protected static string $CASSETTE_PATH = './cassettes';
-    protected static string $CASSETTE_NAME = '';
-    protected static bool $VALIDATE_REQUESTS = true;
-    protected static bool $VALIDATE_RESPONSES = true;
-    /**
-     * @var array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int}
-     */
-    protected static array $FAKER_OPTIONS = [];
-
-    private HandlerMap $handlers;
-    private ?Schema $resolvedSchema = null;
-    private ServerConfiguration $configuration;
-    private ServerLifecycle $lifecycle;
-
-    /**
-     * Create a server instance.
-     */
-    public function __construct()
-    {
-        $this->configuration = new ServerConfiguration();
-        $this->handlers = new HandlerMap();
-        $this->lifecycle = new ServerLifecycle();
-    }
+    use ServerRuntimeState;
 
     /**
      * Set the OpenAPI schema file path.
@@ -51,7 +37,7 @@ class Server
     {
         $this->lifecycle->assertConfigurable();
         $this->configuration->setSchema($schemaPath);
-        $this->resolvedSchema = null;
+        $this->runtime->forgetSchema();
 
         return $this;
     }
@@ -211,6 +197,12 @@ class Server
      *
      * Creates the Interceptor and initializes cassettes for RECORD/REPLAY modes.
      * Used by ServerRegistry which manages VCR lifecycle externally.
+     *
+     * @throws IOException when the schema file cannot be read
+     * @throws TypeErrorException when the schema has an invalid structure
+     * @throws UnresolvableReferenceException when a schema reference cannot be resolved
+     * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid
+     * @throws ReflectionException when a declarative handler cannot be bound
      */
     public function buildInterceptor(): void
     {
@@ -218,30 +210,17 @@ class Server
             return;
         }
 
-        $schema = $this->configuration->schema(static::$SCHEMA);
-        $this->resolvedSchema = $schema;
-        $handlers = clone $this->handlers;
-        (new DeclarativeHandlerRegistrar())->register($this, $handlers, $schema);
-
-        $interceptor = (new InterceptorFactory())->create(
-            new ServerOptions(
-                schema: $schema,
-                mode: $this->resolveMode(),
-                cassettePath: $this->configuration->cassettePath(static::$CASSETTE_PATH),
-                validateRequests: $this->configuration->requestValidation(static::$VALIDATE_REQUESTS),
-                validateResponses: $this->configuration->responseValidation(static::$VALIDATE_RESPONSES),
-                fakerOptions: $this->fakerOptions(),
-                middleware: $this->configuration->middleware(static::middleware()),
-                cassetteName: $this->configuration->cassetteName(static::$CASSETTE_NAME, static::class),
-            ),
-            $handlers,
-        );
-        $interceptor->start();
-        $this->lifecycle->replaceInterceptor($interceptor);
+        $this->lifecycle->replaceInterceptor($this->runtime->build($this));
     }
 
     /**
      * Start the fake server through the shared OasFake registry.
+     *
+     * @throws IOException when the schema file cannot be read
+     * @throws TypeErrorException when the schema has an invalid structure
+     * @throws UnresolvableReferenceException when a schema reference cannot be resolved
+     * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid
+     * @throws ReflectionException when a declarative handler cannot be bound
      */
     public function start(): void
     {
@@ -281,14 +260,15 @@ class Server
 
     /**
      * Return the resolved OpenAPI schema.
+     *
+     * @throws IOException when the schema file cannot be read
+     * @throws TypeErrorException when the schema has an invalid structure
+     * @throws UnresolvableReferenceException when a schema reference cannot be resolved
+     * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid
      */
     public function schema(): Schema
     {
-        if ($this->resolvedSchema !== null) {
-            return $this->resolvedSchema;
-        }
-
-        return $this->configuration->schema(static::$SCHEMA);
+        return $this->runtime->schema();
     }
 
     /**
@@ -298,21 +278,22 @@ class Server
      */
     public function fakerOptions(): array
     {
-        return $this->configuration->fakerOptions(static::$FAKER_OPTIONS);
+        return $this->runtime->fakerOptions();
     }
 
     /**
      * Return the server URLs from the resolved schema.
      *
+     * @throws IOException when the schema file cannot be read
+     * @throws TypeErrorException when the schema has an invalid structure
+     * @throws UnresolvableReferenceException when a schema reference cannot be resolved
+     * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid
+     *
      * @return list<string>
      */
     public function serverUrls(): array
     {
-        if ($this->resolvedSchema !== null) {
-            return $this->resolvedSchema->serverUrls();
-        }
-
-        return $this->configuration->schema(static::$SCHEMA)->serverUrls();
+        return $this->runtime->serverUrls();
     }
 
     /**
@@ -320,7 +301,7 @@ class Server
      */
     public function resolveMode(): Mode
     {
-        return $this->configuration->mode(static::$MODE);
+        return $this->runtime->mode();
     }
 
     /**

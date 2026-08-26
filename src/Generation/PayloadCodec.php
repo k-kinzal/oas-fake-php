@@ -26,6 +26,10 @@ final class PayloadCodec
     /**
      * Encode JSON-compatible generated data.
      *
+     * @template TPayload
+     *
+     * @param TPayload $data
+     *
      * @throws JsonException when the payload cannot be encoded
      */
     public function encodeJson(mixed $data): string
@@ -39,6 +43,10 @@ final class PayloadCodec
 
     /**
      * Encode scalar text, falling back to JSON for structured data.
+     *
+     * @template TPayload
+     *
+     * @param TPayload $data
      *
      * @throws JsonException when structured data cannot be encoded
      */
@@ -56,7 +64,7 @@ final class PayloadCodec
      */
     public function normalizeMediaType(string $mediaType): string
     {
-        return strtolower(trim(explode(';', $mediaType, 2)[0]));
+        return strtolower(trim(explode(';', $mediaType)[0]));
     }
 
     /**

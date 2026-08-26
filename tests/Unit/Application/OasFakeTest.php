@@ -9,13 +9,25 @@ use OasFake\Testing\InspectableServer;
 use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use ReflectionException;
 
+/**
+ * @covers \OasFake\OasFake
+ *
+ * @uses \OasFake\InterceptorRouter
+ * @uses \OasFake\Server
+ * @uses \OasFake\ServerLifecycle
+ * @uses \OasFake\ServerRegistry
+ * @uses \OasFake\VcrLifecycle
+ * @uses \OasFake\ServerRuntime
+ */
 #[CoversClass(OasFake::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\InterceptorRouter::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Server::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerLifecycle::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerRegistry::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\VcrLifecycle::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerRuntime::class)]
 final class OasFakeTest extends TestCase
 {
     #[Override]
@@ -24,6 +36,13 @@ final class OasFakeTest extends TestCase
         OasFake::stop();
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testStartWithServerInstance(): void
     {
         $server = new InspectableServer();
@@ -34,6 +53,13 @@ final class OasFakeTest extends TestCase
         self::assertSame(1, $server->buildCount);
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testStartWithConfigureCallback(): void
     {
         $server = new InspectableServer();
@@ -48,6 +74,13 @@ final class OasFakeTest extends TestCase
         self::assertTrue($callbackInvoked);
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testStopStopsServer(): void
     {
         $server = new InspectableServer();
@@ -64,6 +97,13 @@ final class OasFakeTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testStartReturnsServerInstance(): void
     {
         $server = new InspectableServer();
@@ -73,6 +113,13 @@ final class OasFakeTest extends TestCase
         self::assertSame($server, $result);
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testStopIsIdempotent(): void
     {
         $server = new InspectableServer();
@@ -85,6 +132,13 @@ final class OasFakeTest extends TestCase
         self::assertSame(1, $server->unregisterCount);
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testMultipleServersCanBeStarted(): void
     {
         $server1 = new InspectableServer();
@@ -99,6 +153,13 @@ final class OasFakeTest extends TestCase
         self::assertSame(1, $server2->buildCount);
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testStopStopsAllServers(): void
     {
         $server1 = new InspectableServer();
@@ -112,6 +173,13 @@ final class OasFakeTest extends TestCase
         self::assertSame(1, $server2->unregisterCount);
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testStopCanSelectOneServer(): void
     {
         $first = new InspectableServer();
@@ -125,6 +193,13 @@ final class OasFakeTest extends TestCase
         self::assertSame(0, $second->unregisterCount);
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testStartingSameServerClassTwiceKeepsFirstInstanceRegistered(): void
     {
         $server1 = new InspectableServer();

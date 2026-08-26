@@ -7,6 +7,7 @@ namespace OasFake\Tests\Unit;
 use OasFake\DeclarativeHandlerRegistrar;
 use OasFake\HandlerMap;
 use OasFake\Schema;
+use OasFake\Testing\RegistrarContinuationServer;
 use OasFake\Testing\RegistrarInvalidParameterServer;
 use OasFake\Testing\RegistrarInvalidRouteServer;
 use OasFake\Testing\RegistrarOperationServer;
@@ -14,7 +15,27 @@ use OasFake\Testing\RegistrarRouteServer;
 use OasFake\Testing\RegistrarUnknownRouteServer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use ReflectionException;
 
+/**
+ * @covers \OasFake\DeclarativeHandlerRegistrar
+ *
+ * @uses \OasFake\DeclarativeHandlerInspector
+ * @uses \OasFake\Handler
+ * @uses \OasFake\HandlerMap
+ * @uses \OasFake\OpenApiServerResolver
+ * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationIndexBuilder
+ * @uses \OasFake\OperationLookup
+ * @uses \OasFake\OperationParameterResolver
+ * @uses \OasFake\PathOperationResolver
+ * @uses \OasFake\Route
+ * @uses \OasFake\Schema
+ * @uses \OasFake\Server
+ * @uses \OasFake\HandlerTypeMatcher
+ * @uses \OasFake\OperationInfoFactory
+ * @uses \OasFake\ServerRuntime
+ */
 #[CoversClass(DeclarativeHandlerRegistrar::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\DeclarativeHandlerInspector::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Handler::class)]
@@ -28,9 +49,13 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Route::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Server::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\HandlerTypeMatcher::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerRuntime::class)]
 final class DeclarativeHandlerRegistrarTest extends TestCase
 {
     /**
+     * @throws ReflectionException when the exercised contract propagates it
      */
     public function testRegisterAddsOperationIdHandler(): void
     {
@@ -42,6 +67,7 @@ final class DeclarativeHandlerRegistrarTest extends TestCase
     }
 
     /**
+     * @throws ReflectionException when the exercised contract propagates it
      */
     public function testRegisterWithSchemaSkipsUnknownOperationIdHandler(): void
     {
@@ -55,6 +81,7 @@ final class DeclarativeHandlerRegistrarTest extends TestCase
     }
 
     /**
+     * @throws ReflectionException when the exercised contract propagates it
      */
     public function testRegisterAddsRouteHandler(): void
     {
@@ -66,6 +93,7 @@ final class DeclarativeHandlerRegistrarTest extends TestCase
     }
 
     /**
+     * @throws ReflectionException when the exercised contract propagates it
      */
     public function testRegisterWithSchemaSkipsUnknownRouteHandler(): void
     {
@@ -78,6 +106,7 @@ final class DeclarativeHandlerRegistrarTest extends TestCase
     }
 
     /**
+     * @throws ReflectionException when the exercised contract propagates it
      */
     public function testRegisterSkipsMethodsWithExtraRequiredParameters(): void
     {
@@ -89,6 +118,7 @@ final class DeclarativeHandlerRegistrarTest extends TestCase
     }
 
     /**
+     * @throws ReflectionException when the exercised contract propagates it
      */
     public function testRegisterSkipsRouteMethodsWithInvalidSignature(): void
     {
@@ -97,5 +127,21 @@ final class DeclarativeHandlerRegistrarTest extends TestCase
         (new DeclarativeHandlerRegistrar())->register(new RegistrarInvalidRouteServer(), $handlers);
 
         self::assertNull($handlers->find('', '/pets/1', 'DELETE', '/pets/{petId}'));
+    }
+
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     */
+    public function testRegisterContinuesAfterEverySkippedDeclaration(): void
+    {
+        $handlers = new HandlerMap();
+        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+
+        (new DeclarativeHandlerRegistrar())->register(new RegistrarContinuationServer(), $handlers, $schema);
+
+        self::assertNotNull($handlers->find('', '/pets/1', 'DELETE', '/pets/{petId}'));
+        self::assertNotNull($handlers->find('listPets', '/pets', 'GET'));
+        self::assertNull($handlers->find('', '/unknown', 'GET'));
+        self::assertNull($handlers->find('helperOperation', '/pets', 'GET'));
     }
 }

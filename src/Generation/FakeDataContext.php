@@ -14,6 +14,13 @@ use Vural\OpenAPIFaker\SchemaFaker\SchemaFaker;
 
 /**
  * Shared fake-data generation context for one schema and faker option set.
+ *
+ * @visibility public
+ *
+ * @example Sharing one schema across fake-data operations
+ *     $schema = \OasFake\Schema::fromString('{"openapi":"3.0.0","info":{"title":"Pets","version":"1"},"paths":{}}');
+ *     $fakeData = new \OasFake\FakeDataContext($schema);
+ *     $fakeData->schema() === $schema // => true
  */
 final class FakeDataContext
 {

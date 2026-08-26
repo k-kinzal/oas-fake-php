@@ -12,6 +12,12 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Exception\ParseException;
 
+/**
+ * @covers \OasFake\Schema
+ *
+ * @uses \OasFake\Exception\SchemaNotFoundException
+ * @uses \OasFake\OpenApiServerResolver
+ */
 #[CoversClass(Schema::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(SchemaNotFoundException::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]

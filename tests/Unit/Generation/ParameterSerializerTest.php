@@ -11,7 +11,13 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\ParameterSerializer
+ *
+ * @uses \OasFake\FormQueryParameterSerializer
+ */
 #[CoversClass(ParameterSerializer::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FormQueryParameterSerializer::class)]
 final class ParameterSerializerTest extends TestCase
 {
     /**

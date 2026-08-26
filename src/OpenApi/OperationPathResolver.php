@@ -44,7 +44,7 @@ final class OperationPathResolver
                 continue;
             }
 
-            $basePath = $urlMatcher->normalizePath((string) ($base['path'] ?? '/'));
+            $basePath = $urlMatcher->normalizePath($base['path'] ?? '/');
             $operationPath = $urlMatcher->stripBasePath($path, $basePath);
             if ($operationPath === null) {
                 continue;
@@ -60,16 +60,14 @@ final class OperationPathResolver
             }
         }
 
-        if ($match === null) {
-            return [
+        return $match === null
+            ? [
                 'path' => $path,
                 'serverUrl' => null,
+            ]
+            : [
+                'path' => $match['path'],
+                'serverUrl' => $match['serverUrl'],
             ];
-        }
-
-        return [
-            'path' => $match['path'],
-            'serverUrl' => $match['serverUrl'],
-        ];
     }
 }

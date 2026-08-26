@@ -36,7 +36,7 @@ final class OperationResponseResolver
         $successful = $this->successfulResponse($definition);
 
         return $successful === null
-            || ($successful['response']->content !== null && $successful['response']->content !== []);
+            || $successful['response']->content !== [];
     }
 
     /**
@@ -60,7 +60,7 @@ final class OperationResponseResolver
     public function mediaType(OperationInfo $definition, int $statusCode): string
     {
         $response = $this->forStatus($definition, $statusCode);
-        if ($response === null || $response->content === null || $response->content === []) {
+        if ($response === null || $response->content === []) {
             return 'application/json';
         }
 
@@ -76,7 +76,7 @@ final class OperationResponseResolver
     public function schema(OperationInfo $definition, int $statusCode, string $mediaType): ?CebeSchema
     {
         $response = $this->forStatus($definition, $statusCode);
-        if ($response === null || $response->content === null) {
+        if ($response === null) {
             return null;
         }
 

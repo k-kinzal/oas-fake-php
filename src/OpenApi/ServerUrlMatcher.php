@@ -60,20 +60,32 @@ final class ServerUrlMatcher
             return null;
         }
 
-        if (isset($base['scheme']) && strtolower($request['scheme'] ?? '') !== strtolower($base['scheme'])) {
-            return null;
-        }
-
-        if (isset($base['host']) && strtolower($request['host'] ?? '') !== strtolower($base['host'])) {
-            return null;
-        }
-
-        $basePort = $this->effectivePort($base);
-        if ($basePort !== null && $this->effectivePort($request) !== $basePort) {
+        if (!$this->matchesParsedOrigin($request, $base)) {
             return null;
         }
 
         return $this->pathPrefixSpecificity($request['path'] ?? '/', $base['path'] ?? '/');
+    }
+
+    /**
+     * Check whether two parsed URLs share the origin constrained by the base.
+     *
+     * @param array{scheme?: string, host?: string, port?: int|string, path?: string} $request
+     * @param array{scheme?: string, host?: string, port?: int|string, path?: string} $base
+     */
+    public function matchesParsedOrigin(array $request, array $base): bool
+    {
+        if (isset($base['scheme']) && strtolower($request['scheme'] ?? '') !== strtolower($base['scheme'])) {
+            return false;
+        }
+
+        if (isset($base['host']) && strtolower($request['host'] ?? '') !== strtolower($base['host'])) {
+            return false;
+        }
+
+        $basePort = $this->effectivePort($base);
+
+        return $basePort === null || $this->effectivePort($request) === $basePort;
     }
 
     /**

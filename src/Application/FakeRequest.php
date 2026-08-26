@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace OasFake;
 
+use cebe\openapi\exceptions\IOException;
+use cebe\openapi\exceptions\TypeErrorException;
+use cebe\openapi\exceptions\UnresolvableReferenceException;
+use cebe\openapi\json\InvalidJsonPointerSyntaxException;
 use GuzzleHttp\Psr7\Query;
 use GuzzleHttp\Psr7\ServerRequest;
 use GuzzleHttp\Psr7\Uri;
@@ -20,6 +24,13 @@ use Vural\OpenAPIFaker\Exception\NoRequest;
 
 /**
  * Generates fake HTTP requests from an OpenAPI schema definition.
+ *
+ * @visibility public
+ *
+ * @example Generating a request by operation ID
+ *     $schema = \OasFake\Schema::fromString('{"openapi":"3.0.0","info":{"title":"Pets","version":"1"},"servers":[{"url":"https://example.test"}],"paths":{"/pets":{"get":{"operationId":"listPets","responses":{"200":{"description":"ok"}}}}}}');
+ *     $request = \OasFake\FakeRequest::for($schema, 'listPets');
+ *     $request->method() // => 'GET'
  */
 final class FakeRequest
 {
@@ -43,6 +54,10 @@ final class FakeRequest
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      *
      * @throws JsonException when the generated request body cannot be encoded
+     * @throws IOException when a schema file cannot be read
+     * @throws TypeErrorException when a schema has an invalid structure
+     * @throws UnresolvableReferenceException when a schema reference cannot be resolved
+     * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid
      * @throws NoPath when the OpenAPI path cannot be generated
      * @throws NoRequest when the OpenAPI request cannot be generated
      */
@@ -64,6 +79,10 @@ final class FakeRequest
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      *
      * @throws JsonException when the generated request body cannot be encoded
+     * @throws IOException when a schema file cannot be read
+     * @throws TypeErrorException when a schema has an invalid structure
+     * @throws UnresolvableReferenceException when a schema reference cannot be resolved
+     * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid
      * @throws NoPath when the OpenAPI path cannot be generated
      * @throws NoRequest when the OpenAPI request cannot be generated
      */
@@ -201,7 +220,7 @@ final class FakeRequest
     public function toPsr7(): ServerRequestInterface
     {
         $uri = new Uri($this->url());
-        $request = new ServerRequest(strtoupper($this->method), $uri, $this->headerParams, $this->rawBody);
+        $request = new ServerRequest($this->method(), $uri, $this->headerParams, $this->rawBody);
 
         if ($this->queryParams !== []) {
             $request = $request->withQueryParams($this->queryParams);

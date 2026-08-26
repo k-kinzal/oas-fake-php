@@ -14,6 +14,12 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
+/**
+ * @covers \OasFake\MiddlewarePipeline
+ *
+ * @uses \OasFake\MiddlewareRequestHandler
+ * @uses \OasFake\ResolvedResponseRequestHandler
+ */
 #[CoversClass(MiddlewarePipeline::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\MiddlewareRequestHandler::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ResolvedResponseRequestHandler::class)]

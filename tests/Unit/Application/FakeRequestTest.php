@@ -13,6 +13,28 @@ use OasFake\Testing\Petstore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\FakeRequest
+ *
+ * @uses \OasFake\PayloadCodec
+ * @uses \OasFake\Exception\OperationNotFoundException
+ * @uses \OasFake\FakeDataContext
+ * @uses \OasFake\FakeDataContextResolver
+ * @uses \OasFake\FakeRequestFactory
+ * @uses \OasFake\OpenApiServerResolver
+ * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationIndexBuilder
+ * @uses \OasFake\OperationLookup
+ * @uses \OasFake\OperationParameterResolver
+ * @uses \OasFake\ParameterFaker
+ * @uses \OasFake\ParameterSerializer
+ * @uses \OasFake\PathOperationResolver
+ * @uses \OasFake\PayloadSerializer
+ * @uses \OasFake\RequestBodyGenerator
+ * @uses \OasFake\Schema
+ * @uses \OasFake\FormQueryParameterSerializer
+ * @uses \OasFake\OperationInfoFactory
+ */
 #[CoversClass(FakeRequest::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadCodec::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(OperationNotFoundException::class)]
@@ -30,8 +52,19 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadSerializer::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\RequestBodyGenerator::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FormQueryParameterSerializer::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
 final class FakeRequestTest extends TestCase
 {
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testForCreatesRequestForGetOperation(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'listPets');
@@ -41,6 +74,15 @@ final class FakeRequestTest extends TestCase
         self::assertNull($request->body());
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testForUsesOperationLevelServerUrl(): void
     {
         $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
@@ -68,6 +110,15 @@ final class FakeRequestTest extends TestCase
         self::assertSame('https://operation.example.com/v2/pets', $request->url());
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testForAcceptsFakeDataContext(): void
     {
         $request = FakeRequest::for(new FakeDataContext(Petstore::schema()), 'listPets');
@@ -76,6 +127,15 @@ final class FakeRequestTest extends TestCase
         self::assertStringStartsWith('https://api.petstore.example.com/pets', $request->url());
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testForCreatesRequestWithPathParams(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'getPetById');
@@ -88,6 +148,12 @@ final class FakeRequestTest extends TestCase
 
     /**
      * @throws JsonException when generated JSON cannot be decoded
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
      */
     public function testForCreatesRequestWithBody(): void
     {
@@ -102,6 +168,15 @@ final class FakeRequestTest extends TestCase
         self::assertArrayHasKey('name', $data);
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testForUsesTextPlainRequestMediaType(): void
     {
         $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
@@ -131,6 +206,15 @@ final class FakeRequestTest extends TestCase
         self::assertSame('hello', $request->body());
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testForUsesFormUrlEncodedRequestMediaType(): void
     {
         $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
@@ -164,6 +248,15 @@ final class FakeRequestTest extends TestCase
         self::assertSame('message=hello', $request->body());
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testForThrowsForUnknownOperation(): void
     {
         $this->expectException(OperationNotFoundException::class);
@@ -171,6 +264,15 @@ final class FakeRequestTest extends TestCase
         FakeRequest::for(Petstore::schema(), 'nonexistent');
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testMethodReturnsUppercaseMethod(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'listPets');
@@ -178,6 +280,15 @@ final class FakeRequestTest extends TestCase
         self::assertSame('GET', $request->method());
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testUrlReturnsFullUrl(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'getPetById')->withPathParam('petId', '123');
@@ -185,6 +296,15 @@ final class FakeRequestTest extends TestCase
         self::assertSame('https://api.petstore.example.com/pets/123', $request->url());
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testUrlEncodesPathParametersAsPathSegments(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'getPetById')->withPathParam('petId', "A/B pet's");
@@ -193,6 +313,15 @@ final class FakeRequestTest extends TestCase
         self::assertSame('/pets/A%2FB%20pet%27s', $request->toPsr7()->getUri()->getPath());
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testBodyReturnsRawBody(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'createPet')->withBody('{"name":"Buddy"}');
@@ -200,6 +329,15 @@ final class FakeRequestTest extends TestCase
         self::assertSame('{"name":"Buddy"}', $request->body());
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testForPathCreatesRequest(): void
     {
         $request = FakeRequest::forPath(Petstore::schema(), '/pets', 'GET');
@@ -208,6 +346,15 @@ final class FakeRequestTest extends TestCase
         self::assertStringStartsWith('https://api.petstore.example.com/pets', $request->url());
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testForPathThrowsForUnknownPath(): void
     {
         $this->expectException(OperationNotFoundException::class);
@@ -215,6 +362,15 @@ final class FakeRequestTest extends TestCase
         FakeRequest::forPath(Petstore::schema(), '/nonexistent', 'GET');
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testWithPathParamOverridesValue(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'getPetById');
@@ -225,6 +381,15 @@ final class FakeRequestTest extends TestCase
         self::assertNotSame($request->pathParams()['petId'], '99');
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testPathParamsReturnsPathParameters(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'getPetById')->withPathParam('petId', '99');
@@ -232,15 +397,62 @@ final class FakeRequestTest extends TestCase
         self::assertSame(['petId' => '99'], $request->pathParams());
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testWithQueryParamAddsParam(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'listPets');
         $modified = $request->withQueryParam('limit', '10');
 
         self::assertSame('10', $modified->queryParams()['limit']);
-        self::assertStringContainsString('limit=10', $modified->url());
+        self::assertSame('https://api.petstore.example.com/pets?limit=10', $modified->url());
+        self::assertSame([], $request->queryParams());
+        self::assertSame('https://api.petstore.example.com/pets', $request->url());
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
+    public function testUrlJoinsATrailingSlashServerUrlToTheOperationPath(): void
+    {
+        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+            openapi: 3.0.0
+            info: {title: Trailing Slash API, version: 1.0.0}
+            servers:
+              - url: https://api.example.com/
+            paths:
+              /pets:
+                get:
+                  operationId: listPets
+                  responses:
+                    '204': {description: No content}
+            YAML);
+
+        self::assertSame('https://api.example.com/pets', FakeRequest::for($schema, 'listPets')->url());
+    }
+
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testUrlEncodesQueryParameterValues(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'listPets')->withQueryParam('filter', 'friendly pets & cats');
@@ -249,6 +461,15 @@ final class FakeRequestTest extends TestCase
         self::assertSame('friendly pets & cats', $request->toPsr7()->getQueryParams()['filter']);
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testQueryParamsReturnsQueryParameters(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'listPets')->withQueryParam('limit', '10');
@@ -256,6 +477,15 @@ final class FakeRequestTest extends TestCase
         self::assertSame(['limit' => '10'], $request->queryParams());
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testUrlUsesRepeatedQueryParamsForGeneratedArrays(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'listPets', [
@@ -270,6 +500,15 @@ final class FakeRequestTest extends TestCase
         self::assertSame(['friendly', 'friendly'], $request->toPsr7()->getQueryParams()['tags']);
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testWithHeaderAddsHeader(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'listPets');
@@ -278,6 +517,15 @@ final class FakeRequestTest extends TestCase
         self::assertSame('Bearer token', $modified->headers()['Authorization']);
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testWithBodyOverridesBody(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'createPet');
@@ -286,6 +534,15 @@ final class FakeRequestTest extends TestCase
         self::assertSame('{"name":"custom"}', $modified->body());
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testToPsr7ReturnsServerRequestInterface(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'createPet');
@@ -296,6 +553,15 @@ final class FakeRequestTest extends TestCase
         self::assertStringStartsWith('https://api.petstore.example.com/pets', (string) $psr7->getUri());
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testToCurlReturnsString(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'createPet');
@@ -308,6 +574,15 @@ final class FakeRequestTest extends TestCase
         self::assertStringContainsString("-d '", $curl);
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testToCurlShellQuotesSingleQuotes(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'getPetById')
@@ -322,6 +597,15 @@ final class FakeRequestTest extends TestCase
         self::assertStringContainsString("-d '{\"name\":\"Bob'\\''s pet\"}'", $curl);
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testToCurlGetOmitsMethodFlag(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'listPets');
@@ -331,6 +615,15 @@ final class FakeRequestTest extends TestCase
         self::assertStringNotContainsString('-X GET', $curl);
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testToArrayReturnsStructuredData(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'createPet');
@@ -344,6 +637,15 @@ final class FakeRequestTest extends TestCase
         self::assertSame('POST', $array['method']);
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testHeadersIncludeContentTypeForPostRequest(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'createPet');
@@ -352,6 +654,15 @@ final class FakeRequestTest extends TestCase
         self::assertSame('application/json', $request->headers()['Content-Type']);
     }
 
+    /**
+     * @throws JsonException when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
+     * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testDeleteOperationHasNoBody(): void
     {
         $request = FakeRequest::for(Petstore::schema(), 'deletePet');

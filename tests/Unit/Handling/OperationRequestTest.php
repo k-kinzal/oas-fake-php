@@ -9,6 +9,9 @@ use OasFake\OperationRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\OperationRequest
+ */
 #[CoversClass(OperationRequest::class)]
 final class OperationRequestTest extends TestCase
 {

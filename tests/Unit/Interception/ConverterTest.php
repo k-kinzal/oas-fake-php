@@ -11,6 +11,11 @@ use PHPUnit\Framework\TestCase;
 use VCR\Request as VcrRequest;
 use VCR\Response as VcrResponse;
 
+/**
+ * @covers \OasFake\Converter
+ *
+ * @uses \OasFake\VcrResponseFactory
+ */
 #[CoversClass(Converter::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\VcrResponseFactory::class)]
 final class ConverterTest extends TestCase

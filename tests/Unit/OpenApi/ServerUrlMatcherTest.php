@@ -9,6 +9,9 @@ use OasFake\ServerUrlMatcher;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\ServerUrlMatcher
+ */
 #[CoversClass(ServerUrlMatcher::class)]
 final class ServerUrlMatcherTest extends TestCase
 {
@@ -46,6 +49,25 @@ final class ServerUrlMatcherTest extends TestCase
         self::assertNull($matcher->specificity('https://other.example.com/pets', 'https://api.example.com'));
         self::assertNull($matcher->specificity('https://api.example.com:8443/pets', 'https://api.example.com'));
         self::assertNull($matcher->specificity('https://api.example.com/pets', 'http://'));
+    }
+
+    public function testMatchesParsedOriginHonorsBaseConstraints(): void
+    {
+        $matcher = new ServerUrlMatcher();
+        $request = ['scheme' => 'https', 'host' => 'api.example.com', 'port' => 443];
+
+        self::assertTrue($matcher->matchesParsedOrigin($request, ['scheme' => 'HTTPS', 'host' => 'API.EXAMPLE.COM']));
+        self::assertFalse($matcher->matchesParsedOrigin($request, ['scheme' => 'http']));
+        self::assertFalse($matcher->matchesParsedOrigin($request, ['host' => 'other.example.com']));
+        self::assertFalse($matcher->matchesParsedOrigin($request, ['port' => 8443]));
+    }
+
+    public function testMatchesParsedOriginFoldsRequestSchemeAndHostCase(): void
+    {
+        self::assertTrue((new ServerUrlMatcher())->matchesParsedOrigin(
+            ['scheme' => 'HTTPS', 'host' => 'API.EXAMPLE.COM'],
+            ['scheme' => 'https', 'host' => 'api.example.com'],
+        ));
     }
 
     public function testEffectivePortUsesExplicitAndSchemeDefaults(): void

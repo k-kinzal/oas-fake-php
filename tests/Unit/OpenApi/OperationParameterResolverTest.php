@@ -13,6 +13,12 @@ use OasFake\Schema;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\OperationParameterResolver
+ *
+ * @uses \OasFake\PathOperationResolver
+ * @uses \OasFake\Schema
+ */
 #[CoversClass(OperationParameterResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(PathOperationResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
@@ -32,7 +38,6 @@ final class OperationParameterResolverTest extends TestCase
     public function testForPathReturnsOnlyPathLevelParameters(): void
     {
         $paths = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')->openApi()->paths;
-        self::assertNotNull($paths);
         $pathItem = $paths->getPath('/pets/{petId}');
         self::assertNotNull($pathItem);
 
@@ -44,7 +49,6 @@ final class OperationParameterResolverTest extends TestCase
     public function testMergeRetainsEffectivePathParameters(): void
     {
         $paths = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')->openApi()->paths;
-        self::assertNotNull($paths);
         $pathItem = $paths->getPath('/pets/{petId}');
         self::assertNotNull($pathItem);
         $operation = (new PathOperationResolver())->resolve($pathItem, 'get');

@@ -11,6 +11,18 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\OperationLookup
+ *
+ * @uses \OasFake\OpenApiServerResolver
+ * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationIndexBuilder
+ * @uses \OasFake\OperationParameterResolver
+ * @uses \OasFake\PathOperationResolver
+ * @uses \OasFake\RequestPathMatcher
+ * @uses \OasFake\Schema
+ * @uses \OasFake\OperationInfoFactory
+ */
 #[CoversClass(OperationLookup::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfo::class)]
@@ -19,6 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\RequestPathMatcher::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
 final class OperationLookupTest extends TestCase
 {
     public function testFindByOperationIdReturnsInfo(): void

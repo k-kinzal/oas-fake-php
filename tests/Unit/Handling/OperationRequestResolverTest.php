@@ -13,6 +13,22 @@ use OasFake\Validator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\OperationRequestResolver
+ *
+ * @uses \OasFake\OpenApiServerResolver
+ * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationIndexBuilder
+ * @uses \OasFake\OperationLookup
+ * @uses \OasFake\OperationParameterResolver
+ * @uses \OasFake\OperationPathResolver
+ * @uses \OasFake\OperationRequest
+ * @uses \OasFake\PathOperationResolver
+ * @uses \OasFake\Schema
+ * @uses \OasFake\ServerUrlMatcher
+ * @uses \OasFake\Validator
+ * @uses \OasFake\OperationInfoFactory
+ */
 #[CoversClass(OperationRequestResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfo::class)]
@@ -25,6 +41,7 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerUrlMatcher::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Validator::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
 final class OperationRequestResolverTest extends TestCase
 {
     public function testResolveUsesEffectiveServerPathAndOperation(): void

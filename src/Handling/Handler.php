@@ -8,9 +8,6 @@ use Closure;
 use GuzzleHttp\Psr7\Response;
 
 use function is_array;
-use function json_encode;
-
-use const JSON_THROW_ON_ERROR;
 
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
@@ -30,13 +27,12 @@ use Psr\Http\Message\ServerRequestInterface;
 final class Handler
 {
     /**
-     * @param array<string, mixed>|list<mixed>|string|null $body
      * @param array<string, string> $headers
      * @param (Closure(ServerRequestInterface, ?ResponseInterface): ResponseInterface)|null $callback
      */
     private function __construct(
         private ?int $statusCode,
-        private array|string|null $body,
+        private ?HandlerBody $body,
         private array $headers,
         private ?Closure $callback,
     ) {
@@ -48,7 +44,11 @@ final class Handler
      */
     public static function response(int $status, array|string $body, array $headers = []): self
     {
-        return new self($status, $body, $headers, null);
+        $handlerBody = is_array($body)
+            ? new JsonHandlerBody($body)
+            : new StringHandlerBody($body);
+
+        return new self($status, $handlerBody, $headers, null);
     }
 
     /**
@@ -98,7 +98,7 @@ final class Handler
             return new Response($statusCode, $headers);
         }
 
-        $body = is_array($this->body) ? json_encode($this->body, JSON_THROW_ON_ERROR) : $this->body;
+        $body = $this->body->encode();
         $headers['Content-Type'] ??= 'application/json';
 
         return new Response($statusCode, $headers, $body);

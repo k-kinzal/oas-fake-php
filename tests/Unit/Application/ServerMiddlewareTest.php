@@ -10,8 +10,15 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesTrait;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\Server
+ *
+ * @uses \OasFake\ServerMiddleware
+ * @uses \OasFake\ServerRuntime
+ */
 #[CoversClass(Server::class)]
 #[UsesTrait(ServerMiddleware::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerRuntime::class)]
 final class ServerMiddlewareTest extends TestCase
 {
     public function testMiddlewareDefaultsToEmptyList(): void

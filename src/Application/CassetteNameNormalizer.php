@@ -16,7 +16,7 @@ final class CassetteNameNormalizer
      */
     public function normalize(string $name): string
     {
-        $normalized = strtolower(str_replace('\\', '-', $name));
+        $normalized = strtolower($name);
         $normalized = preg_replace('/[^a-z0-9_.-]+/', '-', $normalized) ?? '';
         $normalized = trim($normalized, '-');
 

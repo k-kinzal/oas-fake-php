@@ -14,6 +14,12 @@ use OasFake\Validator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\Validator
+ *
+ * @uses \OasFake\Exception\ValidationException
+ * @uses \OasFake\Schema
+ */
 #[CoversClass(Validator::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(ValidationException::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Schema::class)]

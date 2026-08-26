@@ -10,6 +10,11 @@ use OasFake\Schema;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\OpenApiServerResolver
+ *
+ * @uses \OasFake\Schema
+ */
 #[CoversClass(OpenApiServerResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 final class OpenApiServerResolverTest extends TestCase
@@ -66,7 +71,6 @@ final class OpenApiServerResolverTest extends TestCase
             }
             JSON, 'json');
         $openApi = $schema->openApi();
-        self::assertNotNull($openApi->paths);
         $pets = $openApi->paths->getPath('/pets');
         $status = $openApi->paths->getPath('/status');
         self::assertNotNull($pets);

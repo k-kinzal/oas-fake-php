@@ -25,13 +25,11 @@ final class OpenApiServerResolver
     {
         $urls = [];
 
-        if ($openApi->paths !== null) {
-            /** @var PathItem $pathItem */
-            foreach ($openApi->paths as $_path => $pathItem) {
-                foreach ($pathItem->getOperations() as $operation) {
-                    foreach ($this->effective($openApi, $pathItem, $operation) as $url) {
-                        $urls[$url] = true;
-                    }
+        /** @var PathItem $pathItem */
+        foreach ($openApi->paths as $_path => $pathItem) {
+            foreach ($pathItem->getOperations() as $operation) {
+                foreach ($this->effective($openApi, $pathItem, $operation) as $url) {
+                    $urls[$url] = true;
                 }
             }
         }
@@ -46,15 +44,15 @@ final class OpenApiServerResolver
      */
     public function effective(OpenApi $openApi, ?PathItem $pathItem = null, ?Operation $operation = null): array
     {
-        if ($operation !== null && $operation->servers !== null && $operation->servers !== []) {
+        if ($operation !== null && $operation->servers !== []) {
             return $this->substituteVariables($operation->servers);
         }
 
-        if ($pathItem !== null && $pathItem->servers !== null && $pathItem->servers !== []) {
+        if ($pathItem !== null && $pathItem->servers !== []) {
             return $this->substituteVariables($pathItem->servers);
         }
 
-        return $this->substituteVariables($openApi->servers ?? []);
+        return $this->substituteVariables($openApi->servers);
     }
 
     /**
@@ -70,10 +68,8 @@ final class OpenApiServerResolver
 
         foreach ($servers as $server) {
             $url = $server->url;
-            if ($server->variables !== null) {
-                foreach ($server->variables as $name => $variable) {
-                    $url = str_replace('{' . $name . '}', $variable->default, $url);
-                }
+            foreach ($server->variables as $name => $variable) {
+                $url = str_replace('{' . $name . '}', $variable->default, $url);
             }
             $urls[] = $url;
         }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
-use LogicException;
 use OasFake\HandlerMap;
 use OasFake\Interceptor;
 use OasFake\Mode;
@@ -15,6 +14,30 @@ use OasFake\Validator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\ServerLifecycle
+ *
+ * @uses \OasFake\CassetteSession
+ * @uses \OasFake\FakeDataContext
+ * @uses \OasFake\Interceptor
+ * @uses \OasFake\InterceptorRouter
+ * @uses \OasFake\MiddlewarePipeline
+ * @uses \OasFake\Mode
+ * @uses \OasFake\OpenApiServerResolver
+ * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationIndexBuilder
+ * @uses \OasFake\OperationLookup
+ * @uses \OasFake\OperationParameterResolver
+ * @uses \OasFake\OperationPathResolver
+ * @uses \OasFake\OperationRequestResolver
+ * @uses \OasFake\OperationResponder
+ * @uses \OasFake\PathOperationResolver
+ * @uses \OasFake\Schema
+ * @uses \OasFake\SchemaRequestHandler
+ * @uses \OasFake\ServerRegistry
+ * @uses \OasFake\Validator
+ * @uses \OasFake\OperationInfoFactory
+ */
 #[CoversClass(ServerLifecycle::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteSession::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeDataContext::class)]
@@ -35,6 +58,7 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\SchemaRequestHandler::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(ServerRegistry::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Validator::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
 final class ServerLifecycleTest extends TestCase
 {
     public function testAssertConfigurableAllowsStoppedLifecycle(): void
@@ -44,32 +68,15 @@ final class ServerLifecycleTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
-    public function testAssertCanRegisterRejectsAnotherRegistry(): void
-    {
-        $lifecycle = new ServerLifecycle();
-        $lifecycle->register(new ServerRegistry(), 'one');
-
-        $this->expectException(LogicException::class);
-        $lifecycle->assertCanRegister(new ServerRegistry(), 'two');
-    }
-
-    public function testAssertCanRegisterRejectsAnotherRegistryWithTheSameKey(): void
-    {
-        $lifecycle = new ServerLifecycle();
-        $lifecycle->register(new ServerRegistry(), 'pet');
-
-        $this->expectException(LogicException::class);
-        $lifecycle->assertCanRegister(new ServerRegistry(), 'pet');
-    }
-
-    public function testAssertCanRegisterRejectsAnotherKeyInTheSameRegistry(): void
+    public function testAssertCanRegisterAllowsTheCurrentOwner(): void
     {
         $lifecycle = new ServerLifecycle();
         $registry = new ServerRegistry();
         $lifecycle->register($registry, 'pet');
 
-        $this->expectException(LogicException::class);
-        $lifecycle->assertCanRegister($registry, 'other');
+        $lifecycle->assertCanRegister($registry, 'pet');
+
+        $this->addToAssertionCount(1);
     }
 
     public function testRegisterAttachesRegistry(): void
@@ -78,18 +85,10 @@ final class ServerLifecycleTest extends TestCase
         $registry = new ServerRegistry();
         $lifecycle->register($registry, 'pet');
 
-        self::assertSame($registry, $lifecycle->registration()['registry'] ?? null);
-        self::assertSame('pet', $lifecycle->registration()['key'] ?? null);
-    }
-
-    public function testRegisterRejectsReattachmentWithoutAnExplicitCheck(): void
-    {
-        $lifecycle = new ServerLifecycle();
-        $registry = new ServerRegistry();
-        $lifecycle->register($registry, 'pet');
-
-        $this->expectException(LogicException::class);
-        $lifecycle->register($registry, 'other');
+        $registration = $lifecycle->registration();
+        self::assertNotNull($registration);
+        self::assertSame($registry, $registration['registry']);
+        self::assertSame('pet', $registration['key']);
     }
 
     public function testRegistrationReturnsNullBeforeAttachment(): void

@@ -14,6 +14,14 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
+/**
+ * @covers \OasFake\ServerConfiguration
+ *
+ * @uses \OasFake\CassetteNameNormalizer
+ * @uses \OasFake\EnvironmentResolver
+ * @uses \OasFake\Mode
+ * @uses \OasFake\Schema
+ */
 #[CoversClass(ServerConfiguration::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteNameNormalizer::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\EnvironmentResolver::class)]
@@ -21,6 +29,12 @@ use Psr\Http\Server\RequestHandlerInterface;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Schema::class)]
 final class ServerConfigurationTest extends TestCase
 {
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testSetSchemaOverridesDefault(): void
     {
         $configuration = new ServerConfiguration();
@@ -29,6 +43,12 @@ final class ServerConfigurationTest extends TestCase
         self::assertSame('Petstore API', $configuration->schema('')->openApi()->info->title);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testSchemaUsesDefaultPath(): void
     {
         self::assertSame('Petstore API', (new ServerConfiguration())->schema(Petstore::path())->openApi()->info->title);

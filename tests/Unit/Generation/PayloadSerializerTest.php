@@ -9,6 +9,11 @@ use OasFake\PayloadSerializer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\PayloadSerializer
+ *
+ * @uses \OasFake\PayloadCodec
+ */
 #[CoversClass(PayloadSerializer::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadCodec::class)]
 final class PayloadSerializerTest extends TestCase

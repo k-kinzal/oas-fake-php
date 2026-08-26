@@ -8,6 +8,9 @@ use OasFake\CassetteNameNormalizer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\CassetteNameNormalizer
+ */
 #[CoversClass(CassetteNameNormalizer::class)]
 final class CassetteNameNormalizerTest extends TestCase
 {

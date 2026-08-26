@@ -9,6 +9,9 @@ use OasFake\VcrResponseFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\VcrResponseFactory
+ */
 #[CoversClass(VcrResponseFactory::class)]
 final class VcrResponseFactoryTest extends TestCase
 {
@@ -19,5 +22,12 @@ final class VcrResponseFactoryTest extends TestCase
         self::assertSame(202, $response->getStatusCode());
         self::assertSame(['a=1', 'b=2'], $response->getHeaders()['Set-Cookie']);
         self::assertSame('ok', $response->getBody());
+    }
+
+    public function testFromPsr7FlattensASingleHeaderValue(): void
+    {
+        $response = (new VcrResponseFactory())->fromPsr7(new Response(204, ['X-Request-Id' => ['request-1']]));
+
+        self::assertSame('request-1', $response->getHeaders()['X-Request-Id']);
     }
 }

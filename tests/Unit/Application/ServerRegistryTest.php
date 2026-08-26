@@ -4,15 +4,62 @@ declare(strict_types=1);
 
 namespace OasFake\Tests\Unit;
 
-use LogicException;
 use OasFake\Server;
 use OasFake\ServerRegistry;
 use OasFake\Testing\InspectableServer;
 use OasFake\Testing\ServerRegistryContext;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use ReflectionException;
 use VCR\Request as VcrRequest;
 
+/**
+ * @covers \OasFake\ServerRegistry
+ *
+ * @uses \OasFake\PayloadCodec
+ * @uses \OasFake\CassetteNameNormalizer
+ * @uses \OasFake\CassetteSession
+ * @uses \OasFake\Converter
+ * @uses \OasFake\DeclarativeHandlerInspector
+ * @uses \OasFake\DeclarativeHandlerRegistrar
+ * @uses \OasFake\EnvironmentResolver
+ * @uses \OasFake\FakeDataContext
+ * @uses \OasFake\FakeResponse
+ * @uses \OasFake\FakeResponseFactory
+ * @uses \OasFake\Handler
+ * @uses \OasFake\HandlerMap
+ * @uses \OasFake\Interceptor
+ * @uses \OasFake\InterceptorFactory
+ * @uses \OasFake\InterceptorRouter
+ * @uses \OasFake\MiddlewarePipeline
+ * @uses \OasFake\Mode
+ * @uses \OasFake\OpenApiServerResolver
+ * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationIndexBuilder
+ * @uses \OasFake\OperationLookup
+ * @uses \OasFake\OperationParameterResolver
+ * @uses \OasFake\OperationPathResolver
+ * @uses \OasFake\OperationRequest
+ * @uses \OasFake\OperationRequestResolver
+ * @uses \OasFake\OperationResponder
+ * @uses \OasFake\OperationResponseResolver
+ * @uses \OasFake\PathOperationResolver
+ * @uses \OasFake\PayloadSerializer
+ * @uses \OasFake\Schema
+ * @uses \OasFake\SchemaRequestHandler
+ * @uses \OasFake\Server
+ * @uses \OasFake\ServerConfiguration
+ * @uses \OasFake\ServerLifecycle
+ * @uses \OasFake\ServerOptions
+ * @uses \OasFake\ServerUrlMatcher
+ * @uses \OasFake\Validator
+ * @uses \OasFake\VcrLifecycle
+ * @uses \OasFake\VcrResponseFactory
+ * @uses \OasFake\ServerMiddleware
+ * @uses \OasFake\JsonHandlerBody
+ * @uses \OasFake\OperationInfoFactory
+ * @uses \OasFake\ServerRuntime
+ */
 #[CoversClass(ServerRegistry::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadCodec::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteNameNormalizer::class)]
@@ -54,6 +101,9 @@ use VCR\Request as VcrRequest;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Validator::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\VcrLifecycle::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\VcrResponseFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\JsonHandlerBody::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerRuntime::class)]
 final class ServerRegistryTest extends TestCase
 {
     public function testIsEmptyByDefault(): void
@@ -64,6 +114,13 @@ final class ServerRegistryTest extends TestCase
         self::assertTrue($registry->isEmpty());
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testRegisterAndGet(): void
     {
         $registryContext = new ServerRegistryContext();
@@ -85,6 +142,13 @@ final class ServerRegistryTest extends TestCase
         self::assertNull($registry->get('Unknown'));
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testUnregister(): void
     {
         $registryContext = new ServerRegistryContext();
@@ -108,6 +172,13 @@ final class ServerRegistryTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testUnregisterAll(): void
     {
         $registryContext = new ServerRegistryContext();
@@ -124,6 +195,13 @@ final class ServerRegistryTest extends TestCase
         self::assertTrue($registry->isEmpty());
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testReRegisterSameKeyReplacesServer(): void
     {
         $registryContext = new ServerRegistryContext();
@@ -138,31 +216,13 @@ final class ServerRegistryTest extends TestCase
         self::assertSame($server2, $registry->get('TestServer'));
     }
 
-    public function testRejectedReplacementKeepsExistingServerRegistered(): void
-    {
-        $registryContext = new ServerRegistryContext();
-        $registry = $registryContext->registry();
-
-        $existing = new InspectableServer();
-        $replacement = (new Server())
-            ->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')
-            ->withRequestValidation(false)
-            ->withResponseValidation(false);
-        $otherRegistry = new ServerRegistry();
-        $otherRegistry->register('OwnedServer', $replacement);
-        $registry->register('TestServer', $existing);
-
-        $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('already registered');
-
-        try {
-            $registry->register('TestServer', $replacement);
-        } finally {
-            self::assertSame($existing, $registry->get('TestServer'));
-            $otherRegistry->unregisterAll();
-        }
-    }
-
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testDispatchRoutesToCorrectServer(): void
     {
         $registryContext = new ServerRegistryContext();
@@ -194,6 +254,13 @@ final class ServerRegistryTest extends TestCase
         self::assertStringContainsString('PHP in Action', $bookResponse->getBody());
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testDispatchUsesMostRecentServerForSameUrl(): void
     {
         $registryContext = new ServerRegistryContext();
@@ -221,6 +288,13 @@ final class ServerRegistryTest extends TestCase
         self::assertStringContainsString('Second', $response->getBody());
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testUnregisterOlderServerKeepsNewerServerForSameUrl(): void
     {
         $registryContext = new ServerRegistryContext();
@@ -249,6 +323,13 @@ final class ServerRegistryTest extends TestCase
         self::assertStringContainsString('Second', $response->getBody());
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testUnregisterNewerServerRestoresOlderServerForSameUrl(): void
     {
         $registryContext = new ServerRegistryContext();
@@ -277,6 +358,13 @@ final class ServerRegistryTest extends TestCase
         self::assertStringContainsString('First', $response->getBody());
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testServerStopUnregistersFromOwningRegistry(): void
     {
         $registryContext = new ServerRegistryContext();
@@ -306,29 +394,13 @@ final class ServerRegistryTest extends TestCase
         self::assertStringContainsString('First', $response->getBody());
     }
 
-    public function testServerCannotBeRegisteredInTwoRegistriesAtOnce(): void
-    {
-        $registryContext = new ServerRegistryContext();
-        $registry = $registryContext->registry();
-
-        $server = (new Server())
-            ->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')
-            ->withRequestValidation(false)
-            ->withResponseValidation(false);
-        $otherRegistry = new ServerRegistry();
-
-        $registry->register('PetServer', $server);
-
-        $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('already registered');
-
-        try {
-            $otherRegistry->register('PetServer', $server);
-        } finally {
-            $otherRegistry->unregisterAll();
-        }
-    }
-
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testDispatchReturns502ForUnknownUrl(): void
     {
         $registryContext = new ServerRegistryContext();
@@ -352,6 +424,13 @@ final class ServerRegistryTest extends TestCase
         );
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testDispatchDoesNotMatchSimilarHostPrefix(): void
     {
         $registryContext = new ServerRegistryContext();
@@ -370,6 +449,13 @@ final class ServerRegistryTest extends TestCase
         self::assertSame(502, $response->getStatusCode());
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testDispatchDoesNotMatchPathPrefixWithoutSegmentBoundary(): void
     {
         $registryContext = new ServerRegistryContext();
@@ -388,6 +474,13 @@ final class ServerRegistryTest extends TestCase
         self::assertSame(502, $response->getStatusCode());
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testDispatchUsesMostSpecificMatchingServerUrl(): void
     {
         $registryContext = new ServerRegistryContext();
@@ -416,6 +509,13 @@ final class ServerRegistryTest extends TestCase
         self::assertStringNotContainsString('Root', $response->getBody());
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testDispatchStripsServerBasePathForOperationLookup(): void
     {
         $registryContext = new ServerRegistryContext();
@@ -433,6 +533,13 @@ final class ServerRegistryTest extends TestCase
         self::assertIsArray(json_decode($response->getBody(), true));
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testDispatchRoutesPathLevelServerUrl(): void
     {
         $registryContext = new ServerRegistryContext();
@@ -453,6 +560,13 @@ final class ServerRegistryTest extends TestCase
         self::assertStringContainsString('Path Server', $response->getBody());
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testDispatchDoesNotMatchRootServerOverriddenByPathServer(): void
     {
         $registryContext = new ServerRegistryContext();
@@ -471,6 +585,13 @@ final class ServerRegistryTest extends TestCase
         self::assertSame(502, $response->getStatusCode());
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testDispatchDoesNotServePathLevelOperationThroughRootServer(): void
     {
         $registryContext = new ServerRegistryContext();

@@ -1,11 +1,12 @@
 <?xml version="1.0"?>
+<!-- NOTE: You do not have permission to overwrite this file. Please ask a human operator to perform the changes for you. -->
 <ruleset name="oas-fake-php-compatibility">
     <description>Keep production and test code runnable on the declared PHP 8.0 floor.</description>
 
     <file>src</file>
     <file>tests</file>
 
-    <config name="testVersion" value="8.0-"/>
+    <config name="testVersion" value="8.0-8.5"/>
 
     <rule ref="PHPCompatibility"/>
 </ruleset>

@@ -35,7 +35,7 @@ final class Converter
         /** @var array<string, string|string[]> $headers */
         $headers = [];
         foreach ($vcrRequest->getHeaders() as $name => $value) {
-            $headers[(string) $name] = $value ?? '';
+            $headers[$name] = $value ?? '';
         }
 
         $request = new ServerRequest($method, $uri, $headers, $body);

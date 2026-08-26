@@ -196,3 +196,66 @@ class RegistrarUnknownRouteServer extends Server
         return $response ?? new Response(200);
     }
 }
+
+/**
+ * Keeps valid declarations after each kind of declaration that must be skipped.
+ */
+class RegistrarContinuationServer extends Server
+{
+    /**
+     * Demonstrate that a non-handler does not stop later declarations.
+     */
+    public function invalidFirst(): string
+    {
+        return 'invalid';
+    }
+
+    /**
+     * Return a response for a route absent from the schema.
+     */
+    #[Route(method: 'GET', path: '/unknown')]
+    public function unknownRoute(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
+    {
+        return $response ?? new Response(200);
+    }
+
+    /**
+     * Return a response for the known delete route.
+     */
+    #[Route(method: 'DELETE', path: '/pets/{petId}')]
+    public function removePet(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
+    {
+        return new Response(204);
+    }
+
+    /**
+     * Return a response for an operation absent from the schema.
+     */
+    public function helperOperation(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
+    {
+        return $response ?? new Response(200);
+    }
+
+    /**
+     * Return a response for the known list operation.
+     */
+    public function listPets(ServerRequestInterface $request, ?ResponseInterface $response): ResponseInterface
+    {
+        return $response ?? new Response(200);
+    }
+}
+
+/**
+ * Provides a constructor shaped like a handler to verify constructor exclusion.
+ */
+final class HandlerShapedConstructorServer extends Server
+{
+    /**
+     * Initialize a server through a constructor shaped like a request handler.
+     */
+    public function __construct(ServerRequestInterface $request)
+    {
+        parent::__construct();
+        $this->withRequestValidation($request->getMethod() !== 'GET');
+    }
+}

@@ -6,7 +6,6 @@ namespace OasFake;
 
 use function array_keys;
 use function array_map;
-use function array_values;
 
 use cebe\openapi\spec\Parameter;
 
@@ -33,66 +32,40 @@ final class ParameterSerializer
     /**
      * Serialize a query parameter, including exploded object keys.
      *
+     * @template TValue
+     *
+     * @param TValue $value
+     *
      * @throws JsonException when a structured value cannot be encoded
      *
      * @return array<string, list<string>|string>
      */
     public function query(Parameter $parameter, mixed $value): array
     {
-        $style = $parameter->style;
-        $explode = (bool) $parameter->explode;
-        $name = $parameter->name;
+        $delimiter = match ($parameter->style) {
+            'spaceDelimited' => ' ',
+            'pipeDelimited' => '|',
+            default => null,
+        };
 
-        if ($style === 'spaceDelimited') {
-            return [$name => $this->delimitedValue($value, ' ', false)];
-        }
-
-        if ($style === 'pipeDelimited') {
-            return [$name => $this->delimitedValue($value, '|', false)];
-        }
-
-        if ($style === 'deepObject' && is_array($value) && !$this->isList($value)) {
-            $result = [];
-            foreach ($value as $property => $propertyValue) {
-                $result[$name . '[' . $property . ']'] = $this->scalar($propertyValue);
-            }
-
-            return $result;
-        }
-
-        if ($style !== 'form' || !is_array($value)) {
-            return [$name => $this->scalar($value)];
-        }
-
-        if ($this->isList($value)) {
-            return [
-                $name => $explode
-                    ? array_map(fn (mixed $item): string => $this->scalar($item), array_values($value))
-                    : $this->delimitedValue($value, ',', false),
-            ];
-        }
-
-        if (!$explode) {
-            return [$name => $this->delimitedValue($value, ',', false)];
-        }
-
-        $result = [];
-        foreach ($value as $property => $propertyValue) {
-            $result[(string) $property] = $this->scalar($propertyValue);
-        }
-
-        return $result;
+        return $delimiter === null
+            ? (new FormQueryParameterSerializer())->serialize($parameter, $value, $this)
+            : [$parameter->name => $this->delimitedValue($value, $delimiter, false)];
     }
 
     /**
      * Serialize a path or header parameter.
+     *
+     * @template TValue
+     *
+     * @param TValue $value
      *
      * @throws JsonException when a structured value cannot be encoded
      */
     public function delimited(Parameter $parameter, mixed $value): string
     {
         $style = $parameter->style;
-        $explode = (bool) $parameter->explode;
+        $explode = $parameter->explode;
 
         if ($parameter->in === 'path' && $style === 'label') {
             return '.' . $this->delimitedValue($value, '.', $explode);
@@ -108,6 +81,10 @@ final class ParameterSerializer
     /**
      * Serialize a matrix-style path parameter.
      *
+     * @template TValue
+     *
+     * @param TValue $value
+     *
      * @throws JsonException when a structured value cannot be encoded
      */
     public function matrix(string $name, mixed $value, bool $explode): string
@@ -122,7 +99,7 @@ final class ParameterSerializer
             }
 
             return implode('', array_map(
-                fn (mixed $item): string => ';' . $name . '=' . $this->scalar($item),
+                fn ($item): string => ';' . $name . '=' . $this->scalar($item),
                 $value,
             ));
         }
@@ -142,6 +119,10 @@ final class ParameterSerializer
     /**
      * Serialize a scalar, list, or object with an explicit delimiter.
      *
+     * @template TValue
+     *
+     * @param TValue $value
+     *
      * @throws JsonException when a structured value cannot be encoded
      */
     public function delimitedValue(mixed $value, string $delimiter, bool $explode): string
@@ -152,7 +133,7 @@ final class ParameterSerializer
 
         if ($this->isList($value)) {
             return implode($delimiter, array_map(
-                fn (mixed $item): string => $this->scalar($item),
+                fn ($item): string => $this->scalar($item),
                 $value,
             ));
         }
@@ -173,6 +154,10 @@ final class ParameterSerializer
     /**
      * Convert a generated scalar-like value to its wire representation.
      *
+     * @template TValue
+     *
+     * @param TValue $value
+     *
      * @throws JsonException when a structured value cannot be encoded
      */
     public function scalar(mixed $value): string
@@ -191,7 +176,9 @@ final class ParameterSerializer
     /**
      * Distinguish sequential arrays from OpenAPI object values on PHP 8.0.
      *
-     * @param array<mixed> $value
+     * @template TValue
+     *
+     * @param array<TValue> $value
      */
     public function isList(array $value): bool
     {

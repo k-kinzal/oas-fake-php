@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace OasFake;
 
+use cebe\openapi\exceptions\IOException;
+use cebe\openapi\exceptions\TypeErrorException;
+use cebe\openapi\exceptions\UnresolvableReferenceException;
+use cebe\openapi\json\InvalidJsonPointerSyntaxException;
 use GuzzleHttp\Psr7\Response;
 
 use function json_decode;
@@ -18,6 +22,13 @@ use Vural\OpenAPIFaker\Exception\NoResponse;
 
 /**
  * Generates fake HTTP responses from an OpenAPI schema definition.
+ *
+ * @visibility public
+ *
+ * @example Generating a response by operation ID
+ *     $schema = \OasFake\Schema::fromString('{"openapi":"3.0.0","info":{"title":"Pets","version":"1"},"paths":{"/pets":{"get":{"operationId":"listPets","responses":{"200":{"description":"ok","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"integer"}}}}}}}}}}}');
+ *     $response = \OasFake\FakeResponse::for($schema, 'listPets');
+ *     $response->statusCode() // => 200
  */
 final class FakeResponse
 {
@@ -35,6 +46,10 @@ final class FakeResponse
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      *
      * @throws JsonException when the generated response body cannot be encoded
+     * @throws IOException when a schema file cannot be read
+     * @throws TypeErrorException when a schema has an invalid structure
+     * @throws UnresolvableReferenceException when a schema reference cannot be resolved
+     * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid
      * @throws NoPath when the OpenAPI path cannot be generated
      * @throws NoResponse when the OpenAPI response cannot be generated
      */
@@ -57,6 +72,10 @@ final class FakeResponse
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      *
      * @throws JsonException when the generated response body cannot be encoded
+     * @throws IOException when a schema file cannot be read
+     * @throws TypeErrorException when a schema has an invalid structure
+     * @throws UnresolvableReferenceException when a schema reference cannot be resolved
+     * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid
      * @throws NoPath when the OpenAPI path cannot be generated
      * @throws NoResponse when the OpenAPI response cannot be generated
      */

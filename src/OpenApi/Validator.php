@@ -15,6 +15,13 @@ use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Validates PSR-7 requests and responses against an OpenAPI schema.
+ *
+ * @visibility public
+ *
+ * @example Checking a request without throwing
+ *     $schema = \OasFake\Schema::fromString('{"openapi":"3.0.0","info":{"title":"Pets","version":"1"},"paths":{}}');
+ *     $validator = new \OasFake\Validator($schema);
+ *     $validator->isValidRequest(new \GuzzleHttp\Psr7\ServerRequest('GET', '/missing')) // => false
  */
 final class Validator
 {

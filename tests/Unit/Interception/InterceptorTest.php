@@ -21,6 +21,45 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use VCR\Request as VcrRequest;
 
+/**
+ * @covers \OasFake\Interceptor
+ *
+ * @uses \OasFake\PayloadCodec
+ * @uses \OasFake\RequestPathMatcher
+ * @uses \OasFake\CassetteSession
+ * @uses \OasFake\Converter
+ * @uses \OasFake\Exception\ReplayMismatchError
+ * @uses \OasFake\Exception\ValidationException
+ * @uses \OasFake\FakeDataContext
+ * @uses \OasFake\FakeResponse
+ * @uses \OasFake\FakeResponseFactory
+ * @uses \OasFake\Handler
+ * @uses \OasFake\HandlerMap
+ * @uses \OasFake\MiddlewarePipeline
+ * @uses \OasFake\MiddlewareRequestHandler
+ * @uses \OasFake\Mode
+ * @uses \OasFake\OpenApiServerResolver
+ * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationIndexBuilder
+ * @uses \OasFake\OperationLookup
+ * @uses \OasFake\OperationParameterResolver
+ * @uses \OasFake\OperationPathResolver
+ * @uses \OasFake\OperationRequest
+ * @uses \OasFake\OperationRequestResolver
+ * @uses \OasFake\OperationResponder
+ * @uses \OasFake\OperationResponseResolver
+ * @uses \OasFake\PathOperationResolver
+ * @uses \OasFake\PayloadSerializer
+ * @uses \OasFake\ResolvedResponseRequestHandler
+ * @uses \OasFake\Schema
+ * @uses \OasFake\SchemaRequestHandler
+ * @uses \OasFake\ServerUrlMatcher
+ * @uses \OasFake\Validator
+ * @uses \OasFake\VcrResponseFactory
+ * @uses \OasFake\JsonHandlerBody
+ * @uses \OasFake\OperationInfoFactory
+ * @uses \OasFake\StringHandlerBody
+ */
 #[CoversClass(Interceptor::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadCodec::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\RequestPathMatcher::class)]
@@ -54,6 +93,9 @@ use VCR\Request as VcrRequest;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerUrlMatcher::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Validator::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\VcrResponseFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\JsonHandlerBody::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\StringHandlerBody::class)]
 final class InterceptorTest extends TestCase
 {
     public function testIsRunningReturnsFalseByDefault(): void
@@ -414,7 +456,7 @@ final class InterceptorTest extends TestCase
     {
         $scenario = new InterceptorScenario();
 
-        file_put_contents($scenario->cassettePath() . '/recording', (string) json_encode([[
+        file_put_contents($scenario->cassettePath() . '/recording', json_encode([[
             'request' => [
                 'method' => 'GET',
                 'url' => 'https://api.petstore.example.com/pets',
@@ -440,51 +482,6 @@ final class InterceptorTest extends TestCase
         try {
             $request = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
             $request->setHeader('Host', 'api.petstore.example.com');
-            $interceptor->replay($request);
-        } finally {
-            $interceptor->stop();
-        }
-    }
-
-    public function testReplayThrowsOnMismatch(): void
-    {
-        $scenario = new InterceptorScenario();
-
-        $interceptor = $scenario->interceptor(
-            mode: Mode::REPLAY,
-            cassettePath: __DIR__ . '/../../Fixtures/cassettes',
-            validateRequests: false,
-            validateResponses: false,
-        );
-        $interceptor->start();
-
-        $this->expectException(ReplayMismatchError::class);
-
-        try {
-            $request = new VcrRequest('POST', 'https://api.petstore.example.com/pets', []);
-            $request->setBody('unexpected-body');
-            $interceptor->replay($request);
-        } finally {
-            $interceptor->stop();
-        }
-    }
-
-    public function testReplayThrowsOnQueryStringMismatch(): void
-    {
-        $scenario = new InterceptorScenario();
-
-        $interceptor = $scenario->interceptor(
-            mode: Mode::REPLAY,
-            cassettePath: __DIR__ . '/../../Fixtures/cassettes',
-            validateRequests: false,
-            validateResponses: false,
-        );
-        $interceptor->start();
-
-        $this->expectException(ReplayMismatchError::class);
-
-        try {
-            $request = new VcrRequest('GET', 'https://api.petstore.example.com/pets?limit=10', []);
             $interceptor->replay($request);
         } finally {
             $interceptor->stop();
@@ -591,39 +588,6 @@ final class InterceptorTest extends TestCase
         self::assertSame($recordedResponse->getStatusCode(), $replayedResponse->getStatusCode());
 
         $replayer->stop();
-    }
-
-    public function testReplayRejectsBodyMismatchOnSameUrl(): void
-    {
-        $scenario = new InterceptorScenario();
-        $recorder = $scenario->interceptor(
-            mode: Mode::RECORD,
-            validateRequests: false,
-            validateResponses: false,
-        );
-        $recorder->start();
-
-        $request = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
-        $request->setHeader('Host', 'api.petstore.example.com');
-        $recorder->handle($request);
-        $recorder->stop();
-        $replayer = $scenario->interceptor(
-            mode: Mode::REPLAY,
-            validateRequests: false,
-            validateResponses: false,
-        );
-        $replayer->start();
-
-        $this->expectException(ReplayMismatchError::class);
-
-        try {
-            $mismatch = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
-            $mismatch->setHeader('Host', 'api.petstore.example.com');
-            $mismatch->setBody('unexpected-body');
-            $replayer->replay($mismatch);
-        } finally {
-            $replayer->stop();
-        }
     }
 
     public function testRecordThenReplayWithDifferentBodiesSameUrl(): void

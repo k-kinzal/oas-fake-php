@@ -8,6 +8,9 @@ use OasFake\Exception\SchemaNotFoundException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\Exception\SchemaNotFoundException
+ */
 #[CoversClass(SchemaNotFoundException::class)]
 final class SchemaNotFoundExceptionTest extends TestCase
 {

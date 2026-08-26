@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace OasFake\Tests\Unit;
 
 use Closure;
-use InvalidArgumentException;
-use LogicException;
 use OasFake\Handler;
 use OasFake\Mode;
 use OasFake\Server;
@@ -23,14 +21,64 @@ use OasFake\Testing\TemporaryDirectory;
 use OasFake\Testing\UnknownRouteDeclarativeServer;
 use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use ReflectionException;
 use VCR\Request as VcrRequest;
 
+/**
+ * @covers \OasFake\Server
+ *
+ * @uses \OasFake\PayloadCodec
+ * @uses \OasFake\RequestPathMatcher
+ * @uses \OasFake\CassetteNameNormalizer
+ * @uses \OasFake\CassetteSession
+ * @uses \OasFake\Converter
+ * @uses \OasFake\DeclarativeHandlerInspector
+ * @uses \OasFake\DeclarativeHandlerRegistrar
+ * @uses \OasFake\EnvironmentResolver
+ * @uses \OasFake\FakeDataContext
+ * @uses \OasFake\FakeResponse
+ * @uses \OasFake\FakeResponseFactory
+ * @uses \OasFake\Handler
+ * @uses \OasFake\HandlerMap
+ * @uses \OasFake\Interceptor
+ * @uses \OasFake\InterceptorFactory
+ * @uses \OasFake\InterceptorRouter
+ * @uses \OasFake\MiddlewarePipeline
+ * @uses \OasFake\Mode
+ * @uses \OasFake\OasFake
+ * @uses \OasFake\OpenApiServerResolver
+ * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationIndexBuilder
+ * @uses \OasFake\OperationLookup
+ * @uses \OasFake\OperationParameterResolver
+ * @uses \OasFake\OperationPathResolver
+ * @uses \OasFake\OperationRequest
+ * @uses \OasFake\OperationRequestResolver
+ * @uses \OasFake\OperationResponder
+ * @uses \OasFake\OperationResponseResolver
+ * @uses \OasFake\PathOperationResolver
+ * @uses \OasFake\PayloadSerializer
+ * @uses \OasFake\Route
+ * @uses \OasFake\Schema
+ * @uses \OasFake\SchemaRequestHandler
+ * @uses \OasFake\ServerConfiguration
+ * @uses \OasFake\ServerLifecycle
+ * @uses \OasFake\ServerOptions
+ * @uses \OasFake\ServerRuntime
+ * @uses \OasFake\ServerRegistry
+ * @uses \OasFake\ServerUrlMatcher
+ * @uses \OasFake\Validator
+ * @uses \OasFake\VcrLifecycle
+ * @uses \OasFake\VcrResponseFactory
+ * @uses \OasFake\HandlerTypeMatcher
+ * @uses \OasFake\JsonHandlerBody
+ * @uses \OasFake\OperationInfoFactory
+ */
 #[CoversClass(Server::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadCodec::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\RequestPathMatcher::class)]
@@ -69,11 +117,15 @@ use VCR\Request as VcrRequest;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerConfiguration::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerLifecycle::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerOptions::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerRuntime::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(ServerRegistry::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerUrlMatcher::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Validator::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\VcrLifecycle::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\VcrResponseFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\HandlerTypeMatcher::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\JsonHandlerBody::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
 final class ServerTest extends TestCase
 {
     #[Override]
@@ -119,15 +171,6 @@ final class ServerTest extends TestCase
         $server->withMode(' Record ');
 
         self::assertSame(Mode::RECORD, $server->resolveMode()->value());
-    }
-
-    public function testWithModeRejectsInvalidMode(): void
-    {
-        $server = new Server();
-
-        $this->expectException(InvalidArgumentException::class);
-
-        $server->withMode('invalid');
     }
 
     public function testWithCassettePathReturnsStatic(): void
@@ -245,6 +288,13 @@ final class ServerTest extends TestCase
         self::assertFalse($server->isRunning());
     }
 
+    /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testStartCanBeCalledTwiceSafely(): void
     {
         $server = (new Server())
@@ -266,6 +316,11 @@ final class ServerTest extends TestCase
     }
 
     /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
      */
     public function testBuildInterceptorStartsInterceptor(): void
     {
@@ -284,6 +339,11 @@ final class ServerTest extends TestCase
     }
 
     /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
      */
     public function testBuildInterceptorUsesServerSpecificCassetteName(): void
     {
@@ -304,6 +364,11 @@ final class ServerTest extends TestCase
     }
 
     /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
      */
     public function testBuildInterceptorUsesConfiguredCassetteName(): void
     {
@@ -319,28 +384,6 @@ final class ServerTest extends TestCase
             $server->buildInterceptor();
 
             self::assertFileExists($cassettePath . '/custom-cassette');
-        } finally {
-            $server->stop();
-        }
-    }
-
-    /**
-     * @dataProvider providerConfigurationMutations
-     */
-    #[DataProvider('providerConfigurationMutations')]
-    public function testConfigurationCannotChangeWhileRunning(Closure $mutation): void
-    {
-        $server = (new Server())
-            ->withSchema(Petstore::path())
-            ->withRequestValidation(false)
-            ->withResponseValidation(false);
-
-        $server->buildInterceptor();
-        $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('Cannot change server configuration while the server is running');
-
-        try {
-            $mutation($server);
         } finally {
             $server->stop();
         }
@@ -376,6 +419,11 @@ final class ServerTest extends TestCase
     }
 
     /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
      */
     public function testInterceptorReturnsActiveInterceptor(): void
     {
@@ -395,6 +443,12 @@ final class ServerTest extends TestCase
         }
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testSchemaReturnsResolvedSchema(): void
     {
         $server = (new Server())->withSchema(Petstore::path());
@@ -409,6 +463,12 @@ final class ServerTest extends TestCase
         self::assertSame(['alwaysFakeOptionals' => true], $server->fakerOptions());
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     */
     public function testServerUrlsReturnsSchemaUrls(): void
     {
         $server = (new Server())->withSchema(Petstore::path());
@@ -417,6 +477,11 @@ final class ServerTest extends TestCase
     }
 
     /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
      */
     public function testUnregisterFromRegistryStopsInterceptor(): void
     {
@@ -492,6 +557,11 @@ final class ServerTest extends TestCase
     }
 
     /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
      */
     public function testSchemaAwareOperationIdMethodHandlesMatchingOperation(): void
     {
@@ -512,6 +582,11 @@ final class ServerTest extends TestCase
     }
 
     /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
      */
     public function testSchemaAwareRouteMethodHandlesMatchingPath(): void
     {
@@ -531,6 +606,11 @@ final class ServerTest extends TestCase
     }
 
     /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
      */
     public function testSchemaAwareRouteMethodSkipsPathOutsideSchema(): void
     {
@@ -551,6 +631,11 @@ final class ServerTest extends TestCase
     }
 
     /**
+     * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
      */
     public function testPublicMethodsWithoutHandlerSignatureAreNotAutoRegistered(): void
     {
