@@ -11,6 +11,9 @@ use OasFake\Exception\ValidationException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\Exception\ValidationException
+ */
 #[CoversClass(ValidationException::class)]
 final class ValidationExceptionTest extends TestCase
 {
@@ -47,6 +50,7 @@ final class ValidationExceptionTest extends TestCase
         $exception = ValidationException::forRequest($request, $validationError);
 
         self::assertSame($validationError, $exception->getValidationError());
+        self::assertSame(0, $exception->getCode());
     }
 
     public function testPreviousExceptionIsSet(): void

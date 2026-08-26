@@ -1,0 +1,104 @@
+# NOTE: You do not have permission to overwrite this file. Please ask a human operator to perform the changes for you.
+deptrac:
+  paths:
+    - ./src
+  exclude_files:
+    - '#.*/vendor/.*#'
+  layers:
+    - name: Application
+      collectors:
+        - type: directory
+          value: src/Application/.*
+    - name: Interception
+      collectors:
+        - type: directory
+          value: src/Interception/.*
+    - name: Handling
+      collectors:
+        - type: directory
+          value: src/Handling/.*
+    - name: Generation
+      collectors:
+        - type: directory
+          value: src/Generation/.*
+    - name: OpenApi
+      collectors:
+        - type: directory
+          value: src/OpenApi/.*
+    - name: Exception
+      collectors:
+        - type: directory
+          value: src/Exception/.*
+    - name: PsrHttpContracts
+      collectors:
+        - type: classLike
+          value: ^Psr\\Http\\
+    - name: Psr7Implementation
+      collectors:
+        - type: classLike
+          value: ^GuzzleHttp\\Psr7\\
+    - name: OpenApiSchemaLibrary
+      collectors:
+        - type: classLike
+          value: ^cebe\\openapi\\
+    - name: OpenApiFakerLibrary
+      collectors:
+        - type: classLike
+          value: ^Vural\\OpenAPIFaker\\
+    - name: OpenApiValidatorLibrary
+      collectors:
+        - type: classLike
+          value: ^League\\OpenAPIValidation\\
+    - name: PhpVcrLibrary
+      collectors:
+        - type: classLike
+          value: ^VCR\\
+  ruleset:
+    Application:
+      - Interception
+      - Handling
+      - Generation
+      - OpenApi
+      - Exception
+      - PsrHttpContracts
+      - Psr7Implementation
+      - OpenApiSchemaLibrary
+      - OpenApiFakerLibrary
+      - PhpVcrLibrary
+    Interception:
+      - Handling
+      - Generation
+      - OpenApi
+      - Exception
+      - PsrHttpContracts
+      - Psr7Implementation
+      - PhpVcrLibrary
+    Handling:
+      - Generation
+      - OpenApi
+      - Exception
+      - PsrHttpContracts
+      - Psr7Implementation
+      - OpenApiFakerLibrary
+      - OpenApiValidatorLibrary
+    Generation:
+      - OpenApi
+      - PsrHttpContracts
+      - Psr7Implementation
+      - OpenApiSchemaLibrary
+      - OpenApiFakerLibrary
+    OpenApi:
+      - Exception
+      - PsrHttpContracts
+      - OpenApiSchemaLibrary
+      - OpenApiValidatorLibrary
+    Exception:
+      - PsrHttpContracts
+      - OpenApiValidatorLibrary
+      - PhpVcrLibrary
+    PsrHttpContracts: ~
+    Psr7Implementation: ~
+    OpenApiSchemaLibrary: ~
+    OpenApiFakerLibrary: ~
+    OpenApiValidatorLibrary: ~
+    PhpVcrLibrary: ~

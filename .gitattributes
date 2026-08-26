@@ -26,6 +26,14 @@
 /.gitattributes     export-ignore
 /.gitignore         export-ignore
 /phpstan.neon       export-ignore
+/phpcs.xml.dist     export-ignore
 /phpunit.xml.dist   export-ignore
+/phpunit9.xml.dist  export-ignore
+/infection.json5    export-ignore
+/loc.yaml           export-ignore
+/tree.yaml          export-ignore
+/scope.yaml         export-ignore
+/deptrac.yaml       export-ignore
+/deptrac.php        export-ignore
 /CLAUDE.md          export-ignore
 /AGENTS.md          export-ignore

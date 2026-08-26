@@ -1,0 +1,23 @@
+# NOTE: You do not have permission to overwrite this file. Please ask a human operator to perform the changes for you.
+paths:
+  - src
+
+exclude: []
+
+limits:
+  max_file_lines: 350
+  max_file_ncloc: 250
+  max_class_lines: 300
+  max_trait_lines: 150
+  max_interface_lines: 120
+  max_enum_lines: 120
+  max_function_lines: 40
+  max_method_lines: 40
+  max_cyclomatic_complexity: 12
+
+report:
+  reporter: ai
+  order_by:
+    - path
+    - line
+    - rule

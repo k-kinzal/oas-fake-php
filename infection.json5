@@ -1,0 +1,24 @@
+// NOTE: You do not have permission to overwrite this file. Please ask a human operator to perform the changes for you.
+{
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": [
+            "src"
+        ]
+    },
+    "mutators": {
+        "@default": true
+    },
+    "minMsi": 85,
+    "minCoveredMsi": 90,
+    "timeout": 30,
+    "tmpDir": "build/infection-tmp",
+    "logs": {
+        "text": "build/infection/escaped.log",
+        "summary": "build/infection/summary.log",
+        "perMutator": "build/infection/per-mutator.md",
+        "json": "build/infection/infection.json"
+    },
+    "testFrameworkOptions": "--no-extensions",
+    "testFramework": "phpunit"
+}

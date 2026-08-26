@@ -3,6 +3,7 @@
     "description": "Intercept HTTP requests, validate against OpenAPI schemas, and generate fake responses for testing",
     "type": "library",
     "license": "MIT",
+    "homepage": "https://github.com/k-kinzal/oas-fake-php",
     "keywords": [
         "openapi",
         "swagger",
@@ -30,43 +31,91 @@
         "php-vcr/php-vcr": "^1.7"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.0",
+        "brianium/paratest": "^6.11 || ^7",
+        "deptrac/deptrac": "^0.24 || ^3.0 || ^4.7",
+        "friendsofphp/php-cs-fixer": "3.4.0 || ^3.95",
         "guzzlehttp/guzzle": "^7.0",
+        "infection/infection": "0.26.19 || ^0.28.1 || 0.29.11",
         "k-kinzal/php-ai-toolkit": "dev-main",
-        "phpstan/extension-installer": "^1.4",
-        "phpstan/phpstan": "^2.0",
-        "phpstan/phpstan-strict-rules": "^2.0",
-        "phpunit/phpunit": "^9.6"
+        "phpcompatibility/php-compatibility": "^10.0@alpha",
+        "phpstan/phpstan": "^1.12 || ^2.0",
+        "phpunit/phpunit": "^9.6 || ^10.5 || ^11 || ^12",
+        "squizlabs/php_codesniffer": "^4.0"
     },
     "autoload": {
         "psr-4": {
-            "OasFake\\": "src/"
+            "OasFake\\Exception\\": "src/Exception/",
+            "OasFake\\": [
+                "src/Application/Runtime/",
+                "src/Application/",
+                "src/Interception/",
+                "src/Handling/",
+                "src/Generation/",
+                "src/OpenApi/"
+            ]
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "OasFake\\Tests\\": "tests/"
-        }
+            "OasFake\\Tests\\Unit\\": [
+                "tests/Unit/Application/Runtime/",
+                "tests/Unit/Application/",
+                "tests/Unit/Interception/",
+                "tests/Unit/Handling/",
+                "tests/Unit/Generation/",
+                "tests/Unit/OpenApi/",
+                "tests/Unit/Exception/"
+            ],
+            "OasFake\\Tests\\": "tests/",
+            "OasFake\\Testing\\": "tests/Testing/"
+        },
+        "classmap": [
+            "tests/Testing/DeclarativeServers.php",
+            "tests/Testing/HandlerDeclarations.php"
+        ]
     },
     "config": {
         "sort-packages": true,
         "allow-plugins": {
-            "phpstan/extension-installer": true
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "infection/extension-installer": true
         }
     },
     "scripts": {
-        "test": "php -d error_reporting='E_ALL & ~E_DEPRECATED' vendor/bin/phpunit",
-        "test:coverage": "XDEBUG_MODE=coverage php -d error_reporting='E_ALL & ~E_DEPRECATED' vendor/bin/phpunit --coverage-html coverage",
-        "test:unit": "php -d error_reporting='E_ALL & ~E_DEPRECATED' vendor/bin/phpunit tests/Unit/",
+        "test": "paratest --configuration phpunit.xml.dist --processes=auto",
+        "test:coverage": "@php -d memory_limit=1G -d xdebug.mode=coverage vendor/bin/phpunit --configuration phpunit.xml.dist --coverage-xml build/coverage-xml",
+        "test:unit": "@php -d memory_limit=512M vendor/bin/phpunit --configuration phpunit.xml.dist",
+        "test:unit:9": "@php -d memory_limit=512M vendor/bin/phpunit --configuration phpunit9.xml.dist",
+        "test:unit:10": "@php -d memory_limit=512M vendor/bin/phpunit --configuration phpunit10.xml.dist",
+        "test:unit:11": "@php -d memory_limit=512M vendor/bin/phpunit --configuration phpunit11.xml.dist",
+        "test:unit:12": "@php -d memory_limit=512M vendor/bin/phpunit --configuration phpunit.xml.dist",
+        "doctest": "@php -d memory_limit=512M vendor/bin/phpunit --configuration phpunit.xml.dist --testsuite doctest",
+        "phpstan": "phpstan analyse src tests --memory-limit=512M",
+        "compat": "phpcs",
+        "loc-guard": "loc-guard --config=loc.yaml",
+        "tree-guard": "tree-guard --config=tree.yaml",
+        "deptrac": "@php deptrac-runner.php analyse --config-file=deptrac.yaml --fail-on-uncovered --report-uncovered --no-progress",
+        "docgen": "docgen --coverage=build/coverage-xml",
+        "docgen:serve": "@docgen --serve",
+        "docgen:diff": "@docgen --diff=main --serve",
+        "docgen:fresh": "@docgen --no-cache",
         "lint": [
             "@format:check",
-            "phpstan analyse --memory-limit=512M"
+            "@phpstan",
+            "@compat",
+            "@loc-guard",
+            "@tree-guard",
+            "@deptrac"
         ],
         "format": "php-cs-fixer fix --allow-risky=yes",
         "format:check": "php-cs-fixer fix --dry-run --diff --allow-risky=yes"
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
+    "support": {
+        "source": "https://github.com/k-kinzal/oas-fake-php",
+        "issues": "https://github.com/k-kinzal/oas-fake-php/issues"
+    },
     "repositories": [
         {
             "name": "php-ai-toolkit",

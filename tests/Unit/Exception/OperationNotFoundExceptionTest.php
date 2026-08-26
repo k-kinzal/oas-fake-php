@@ -8,6 +8,9 @@ use OasFake\Exception\OperationNotFoundException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\Exception\OperationNotFoundException
+ */
 #[CoversClass(OperationNotFoundException::class)]
 final class OperationNotFoundExceptionTest extends TestCase
 {

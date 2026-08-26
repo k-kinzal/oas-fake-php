@@ -1,0 +1,13 @@
+<?php
+
+declare(strict_types=1);
+
+use Attribute;
+
+/**
+ * PHP 8.0-8.2 analysis contract for the attribute built into PHP 8.3 and later.
+ */
+#[Attribute(Attribute::TARGET_METHOD)]
+final class Override
+{
+}

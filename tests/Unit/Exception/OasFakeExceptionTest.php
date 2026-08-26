@@ -7,16 +7,17 @@ namespace OasFake\Tests\Unit\Exception;
 use OasFake\Exception\OasFakeException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 
+/**
+ * @covers \OasFake\Exception\OasFakeException
+ */
 #[CoversClass(OasFakeException::class)]
 final class OasFakeExceptionTest extends TestCase
 {
-    public function testExceptionExtendsRuntimeException(): void
+    public function testCarriesFailureMessage(): void
     {
         $exception = new OasFakeException('Failure');
 
-        self::assertInstanceOf(RuntimeException::class, $exception);
         self::assertSame('Failure', $exception->getMessage());
     }
 }

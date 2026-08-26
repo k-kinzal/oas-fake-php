@@ -1,4 +1,5 @@
 <?php
+# NOTE: You do not have permission to overwrite this file. Please ask a human operator to perform the changes for you.
 
 declare(strict_types=1);
 
@@ -15,6 +16,7 @@ return (new PhpCsFixer\Config())
         '@PSR12' => true,
         '@PHP80Migration' => true,
         'strict_param' => true,
+        'strict_comparison' => true,
         'declare_strict_types' => true,
         'array_syntax' => ['syntax' => 'short'],
         'ordered_imports' => ['sort_algorithm' => 'alpha'],
