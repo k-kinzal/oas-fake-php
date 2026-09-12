@@ -17,7 +17,7 @@ use VCR\Response as VcrResponse;
  * Registry that manages multiple Server instances with a shared VCR lifecycle.
  *
  * Routes intercepted requests to the appropriate server based on URL matching.
- */
+     */
 final class ServerRegistry
 {
     /**
@@ -35,13 +35,15 @@ final class ServerRegistry
      * The server's interceptor is built but VCR lifecycle is managed by the registry.
      *
      * @param string $key Unique identifier for the server (typically the class name)
-     * @param Server $server The server instance to register
+     * @param Server $server +mut the server whose interceptor and registry attachment are initialized
      *
      * @throws IOException when the schema file cannot be read
      * @throws TypeErrorException when the schema has an invalid structure
      * @throws UnresolvableReferenceException when a schema reference cannot be resolved
      * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid
      * @throws ReflectionException when a declarative handler cannot be bound
+     *
+     * @mutation $this, global
      */
     public function register(string $key, Server $server): void
     {
@@ -72,6 +74,8 @@ final class ServerRegistry
      * Unregister and stop the server with the given key.
      *
      * @param string $key The server key to unregister
+     *
+     * @mutation $this, global
      */
     public function unregister(string $key): void
     {
@@ -93,6 +97,8 @@ final class ServerRegistry
 
     /**
      * Stop and unregister all servers.
+     *
+     * @mutation $this, global
      */
     public function unregisterAll(): void
     {

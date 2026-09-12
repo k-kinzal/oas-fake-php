@@ -11,7 +11,7 @@ use VCR\Response as VcrResponse;
  * Routes intercepted requests to the most specific registered server URL.
  *
  * @visibility namespace
- */
+     */
 final class InterceptorRouter
 {
     /**
@@ -35,6 +35,8 @@ final class InterceptorRouter
      * Add an interceptor under every effective server URL.
      *
      * @param list<string> $urls
+     *
+     * @mutation $this
      */
     public function add(string $key, array $urls, Interceptor $interceptor, Mode $mode): void
     {
@@ -52,6 +54,9 @@ final class InterceptorRouter
 
     /**
      * Remove every route owned by a server key.
+     *
+     *
+     * @mutation $this
      */
     public function remove(string $key): void
     {
@@ -75,6 +80,9 @@ final class InterceptorRouter
 
     /**
      * Remove all registered routes.
+     *
+     *
+     * @mutation $this
      */
     public function clear(): void
     {

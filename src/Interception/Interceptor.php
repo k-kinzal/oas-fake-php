@@ -16,7 +16,7 @@ use VCR\Response as VcrResponse;
  * middleware execution, and response conversion. Manages cassettes for RECORD/REPLAY modes.
  *
  * VCR lifecycle (turnOn/turnOff, hook registration) is managed externally by Server or ServerRegistry.
- */
+     */
 final class Interceptor
 {
     private bool $running = false;
@@ -71,6 +71,9 @@ final class Interceptor
 
     /**
      * Activate the interceptor and initialize cassette for RECORD/REPLAY modes.
+     *
+     *
+     * @mutation $this
      */
     public function start(): void
     {
@@ -87,6 +90,9 @@ final class Interceptor
 
     /**
      * Deactivate the interceptor and release the cassette.
+     *
+     *
+     * @mutation $this
      */
     public function stop(): void
     {
@@ -118,6 +124,8 @@ final class Interceptor
      * @param VcrRequest $vcrRequest The intercepted HTTP request from PHP-VCR
      *
      * @return VcrResponse The generated or stubbed response in VCR format
+     *
+     * @mutation $this
      */
     public function handle(VcrRequest $vcrRequest): VcrResponse
     {
@@ -147,6 +155,8 @@ final class Interceptor
      * @throws ReplayMismatchError If no matching cassette recording exists
      *
      * @return VcrResponse The recorded response from the cassette
+     *
+     * @mutation $this
      */
     public function replay(VcrRequest $request): VcrResponse
     {

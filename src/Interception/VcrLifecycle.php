@@ -15,7 +15,7 @@ use VCR\VCRFactory;
  * Owns the process-wide PHP-VCR activation and dispatch hook lifecycle.
  *
  * @visibility namespace
- */
+     */
 final class VcrLifecycle
 {
     private bool $active = false;
@@ -24,6 +24,8 @@ final class VcrLifecycle
      * Activate PHP-VCR once and bind intercepted requests to a dispatcher.
      *
      * @param callable(VcrRequest): VcrResponse $dispatch
+     *
+     * @mutation $this, global
      */
     public function activate(callable $dispatch): void
     {
@@ -52,6 +54,9 @@ final class VcrLifecycle
 
     /**
      * Deactivate PHP-VCR when the final server stops.
+     *
+     *
+     * @mutation $this, global
      */
     public function deactivate(): void
     {

@@ -13,6 +13,8 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 /**
+ * @uses \OasFake\LosslessVcrResponse
+ *
  * @covers \OasFake\InterceptorFactory
  *
  * @uses \OasFake\CassetteSession
@@ -36,6 +38,7 @@ use PHPUnit\Framework\TestCase;
  * @uses \OasFake\OperationInfoFactory
  */
 #[CoversClass(InterceptorFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\LosslessVcrResponse::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteSession::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeDataContext::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Interceptor::class)]

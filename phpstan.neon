@@ -7,6 +7,11 @@ includes:
 
 parameters:
     level: max
+    paths:
+        - src
+        - tests
+        - bench
+        - fuzz
     scanFiles:
         - tests/Stubs/PHPUnitAttributes.stub
         - tests/Stubs/Override.stub
@@ -14,6 +19,19 @@ parameters:
     checkImplicitMixed: true
     checkBenevolentUnionTypes: true
     toolkit:
+        mutation:
+            enabled: true
+        forbiddenTermsByPath:
+            'src/OpenApi/*':
+                - VCR
+                - cassette
+                - interceptor
+                - middleware
+            'src/Generation/*':
+                - VCR
+                - cassette
+                - interceptor
+                - middleware
         testNamespacePrefixes:
             - 'OasFake\Tests'
         restrictedTestNamespacePrefixes:
@@ -23,6 +41,7 @@ parameters:
     ignoreErrors:
         -
             identifier: customRules.nonPublicMethod
+            message: '#^Move private method __construct\(\) out of #'
             paths:
                 - src/Application/FakeRequest.php
                 - src/Application/FakeResponse.php
@@ -33,4 +52,5 @@ parameters:
         -
             identifier: customRules.forbiddenClassLikeNameSuffix
             path: src/OpenApi/OperationInfo.php
+            count: 1
     reportUnmatchedIgnoredErrors: true

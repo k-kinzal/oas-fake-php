@@ -15,6 +15,8 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 /**
+ * @uses \OasFake\LosslessVcrResponse
+ *
  * @covers \OasFake\ServerLifecycle
  *
  * @uses \OasFake\CassetteSession
@@ -39,6 +41,7 @@ use PHPUnit\Framework\TestCase;
  * @uses \OasFake\OperationInfoFactory
  */
 #[CoversClass(ServerLifecycle::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\LosslessVcrResponse::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteSession::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeDataContext::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Interceptor::class)]

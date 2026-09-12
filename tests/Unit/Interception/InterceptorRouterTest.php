@@ -17,6 +17,8 @@ use PHPUnit\Framework\TestCase;
 use VCR\Request as VcrRequest;
 
 /**
+ * @uses \OasFake\LosslessVcrResponse
+ *
  * @covers \OasFake\InterceptorRouter
  *
  * @uses \OasFake\PayloadCodec
@@ -51,6 +53,7 @@ use VCR\Request as VcrRequest;
  * @uses \OasFake\JsonHandlerBody
  */
 #[CoversClass(InterceptorRouter::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\LosslessVcrResponse::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadCodec::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteSession::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Converter::class)]

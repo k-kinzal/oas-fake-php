@@ -10,9 +10,12 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 /**
+ * @uses \OasFake\LosslessVcrResponse
+ *
  * @covers \OasFake\VcrResponseFactory
  */
 #[CoversClass(VcrResponseFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\LosslessVcrResponse::class)]
 final class VcrResponseFactoryTest extends TestCase
 {
     public function testFromPsr7PreservesRepeatedHeaders(): void

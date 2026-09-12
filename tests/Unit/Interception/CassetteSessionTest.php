@@ -13,11 +13,14 @@ use VCR\Request;
 use VCR\Response;
 
 /**
+ * @uses \OasFake\LosslessVcrResponse
+ *
  * @covers \OasFake\CassetteSession
  *
  * @uses \OasFake\Exception\ReplayMismatchError
  */
 #[CoversClass(CassetteSession::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\LosslessVcrResponse::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(ReplayMismatchError::class)]
 final class CassetteSessionTest extends TestCase
 {
@@ -70,6 +73,27 @@ final class CassetteSessionTest extends TestCase
             $session->stop();
             @unlink($path . '/playback');
             @rmdir($path);
+        }
+    }
+
+    public function testRecordingAndPlaybackPreserveAZeroBody(): void
+    {
+        $path = sys_get_temp_dir() . '/oas-fake-cassette-session-' . uniqid('', true);
+        mkdir($path, 0777, true);
+        $session = new CassetteSession($path, 'zero-body');
+        $request = new Request('GET', 'https://example.com/count', []);
+
+        try {
+            $session->start();
+            $session->record($request, new Response('200', [], '0'));
+            $session->stop();
+            $session->start();
+
+            self::assertSame('0', $session->playback($request)->getBody());
+        } finally {
+            $session->stop();
+            unlink($path . '/zero-body');
+            rmdir($path);
         }
     }
 

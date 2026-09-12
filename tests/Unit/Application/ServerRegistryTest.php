@@ -14,6 +14,8 @@ use ReflectionException;
 use VCR\Request as VcrRequest;
 
 /**
+ * @uses \OasFake\LosslessVcrResponse
+ *
  * @covers \OasFake\ServerRegistry
  *
  * @uses \OasFake\PayloadCodec
@@ -61,6 +63,7 @@ use VCR\Request as VcrRequest;
  * @uses \OasFake\ServerRuntime
  */
 #[CoversClass(ServerRegistry::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\LosslessVcrResponse::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadCodec::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteNameNormalizer::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteSession::class)]
@@ -119,6 +122,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testRegisterAndGet(): void
     {
@@ -147,6 +152,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testUnregister(): void
     {
@@ -163,6 +170,9 @@ final class ServerRegistryTest extends TestCase
         self::assertSame(1, $server->unregisterCount);
     }
 
+    /**
+     * @mutation global
+     */
     public function testUnregisterNonExistentDoesNothing(): void
     {
         $registryContext = new ServerRegistryContext();
@@ -178,6 +188,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testUnregisterAll(): void
     {
@@ -203,6 +215,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testReRegisterSameKeyReplacesServer(): void
     {
@@ -226,6 +240,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testUnregisterAllStopsServersAndClearsRoutes(): void
     {
@@ -250,6 +266,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testDispatchRoutesToCorrectServer(): void
     {
@@ -288,6 +306,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testDispatchUsesMostRecentServerForSameUrl(): void
     {
@@ -322,6 +342,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testUnregisterOlderServerKeepsNewerServerForSameUrl(): void
     {
@@ -357,6 +379,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testUnregisterNewerServerRestoresOlderServerForSameUrl(): void
     {
@@ -392,6 +416,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testServerStopUnregistersFromOwningRegistry(): void
     {
@@ -428,6 +454,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testDispatchReturns502ForUnknownUrl(): void
     {
@@ -458,6 +486,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testDispatchDoesNotMatchSimilarHostPrefix(): void
     {
@@ -483,6 +513,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testDispatchDoesNotMatchPathPrefixWithoutSegmentBoundary(): void
     {
@@ -508,6 +540,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testDispatchUsesMostSpecificMatchingServerUrl(): void
     {
@@ -543,6 +577,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testDispatchStripsServerBasePathForOperationLookup(): void
     {
@@ -567,6 +603,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testDispatchRoutesPathLevelServerUrl(): void
     {
@@ -594,6 +632,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testDispatchDoesNotMatchRootServerOverriddenByPathServer(): void
     {
@@ -619,6 +659,8 @@ final class ServerRegistryTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testDispatchDoesNotServePathLevelOperationThroughRootServer(): void
     {

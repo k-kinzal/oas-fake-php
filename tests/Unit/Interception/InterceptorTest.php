@@ -22,6 +22,8 @@ use Psr\Http\Server\RequestHandlerInterface;
 use VCR\Request as VcrRequest;
 
 /**
+ * @uses \OasFake\LosslessVcrResponse
+ *
  * @covers \OasFake\Interceptor
  *
  * @uses \OasFake\PayloadCodec
@@ -61,6 +63,7 @@ use VCR\Request as VcrRequest;
  * @uses \OasFake\StringHandlerBody
  */
 #[CoversClass(Interceptor::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\LosslessVcrResponse::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadCodec::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\RequestPathMatcher::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteSession::class)]

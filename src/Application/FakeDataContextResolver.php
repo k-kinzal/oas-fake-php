@@ -17,6 +17,7 @@ use cebe\openapi\json\InvalidJsonPointerSyntaxException;
 final class FakeDataContextResolver
 {
     /**
+     * @param FakeDataContext|Schema|Server $source +mut initializes a Server's lazy schema cache
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      *
      * @throws IOException when a configured schema file cannot be read

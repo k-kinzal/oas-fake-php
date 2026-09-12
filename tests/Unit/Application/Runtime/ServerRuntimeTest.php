@@ -16,6 +16,8 @@ use ReflectionException;
 use VCR\Request as VcrRequest;
 
 /**
+ * @uses \OasFake\LosslessVcrResponse
+ *
  * @covers \OasFake\ServerRuntime
  *
  * @uses \OasFake\CassetteNameNormalizer
@@ -59,6 +61,7 @@ use VCR\Request as VcrRequest;
  * @uses \OasFake\VcrResponseFactory
  */
 #[CoversClass(ServerRuntime::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\LosslessVcrResponse::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteNameNormalizer::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteSession::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Converter::class)]
@@ -121,6 +124,8 @@ final class ServerRuntimeTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the schema has an invalid structure
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when a schema reference cannot be resolved
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when a JSON pointer is invalid
+     *
+     * @mutation global
      */
     public function testBuildStartsTheResolvedInterceptor(): void
     {
@@ -141,6 +146,8 @@ final class ServerRuntimeTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the schema has an invalid structure
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when a schema reference cannot be resolved
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when a JSON pointer is invalid
+     *
+     * @mutation global
      */
     public function testBuildRegistersDeclarativeHandlersInTheRuntime(): void
     {

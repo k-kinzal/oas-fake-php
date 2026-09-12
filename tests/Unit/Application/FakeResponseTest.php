@@ -16,6 +16,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * @covers \OasFake\FakeResponse
  *
+ * @uses \OasFake\ResponseSnapshotFactory
  * @uses \OasFake\PayloadCodec
  * @uses \OasFake\Exception\OperationNotFoundException
  * @uses \OasFake\FakeDataContext
@@ -33,6 +34,7 @@ use PHPUnit\Framework\TestCase;
  * @uses \OasFake\OperationInfoFactory
  */
 #[CoversClass(FakeResponse::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ResponseSnapshotFactory::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadCodec::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(OperationNotFoundException::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(FakeDataContext::class)]

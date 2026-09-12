@@ -10,7 +10,7 @@ use LogicException;
  * Owns a server's interceptor and registry attachment state.
  *
  * @visibility namespace
- */
+     */
 final class ServerLifecycle
 {
     private ?Interceptor $interceptor = null;
@@ -47,6 +47,8 @@ final class ServerLifecycle
      * Attach the server to its owning registry after successful construction.
      *
      * @throws LogicException when another registry owns the server
+     *
+     * @mutation $this
      */
     public function register(ServerRegistry $registry, string $key): void
     {
@@ -74,6 +76,9 @@ final class ServerLifecycle
 
     /**
      * Detach from a matching registry and stop the interceptor.
+     *
+     *
+     * @mutation $this
      */
     public function unregister(ServerRegistry $registry, string $key): void
     {
@@ -88,6 +93,9 @@ final class ServerLifecycle
 
     /**
      * Replace the active interceptor after it has started successfully.
+     *
+     *
+     * @mutation $this
      */
     public function replaceInterceptor(Interceptor $interceptor): void
     {
@@ -112,6 +120,9 @@ final class ServerLifecycle
 
     /**
      * Stop and release the active interceptor.
+     *
+     *
+     * @mutation $this
      */
     public function stopInterceptor(): void
     {

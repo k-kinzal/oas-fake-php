@@ -8,7 +8,7 @@ use OasFake\ServerRegistry;
 
 /**
  * Owns a registry for one test scenario and guarantees lifecycle cleanup.
- */
+     */
 final class ServerRegistryContext
 {
     private ServerRegistry $registry;
@@ -23,6 +23,8 @@ final class ServerRegistryContext
 
     /**
      * Deactivate VCR and detach every server when the scenario ends.
+     *
+     * @mutation $this, global
      */
     public function __destruct()
     {

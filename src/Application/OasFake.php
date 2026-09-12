@@ -25,7 +25,7 @@ use function spl_object_id;
  * @example Stopping when no server is active is safe
  *     \OasFake\OasFake::stop();
  *     true // => true
- */
+     */
 final class OasFake
 {
     private static ?ServerRegistry $registry = null;
@@ -35,7 +35,7 @@ final class OasFake
      *
      * @template T of Server
      *
-     * @param class-string<T>|T $server Server class or instance
+     * @param class-string<T>|T $server +mut initializes and registers a supplied server instance
      * @param (callable(T): T)|null $configure Optional fluent configuration callback
      *
      * @throws IOException when the schema file cannot be read
@@ -45,28 +45,27 @@ final class OasFake
      * @throws ReflectionException when a declarative handler cannot be bound
      *
      * @return T
+     *
+     * @mutation global
      */
     public static function start(string|Server $server, ?callable $configure = null): Server
     {
-        if (is_string($server)) {
-            /** @var T $server */
-            $server = new $server();
-        }
-
-        if ($configure !== null) {
-            $server = $configure($server);
-        }
+        $instance = is_string($server) ? new $server() : $server;
+        $configured = $configure !== null ? $configure($instance) : $instance;
 
         (self::$registry ??= new ServerRegistry())->register(
-            $server::class . '#' . spl_object_id($server),
-            $server,
+            $configured::class . '#' . spl_object_id($configured),
+            $configured,
         );
 
-        return $server;
+        return $configured;
     }
 
     /**
      * Stop one fake server, or all running fake servers when omitted.
+     *
+     *
+     * @mutation global
      */
     public static function stop(?Server $server = null): void
     {

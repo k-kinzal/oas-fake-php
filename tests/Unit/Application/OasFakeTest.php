@@ -30,6 +30,9 @@ use ReflectionException;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerRuntime::class)]
 final class OasFakeTest extends TestCase
 {
+    /**
+     * @mutation global
+     */
     #[Override]
     protected function tearDown(): void
     {
@@ -42,6 +45,8 @@ final class OasFakeTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testStartWithServerInstance(): void
     {
@@ -59,6 +64,8 @@ final class OasFakeTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testStartWithConfigureCallback(): void
     {
@@ -80,6 +87,8 @@ final class OasFakeTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testStopStopsServer(): void
     {
@@ -91,6 +100,9 @@ final class OasFakeTest extends TestCase
         self::assertSame(1, $server->unregisterCount);
     }
 
+    /**
+     * @mutation global
+     */
     public function testStopWhenNotRunningDoesNothing(): void
     {
         OasFake::stop();
@@ -103,6 +115,8 @@ final class OasFakeTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testStartReturnsServerInstance(): void
     {
@@ -119,6 +133,8 @@ final class OasFakeTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testStopIsIdempotent(): void
     {
@@ -138,6 +154,8 @@ final class OasFakeTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testMultipleServersCanBeStarted(): void
     {
@@ -159,6 +177,8 @@ final class OasFakeTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testStopStopsAllServers(): void
     {
@@ -179,6 +199,8 @@ final class OasFakeTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testStopCanSelectOneServer(): void
     {
@@ -199,6 +221,8 @@ final class OasFakeTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testStartingSameServerClassTwiceKeepsFirstInstanceRegistered(): void
     {

@@ -29,7 +29,7 @@ final class VcrResponseFactory
             $headers[$headerName] = count($values) === 1 ? $values[0] : array_values($values);
         }
 
-        return new VcrResponse(
+        return new LosslessVcrResponse(
             (string) $response->getStatusCode(),
             $headers,
             (string) $response->getBody(),

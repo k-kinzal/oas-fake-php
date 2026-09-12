@@ -22,7 +22,7 @@ use ReflectionException;
  * @example Configuring the fake mode fluently
  *     $server = (new \OasFake\Server())->withMode(\OasFake\Mode::FAKE);
  *     $server->resolveMode()->value() // => 'fake'
- */
+     */
 class Server
 {
     use ServerMiddleware;
@@ -32,6 +32,8 @@ class Server
      * Set the OpenAPI schema file path.
      *
      * @param string $schemaPath Path to the OpenAPI JSON or YAML file
+     *
+     * @mutation $this
      */
     public function withSchema(string $schemaPath): static
     {
@@ -46,6 +48,8 @@ class Server
      * Set the operating mode.
      *
      * @param Mode|string $mode The mode to use (FAKE, RECORD, or REPLAY)
+     *
+     * @mutation $this
      */
     public function withMode(string|Mode $mode): static
     {
@@ -59,6 +63,8 @@ class Server
      * Set the directory path for cassette files.
      *
      * @param string $path Directory path for cassette storage
+     *
+     * @mutation $this
      */
     public function withCassettePath(string $path): static
     {
@@ -70,6 +76,8 @@ class Server
 
     /**
      * Set the cassette file name used for RECORD and REPLAY modes.
+     *
+     * @mutation $this
      */
     public function withCassetteName(string $name): static
     {
@@ -83,6 +91,8 @@ class Server
      * Enable or disable request validation against the OpenAPI schema.
      *
      * @param bool $enable Whether to validate incoming requests
+     *
+     * @mutation $this
      */
     public function withRequestValidation(bool $enable = true): static
     {
@@ -96,6 +106,8 @@ class Server
      * Enable or disable response validation against the OpenAPI schema.
      *
      * @param bool $enable Whether to validate outgoing responses
+     *
+     * @mutation $this
      */
     public function withResponseValidation(bool $enable = true): static
     {
@@ -109,6 +121,8 @@ class Server
      * Set the options for the OpenAPI faker.
      *
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
+     *
+     * @mutation $this
      */
     public function withFakerOptions(array $options): static
     {
@@ -122,6 +136,8 @@ class Server
      * Add a PSR-15 middleware to the processing pipeline.
      *
      * @param MiddlewareInterface $middleware Middleware to append
+     *
+     * @mutation $this
      */
     public function withMiddleware(MiddlewareInterface $middleware): static
     {
@@ -136,6 +152,8 @@ class Server
      *
      * @param string $operationId The OpenAPI operationId
      * @param Handler $handler The handler to register
+     *
+     * @mutation $this
      */
     public function withHandler(string $operationId, Handler $handler): static
     {
@@ -148,6 +166,8 @@ class Server
     /**
      * @param array<string, mixed>|list<mixed>|string $body
      * @param array<string, string> $headers
+     *
+     * @mutation $this
      */
     public function withResponse(string $operationId, int $status, array|string $body, array $headers = []): static
     {
@@ -159,6 +179,8 @@ class Server
      *
      * @param string $operationId The OpenAPI operationId
      * @param callable $callback Callback that receives the request and returns a response
+     *
+     * @mutation $this
      */
     public function withCallback(string $operationId, callable $callback): static
     {
@@ -168,6 +190,8 @@ class Server
     /**
      * @param array<string, mixed>|list<mixed>|string $body
      * @param array<string, string> $headers
+     *
+     * @mutation $this
      */
     public function withPathResponse(string $path, string $method, int $status, array|string $body, array $headers = []): static
     {
@@ -183,6 +207,8 @@ class Server
      * @param string $path The URL path pattern
      * @param string $method The HTTP method (GET, POST, etc.)
      * @param callable $callback Callback that receives the request and returns a response
+     *
+     * @mutation $this
      */
     public function withPathCallback(string $path, string $method, callable $callback): static
     {
@@ -203,6 +229,8 @@ class Server
      * @throws UnresolvableReferenceException when a schema reference cannot be resolved
      * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid
      * @throws ReflectionException when a declarative handler cannot be bound
+     *
+     * @mutation $this
      */
     public function buildInterceptor(): void
     {
@@ -221,6 +249,8 @@ class Server
      * @throws UnresolvableReferenceException when a schema reference cannot be resolved
      * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid
      * @throws ReflectionException when a declarative handler cannot be bound
+     *
+     * @mutation $this, global
      */
     public function start(): void
     {
@@ -229,6 +259,8 @@ class Server
 
     /**
      * Stop the fake server and release the interceptor.
+     *
+     * @mutation $this, global
      */
     public function stop(): void
     {
@@ -259,53 +291,9 @@ class Server
     }
 
     /**
-     * Return the resolved OpenAPI schema.
-     *
-     * @throws IOException when the schema file cannot be read
-     * @throws TypeErrorException when the schema has an invalid structure
-     * @throws UnresolvableReferenceException when a schema reference cannot be resolved
-     * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid
-     */
-    public function schema(): Schema
-    {
-        return $this->runtime->schema();
-    }
-
-    /**
-     * Return the resolved faker options.
-     *
-     * @return array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int}
-     */
-    public function fakerOptions(): array
-    {
-        return $this->runtime->fakerOptions();
-    }
-
-    /**
-     * Return the server URLs from the resolved schema.
-     *
-     * @throws IOException when the schema file cannot be read
-     * @throws TypeErrorException when the schema has an invalid structure
-     * @throws UnresolvableReferenceException when a schema reference cannot be resolved
-     * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid
-     *
-     * @return list<string>
-     */
-    public function serverUrls(): array
-    {
-        return $this->runtime->serverUrls();
-    }
-
-    /**
-     * Resolve the active mode from environment, fluent override, or static defaults.
-     */
-    public function resolveMode(): Mode
-    {
-        return $this->runtime->mode();
-    }
-
-    /**
      * Register this server with a registry that owns the shared VCR lifecycle.
+     *
+     * @mutation $this
      */
     public function registerInRegistry(ServerRegistry $registry, string $key): void
     {
@@ -314,6 +302,8 @@ class Server
 
     /**
      * Unregister this server from a registry and stop its interceptor.
+     *
+     * @mutation $this
      */
     public function unregisterFromRegistry(ServerRegistry $registry, string $key): void
     {

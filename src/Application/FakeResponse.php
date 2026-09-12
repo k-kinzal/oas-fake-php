@@ -43,6 +43,7 @@ final class FakeResponse
     }
 
     /**
+     * @param FakeDataContext|Schema|Server $source +mut initializes a Server's lazy schema cache
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      *
      * @throws JsonException when the generated response body cannot be encoded
@@ -62,13 +63,14 @@ final class FakeResponse
             throw OperationNotFoundException::forOperationId($operationId);
         }
 
-        $statusCode ??= (new OperationResponseResolver())->defaultStatusCode($definition);
-        $response = self::generateResponse($context, $definition->pathPattern, $definition->method, $statusCode);
+        $resolvedStatus = $statusCode ?? (new OperationResponseResolver())->defaultStatusCode($definition);
+        $response = self::generateResponse($context, $definition->pathPattern, $definition->method, $resolvedStatus);
 
-        return self::fromPsr7($response);
+        return new self(...(new ResponseSnapshotFactory())->create($response));
     }
 
     /**
+     * @param FakeDataContext|Schema|Server $source +mut initializes a Server's lazy schema cache
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      *
      * @throws JsonException when the generated response body cannot be encoded
@@ -88,10 +90,10 @@ final class FakeResponse
             throw OperationNotFoundException::forPathAndMethod($path, $method);
         }
 
-        $statusCode ??= (new OperationResponseResolver())->defaultStatusCode($definition);
-        $response = self::generateResponse($context, $definition->pathPattern, $definition->method, $statusCode);
+        $resolvedStatus = $statusCode ?? (new OperationResponseResolver())->defaultStatusCode($definition);
+        $response = self::generateResponse($context, $definition->pathPattern, $definition->method, $resolvedStatus);
 
-        return self::fromPsr7($response);
+        return new self(...(new ResponseSnapshotFactory())->create($response));
     }
 
     /**
@@ -162,22 +164,5 @@ final class FakeResponse
         $context = $source instanceof FakeDataContext ? $source : new FakeDataContext($source, $options);
 
         return (new FakeResponseFactory())->create($context, $path, $method, $statusCode);
-    }
-
-    /**
-     * Create a fake response value from a PSR-7 response.
-     */
-    private static function fromPsr7(ResponseInterface $response): self
-    {
-        $headers = [];
-        foreach ($response->getHeaders() as $name => $values) {
-            $headers[(string) $name] = implode(', ', $values);
-        }
-
-        return new self(
-            $response->getStatusCode(),
-            $headers,
-            (string) $response->getBody(),
-        );
     }
 }

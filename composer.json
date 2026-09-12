@@ -32,14 +32,15 @@
     },
     "require-dev": {
         "brianium/paratest": "^6.11 || ^7",
-        "deptrac/deptrac": "^0.24 || ^3.0 || ^4.7",
-        "friendsofphp/php-cs-fixer": "3.4.0 || ^3.95",
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "giorgiosironi/eris": "^0.14.1 || ^1.1",
         "guzzlehttp/guzzle": "^7.0",
-        "infection/infection": "0.26.19 || ^0.28.1 || 0.29.11",
         "k-kinzal/php-ai-toolkit": "dev-main",
+        "nikic/php-fuzzer": "^0.0.11",
+        "phpbench/phpbench": "^1.2.14",
         "phpcompatibility/php-compatibility": "^10.0@alpha",
         "phpstan/phpstan": "^1.12 || ^2.0",
-        "phpunit/phpunit": "^9.6 || ^10.5 || ^11 || ^12",
+        "phpunit/phpunit": "^9.6 || ^10.5 || ^11 || ^12 || ^13",
         "squizlabs/php_codesniffer": "^4.0"
     },
     "autoload": {
@@ -77,24 +78,24 @@
     "config": {
         "sort-packages": true,
         "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true,
-            "infection/extension-installer": true
+            "dealerdirect/phpcodesniffer-composer-installer": true
         }
     },
     "scripts": {
-        "test": "paratest --configuration phpunit.xml.dist --processes=auto",
-        "test:coverage": "@php -d memory_limit=1G -d xdebug.mode=coverage vendor/bin/phpunit --configuration phpunit.xml.dist --coverage-xml build/coverage-xml",
-        "test:unit": "@php -d memory_limit=512M vendor/bin/phpunit --configuration phpunit.xml.dist",
-        "test:unit:9": "@php -d memory_limit=512M vendor/bin/phpunit --configuration phpunit9.xml.dist",
-        "test:unit:10": "@php -d memory_limit=512M vendor/bin/phpunit --configuration phpunit10.xml.dist",
-        "test:unit:11": "@php -d memory_limit=512M vendor/bin/phpunit --configuration phpunit11.xml.dist",
-        "test:unit:12": "@php -d memory_limit=512M vendor/bin/phpunit --configuration phpunit.xml.dist",
-        "doctest": "@php -d memory_limit=512M vendor/bin/phpunit --configuration phpunit.xml.dist --testsuite doctest",
-        "phpstan": "phpstan analyse src tests --memory-limit=512M",
+        "test": "@php tests/run.php --parallel --exclude-group=pbt",
+        "test:coverage": "@php -d xdebug.mode=coverage tests/run.php --exclude-group=pbt --coverage-xml build/coverage-xml",
+        "test:unit": "@php tests/run.php --exclude-group=pbt",
+        "test:pbt": "@php tests/run.php --group=pbt",
+        "doctest": "@php tests/run.php --testsuite doctest --exclude-group=pbt",
+        "phpstan": "phpstan analyse --memory-limit=512M",
+        "bench": "phpbench run --report=aggregate",
+        "bench:quick": "phpbench run --report=aggregate --warmup=1 --iterations=3 --retry-threshold=10",
+        "fuzz:routing": "php-fuzzer fuzz fuzz/routing.php fuzz/corpus/routing/",
+        "fuzz:smoke": "@fuzz:routing --max-runs=1000",
         "compat": "phpcs",
         "loc-guard": "loc-guard --config=loc.yaml",
         "tree-guard": "tree-guard --config=tree.yaml",
-        "deptrac": "@php deptrac-runner.php analyse --config-file=deptrac.yaml --fail-on-uncovered --report-uncovered --no-progress",
+        "deptrac": "deptrac analyse --config-file=deptrac.yaml --fail-on-uncovered --report-uncovered --no-progress",
         "docgen": "docgen --coverage=build/coverage-xml",
         "docgen:serve": "@docgen --serve",
         "docgen:diff": "@docgen --diff=main --serve",

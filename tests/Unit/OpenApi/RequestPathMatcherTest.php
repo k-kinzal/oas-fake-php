@@ -21,4 +21,13 @@ final class RequestPathMatcherTest extends TestCase
         self::assertTrue($matcher->matches('/pets/{petId}', '/pets/123'));
         self::assertFalse($matcher->matches('/pets/{petId}', '/pets/123/owner'));
     }
+
+    public function testMatchesRequiresTheEntireLiteralPathIncludingTrailingBytes(): void
+    {
+        $matcher = new RequestPathMatcher();
+
+        self::assertTrue($matcher->matches('/health', '/health'));
+        self::assertFalse($matcher->matches('/health', "/health\n"));
+        self::assertFalse($matcher->matches('/pets/{id}/owner', "/pets/1/owner\n"));
+    }
 }

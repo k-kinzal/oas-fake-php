@@ -31,6 +31,8 @@ use ReflectionException;
 use VCR\Request as VcrRequest;
 
 /**
+ * @uses \OasFake\LosslessVcrResponse
+ *
  * @covers \OasFake\Server
  *
  * @uses \OasFake\PayloadCodec
@@ -81,8 +83,9 @@ use VCR\Request as VcrRequest;
  * @uses \OasFake\HandlerTypeMatcher
  * @uses \OasFake\JsonHandlerBody
  * @uses \OasFake\OperationInfoFactory
- */
+     */
 #[CoversClass(Server::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\LosslessVcrResponse::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadCodec::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\RequestPathMatcher::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\CassetteNameNormalizer::class)]
@@ -285,6 +288,9 @@ final class ServerTest extends TestCase
         self::assertFalse($server->isRunning());
     }
 
+    /**
+     * @mutation global
+     */
     public function testStopWhenNotRunningDoesNothing(): void
     {
         $server = new Server();
@@ -299,6 +305,8 @@ final class ServerTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testStartCanBeCalledTwiceSafely(): void
     {
@@ -326,6 +334,8 @@ final class ServerTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testBuildInterceptorStartsInterceptor(): void
     {
@@ -349,6 +359,8 @@ final class ServerTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testBuildInterceptorUsesServerSpecificCassetteName(): void
     {
@@ -374,6 +386,8 @@ final class ServerTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testBuildInterceptorUsesConfiguredCassetteName(): void
     {
@@ -429,6 +443,8 @@ final class ServerTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testInterceptorReturnsActiveInterceptor(): void
     {
@@ -567,6 +583,8 @@ final class ServerTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testSchemaAwareOperationIdMethodHandlesMatchingOperation(): void
     {
@@ -592,6 +610,8 @@ final class ServerTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testSchemaAwareRouteMethodHandlesMatchingPath(): void
     {
@@ -616,6 +636,8 @@ final class ServerTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testSchemaAwareRouteMethodSkipsPathOutsideSchema(): void
     {
@@ -641,6 +663,8 @@ final class ServerTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testPublicMethodsWithoutHandlerSignatureAreNotAutoRegistered(): void
     {
@@ -686,6 +710,8 @@ final class ServerTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testRequestValidationIsEnabledWhenCalledWithoutAnArgument(): void
     {
@@ -709,6 +735,8 @@ final class ServerTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testResponseValidationIsEnabledWhenCalledWithoutAnArgument(): void
     {
@@ -733,6 +761,8 @@ final class ServerTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testHandlerAndMiddlewareConfigurationAffectResponses(): void
     {
@@ -767,6 +797,8 @@ final class ServerTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testPathResponseConfigurationAffectsResponses(): void
     {
@@ -793,6 +825,8 @@ final class ServerTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testPathCallbackConfigurationAffectsResponses(): void
     {
@@ -819,6 +853,8 @@ final class ServerTest extends TestCase
      * @throws \cebe\openapi\exceptions\TypeErrorException when the exercised contract propagates it
      * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the exercised contract propagates it
      * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the exercised contract propagates it
+     *
+     * @mutation global
      */
     public function testStopReleasesADirectlyBuiltInterceptor(): void
     {

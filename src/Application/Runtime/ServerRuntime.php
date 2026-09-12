@@ -15,7 +15,7 @@ use ReflectionException;
  * Resolves and starts the runtime assembled from one server configuration.
  *
  * @visibility namespace
- */
+     */
 final class ServerRuntime
 {
     private ?Schema $resolvedSchema = null;
@@ -41,6 +41,9 @@ final class ServerRuntime
 
     /**
      * Forget a schema resolved before a configuration change.
+     *
+     *
+     * @mutation $this
      */
     public function forgetSchema(): void
     {
@@ -55,6 +58,8 @@ final class ServerRuntime
      * @throws UnresolvableReferenceException when a schema reference cannot be resolved
      * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid
      * @throws ReflectionException when a declarative handler cannot be bound
+     *
+     * @mutation $this
      */
     public function build(Server $server): Interceptor
     {
@@ -86,6 +91,8 @@ final class ServerRuntime
      * @throws TypeErrorException when the schema has an invalid structure
      * @throws UnresolvableReferenceException when a schema reference cannot be resolved
      * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid
+     *
+     * @mutation $this
      */
     public function schema(): Schema
     {
@@ -111,6 +118,8 @@ final class ServerRuntime
      * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid
      *
      * @return list<string>
+     *
+     * @mutation $this
      */
     public function serverUrls(): array
     {

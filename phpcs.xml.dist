@@ -5,6 +5,8 @@
 
     <file>src</file>
     <file>tests</file>
+    <file>bench</file>
+    <file>fuzz</file>
 
     <config name="testVersion" value="8.0-8.5"/>
 

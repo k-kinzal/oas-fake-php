@@ -1,19 +1,33 @@
 # NOTE: You do not have permission to overwrite this file. Please ask a human operator to perform the changes for you.
-paths:
-  - src
+scan:
+  roots:
+    - src
+  exclude: []
 
-exclude: []
+policies:
+  standard:
+    limits:
+      file:
+        lines: 350
+        ncloc: 250
+      class:
+        lines: 300
+      trait:
+        lines: 150
+      interface:
+        lines: 120
+      enum:
+        lines: 120
+      function:
+        lines: 40
+        cyclomatic_complexity: 12
+      method:
+        lines: 40
+        cyclomatic_complexity: 12
 
-limits:
-  max_file_lines: 350
-  max_file_ncloc: 250
-  max_class_lines: 300
-  max_trait_lines: 150
-  max_interface_lines: 120
-  max_enum_lines: 120
-  max_function_lines: 40
-  max_method_lines: 40
-  max_cyclomatic_complexity: 12
+apply:
+  default: standard
+  rules: []
 
 report:
   reporter: ai

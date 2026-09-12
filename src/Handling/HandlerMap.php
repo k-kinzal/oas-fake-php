@@ -8,7 +8,7 @@ use function strtoupper;
 
 /**
  * Lookup table for handlers, indexed by operation ID or path/method pair.
- */
+     */
 final class HandlerMap
 {
     /**
@@ -26,6 +26,8 @@ final class HandlerMap
      *
      * @param string $operationId The OpenAPI operationId
      * @param Handler $handler The handler to register
+     *
+     * @mutation $this
      */
     public function forOperation(string $operationId, Handler $handler): void
     {
@@ -38,6 +40,8 @@ final class HandlerMap
      * @param string $path The URL path pattern
      * @param string $method The HTTP method
      * @param Handler $handler The handler to register
+     *
+     * @mutation $this
      */
     public function forPath(string $path, string $method, Handler $handler): void
     {
@@ -78,6 +82,9 @@ final class HandlerMap
 
     /**
      * Remove all registered handlers.
+     *
+     *
+     * @mutation $this
      */
     public function clear(): void
     {

@@ -30,14 +30,11 @@ final class MiddlewarePipeline
      */
     public function handle(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        if ($this->middleware === []) {
-            return $handler->handle($request);
-        }
-
-        $chain = $handler;
-        foreach (array_reverse($this->middleware) as $middleware) {
-            $chain = new MiddlewareRequestHandler($middleware, $chain);
-        }
+        $chain = array_reduce(
+            array_reverse($this->middleware),
+            static fn (RequestHandlerInterface $next, MiddlewareInterface $middleware): RequestHandlerInterface => new MiddlewareRequestHandler($middleware, $next),
+            $handler,
+        );
 
         return $chain->handle($request);
     }

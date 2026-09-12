@@ -16,6 +16,9 @@ use VCR\Response;
 #[CoversClass(VcrLifecycle::class)]
 final class VcrLifecycleTest extends TestCase
 {
+    /**
+     * @mutation global
+     */
     public function testActivateMarksLifecycleActive(): void
     {
         $lifecycle = new VcrLifecycle();
@@ -29,6 +32,9 @@ final class VcrLifecycleTest extends TestCase
         }
     }
 
+    /**
+     * @mutation global
+     */
     public function testDeactivateMarksLifecycleInactive(): void
     {
         $lifecycle = new VcrLifecycle();

@@ -18,6 +18,8 @@ final class DeclarativeHandlerRegistrar
     /**
      * Register operationId and Route attribute handlers from the given server.
      *
+     * @param HandlerMap $handlers +mut registry receiving the declared handlers
+     *
      * @throws ReflectionException when a public handler cannot be bound to its server
      */
     public function register(Server $server, HandlerMap $handlers, ?Schema $schema = null): void

@@ -15,7 +15,7 @@ use Psr\Http\Server\MiddlewareInterface;
  * Owns mutable server overrides and resolves them against defaults and environment policy.
  *
  * @visibility namespace
- */
+     */
 final class ServerConfiguration
 {
     private ?string $schema = null;
@@ -33,6 +33,9 @@ final class ServerConfiguration
 
     /**
      * Store a schema-path override.
+     *
+     *
+     * @mutation $this
      */
     public function setSchema(string $schema): void
     {
@@ -41,6 +44,9 @@ final class ServerConfiguration
 
     /**
      * Store a normalized server-mode override.
+     *
+     *
+     * @mutation $this
      */
     public function setMode(string|Mode $mode): void
     {
@@ -49,6 +55,9 @@ final class ServerConfiguration
 
     /**
      * Store a cassette-directory override.
+     *
+     *
+     * @mutation $this
      */
     public function setCassettePath(string $path): void
     {
@@ -57,6 +66,9 @@ final class ServerConfiguration
 
     /**
      * Store a cassette-name override.
+     *
+     *
+     * @mutation $this
      */
     public function setCassetteName(string $name): void
     {
@@ -65,6 +77,9 @@ final class ServerConfiguration
 
     /**
      * Store the request-validation policy.
+     *
+     *
+     * @mutation $this
      */
     public function setRequestValidation(bool $enabled): void
     {
@@ -73,6 +88,9 @@ final class ServerConfiguration
 
     /**
      * Store the response-validation policy.
+     *
+     *
+     * @mutation $this
      */
     public function setResponseValidation(bool $enabled): void
     {
@@ -83,6 +101,8 @@ final class ServerConfiguration
      * Store the OpenAPI faker policy.
      *
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
+     *
+     * @mutation $this
      */
     public function setFakerOptions(array $options): void
     {
@@ -91,6 +111,9 @@ final class ServerConfiguration
 
     /**
      * Append middleware after subclass-declared middleware.
+     *
+     *
+     * @mutation $this
      */
     public function addMiddleware(MiddlewareInterface $middleware): void
     {

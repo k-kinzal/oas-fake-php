@@ -51,6 +51,7 @@ final class FakeRequest
     }
 
     /**
+     * @param FakeDataContext|Schema|Server $source +mut initializes a Server's lazy schema cache
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      *
      * @throws JsonException when the generated request body cannot be encoded
@@ -76,6 +77,7 @@ final class FakeRequest
     }
 
     /**
+     * @param FakeDataContext|Schema|Server $source +mut initializes a Server's lazy schema cache
      * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options
      *
      * @throws JsonException when the generated request body cannot be encoded
@@ -113,12 +115,11 @@ final class FakeRequest
      */
     public function url(): string
     {
-        $path = $this->pathPattern;
+        $replacements = [];
         foreach ($this->pathParams as $name => $value) {
-            $path = str_replace('{' . $name . '}', rawurlencode($value), $path);
+            $replacements['{' . $name . '}'] = rawurlencode($value);
         }
-
-        $url = rtrim($this->baseUrl, '/') . $path;
+        $url = rtrim($this->baseUrl, '/') . strtr($this->pathPattern, $replacements);
 
         if ($this->queryParams !== []) {
             $url .= '?' . Query::build($this->queryParams);
@@ -170,10 +171,15 @@ final class FakeRequest
      */
     public function withPathParam(string $name, string $value): self
     {
-        $clone = clone $this;
-        $clone->pathParams[$name] = $value;
-
-        return $clone;
+        return new self(
+            $this->method,
+            $this->baseUrl,
+            $this->pathPattern,
+            array_replace($this->pathParams, [$name => $value]),
+            $this->queryParams,
+            $this->headerParams,
+            $this->rawBody,
+        );
     }
 
     /**
@@ -181,10 +187,15 @@ final class FakeRequest
      */
     public function withQueryParam(string $name, string $value): self
     {
-        $clone = clone $this;
-        $clone->queryParams[$name] = $value;
-
-        return $clone;
+        return new self(
+            $this->method,
+            $this->baseUrl,
+            $this->pathPattern,
+            $this->pathParams,
+            array_replace($this->queryParams, [$name => $value]),
+            $this->headerParams,
+            $this->rawBody,
+        );
     }
 
     /**
@@ -192,10 +203,15 @@ final class FakeRequest
      */
     public function withHeader(string $name, string $value): self
     {
-        $clone = clone $this;
-        $clone->headerParams[$name] = $value;
-
-        return $clone;
+        return new self(
+            $this->method,
+            $this->baseUrl,
+            $this->pathPattern,
+            $this->pathParams,
+            $this->queryParams,
+            array_replace($this->headerParams, [$name => $value]),
+            $this->rawBody,
+        );
     }
 
     /**

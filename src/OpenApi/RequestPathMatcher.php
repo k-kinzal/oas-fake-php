@@ -26,6 +26,6 @@ final class RequestPathMatcher
             return false;
         }
 
-        return preg_match('#^' . $regex . '$#', $path) === 1;
+        return preg_match('#\\A' . $regex . '\\z#', $path) === 1;
     }
 }

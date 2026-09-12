@@ -74,7 +74,7 @@ final class Converter
         return new Response(
             $vcrResponse->getStatusCode(),
             $vcrResponse->getHeaders(),
-            $vcrResponse->getBody(),
+            LosslessVcrResponse::fromResponse($vcrResponse)->getBody(),
         );
     }
 }

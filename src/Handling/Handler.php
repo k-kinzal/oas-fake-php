@@ -92,14 +92,12 @@ final class Handler
         }
 
         $statusCode = $this->statusCode ?? 200;
-        $headers = $this->headers;
-
         if ($this->body === null) {
-            return new Response($statusCode, $headers);
+            return new Response($statusCode, $this->headers);
         }
 
         $body = $this->body->encode();
-        $headers['Content-Type'] ??= 'application/json';
+        $headers = $this->headers + ['Content-Type' => 'application/json'];
 
         return new Response($statusCode, $headers, $body);
     }

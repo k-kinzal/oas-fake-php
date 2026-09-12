@@ -16,7 +16,7 @@ use VCR\Storage\Json;
  * Owns one interceptor's cassette and per-request playback indexes.
  *
  * @visibility namespace
- */
+     */
 final class CassetteSession
 {
     private ?Cassette $cassette = null;
@@ -33,6 +33,9 @@ final class CassetteSession
 
     /**
      * Open the configured cassette.
+     *
+     *
+     * @mutation $this
      */
     public function start(): void
     {
@@ -45,6 +48,9 @@ final class CassetteSession
 
     /**
      * Release cassette state and playback positions.
+     *
+     *
+     * @mutation $this
      */
     public function stop(): void
     {
@@ -56,6 +62,8 @@ final class CassetteSession
      * Replay the next matching response.
      *
      * @throws ReplayMismatchError when the cassette is closed or has no matching response
+     *
+     * @mutation $this
      */
     public function playback(VcrRequest $request): VcrResponse
     {
@@ -68,21 +76,27 @@ final class CassetteSession
             throw ReplayMismatchError::forRequest($request, new LogicException('No matching cassette recording'));
         }
 
-        return $response;
+        return LosslessVcrResponse::fromResponse($response);
     }
 
     /**
      * Record a response when the cassette is open.
+     *
+     *
+     * @mutation $this
      */
     public function record(VcrRequest $request, VcrResponse $response): void
     {
         if ($this->cassette !== null) {
-            $this->cassette->record($request, $response, $this->nextIndex($request));
+            $this->cassette->record($request, LosslessVcrResponse::fromResponse($response), $this->nextIndex($request));
         }
     }
 
     /**
      * Advance and return the index for an equivalent request signature.
+     *
+     *
+     * @mutation $this
      */
     public function nextIndex(VcrRequest $request): int
     {
