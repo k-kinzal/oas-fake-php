@@ -2,6 +2,7 @@
     "$schema": "./vendor/phpbench/phpbench/phpbench.schema.json",
     "runner.bootstrap": "vendor/autoload.php",
     "runner.path": "bench",
+    "runner.annotations": false,
     "runner.warmup": 2,
     "runner.iterations": 10,
     "runner.retry_threshold": 5,
