@@ -67,7 +67,7 @@
 <span class="src-line" id="L29" data-diff="added"><a class="ln" href="#L29">29</a>            <span class="tok-var">$headers</span>[<span class="tok-var">$headerName</span>] = <span class="tok-id">count</span>(<span class="tok-var">$values</span>) === <span class="tok-num">1</span> ? <span class="tok-var">$values</span>[<span class="tok-num">0</span>] : <span class="tok-id">array_values</span>(<span class="tok-var">$values</span>);</span>
 <span class="src-line" id="L30" data-diff="added"><a class="ln" href="#L30">30</a>        }</span>
 <span class="src-line" id="L31" data-diff="added"><a class="ln" href="#L31">31</a></span>
-<span class="src-line" id="L32" data-diff="added"><a class="ln" href="#L32">32</a>        <span class="tok-kw">return</span> <span class="tok-kw">new</span> <span class="tok-id">VcrResponse</span>(</span>
+<span class="src-line" id="L32" data-diff="added"><a class="ln" href="#L32">32</a>        <span class="tok-kw">return</span> <span class="tok-kw">new</span> <span class="tok-id">LosslessVcrResponse</span>(</span>
 <span class="src-line" id="L33" data-diff="added"><a class="ln" href="#L33">33</a>            (string) <span class="tok-var">$response</span>-&gt;<span class="tok-id">getStatusCode</span>(),</span>
 <span class="src-line" id="L34" data-diff="added"><a class="ln" href="#L34">34</a>            <span class="tok-var">$headers</span>,</span>
 <span class="src-line" id="L35" data-diff="added"><a class="ln" href="#L35">35</a>            (string) <span class="tok-var">$response</span>-&gt;<span class="tok-id">getBody</span>(),</span>

@@ -55,29 +55,30 @@
 <span class="src-line" id="L17" data-diff="added"><a class="ln" href="#L17">17</a><span class="tok-kw">final</span> <span class="tok-kw">class</span> <span class="tok-id">FakeDataContextResolver</span></span>
 <span class="src-line" id="L18" data-diff="added"><a class="ln" href="#L18">18</a>{</span>
 <span class="src-line" id="L19" data-diff="added"><a class="ln" href="#L19">19</a>    <span class="tok-com">/**</span></span>
-<span class="src-line" id="L20" data-diff="added"><a class="ln" href="#L20">20</a><span class="tok-com">     * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options</span></span>
-<span class="src-line" id="L21" data-diff="added"><a class="ln" href="#L21">21</a><span class="tok-com">     *</span></span>
-<span class="src-line" id="L22" data-diff="added"><a class="ln" href="#L22">22</a><span class="tok-com">     * @throws IOException when a configured schema file cannot be read</span></span>
-<span class="src-line" id="L23" data-diff="added"><a class="ln" href="#L23">23</a><span class="tok-com">     * @throws TypeErrorException when a configured schema has an invalid structure</span></span>
-<span class="src-line" id="L24" data-diff="added"><a class="ln" href="#L24">24</a><span class="tok-com">     * @throws UnresolvableReferenceException when a schema reference cannot be resolved</span></span>
-<span class="src-line" id="L25" data-diff="added"><a class="ln" href="#L25">25</a><span class="tok-com">     * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid</span></span>
-<span class="src-line" id="L26" data-diff="added"><a class="ln" href="#L26">26</a><span class="tok-com">     */</span></span>
-<span class="src-line" id="L27" data-diff="added"><a class="ln" href="#L27">27</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">resolve</span>(<span class="tok-id">Server</span>|<span class="tok-id">Schema</span>|<span class="tok-id">FakeDataContext</span> <span class="tok-var">$source</span>, <span class="tok-kw">array</span> <span class="tok-var">$options</span> = []): <span class="tok-id">FakeDataContext</span></span>
-<span class="src-line" id="L28" data-diff="added"><a class="ln" href="#L28">28</a>    {</span>
-<span class="src-line" id="L29" data-diff="added"><a class="ln" href="#L29">29</a>        <span class="tok-kw">if</span> (<span class="tok-var">$source</span> <span class="tok-kw">instanceof</span> <span class="tok-id">FakeDataContext</span>) {</span>
-<span class="src-line" id="L30" data-diff="added"><a class="ln" href="#L30">30</a>            <span class="tok-kw">return</span> <span class="tok-var">$source</span>;</span>
-<span class="src-line" id="L31" data-diff="added"><a class="ln" href="#L31">31</a>        }</span>
-<span class="src-line" id="L32" data-diff="added"><a class="ln" href="#L32">32</a></span>
-<span class="src-line" id="L33" data-diff="added"><a class="ln" href="#L33">33</a>        <span class="tok-kw">if</span> (<span class="tok-var">$source</span> <span class="tok-kw">instanceof</span> <span class="tok-id">Server</span>) {</span>
-<span class="src-line" id="L34" data-diff="added"><a class="ln" href="#L34">34</a>            <span class="tok-var">$fakerOptions</span> = <span class="tok-var">$options</span> !== [] ? <span class="tok-var">$options</span> : <span class="tok-var">$source</span>-&gt;<span class="tok-id">fakerOptions</span>();</span>
-<span class="src-line" id="L35" data-diff="added"><a class="ln" href="#L35">35</a></span>
-<span class="src-line" id="L36" data-diff="added"><a class="ln" href="#L36">36</a>            <span class="tok-kw">return</span> <span class="tok-kw">new</span> <span class="tok-id">FakeDataContext</span>(<span class="tok-var">$source</span>-&gt;<span class="tok-id">schema</span>(), <span class="tok-var">$fakerOptions</span>);</span>
-<span class="src-line" id="L37" data-diff="added"><a class="ln" href="#L37">37</a>        }</span>
-<span class="src-line" id="L38" data-diff="added"><a class="ln" href="#L38">38</a></span>
-<span class="src-line" id="L39" data-diff="added"><a class="ln" href="#L39">39</a>        <span class="tok-kw">return</span> <span class="tok-kw">new</span> <span class="tok-id">FakeDataContext</span>(<span class="tok-var">$source</span>, <span class="tok-var">$options</span>);</span>
-<span class="src-line" id="L40" data-diff="added"><a class="ln" href="#L40">40</a>    }</span>
-<span class="src-line" id="L41" data-diff="added"><a class="ln" href="#L41">41</a>}</span>
-<span class="src-line" id="L42" data-diff="added"><a class="ln" href="#L42">42</a></span>
+<span class="src-line" id="L20" data-diff="added"><a class="ln" href="#L20">20</a><span class="tok-com">     * @param FakeDataContext|Schema|Server $source +mut initializes a Server&#039;s lazy schema cache</span></span>
+<span class="src-line" id="L21" data-diff="added"><a class="ln" href="#L21">21</a><span class="tok-com">     * @param array{alwaysFakeOptionals?: bool, minItems?: int, maxItems?: int} $options</span></span>
+<span class="src-line" id="L22" data-diff="added"><a class="ln" href="#L22">22</a><span class="tok-com">     *</span></span>
+<span class="src-line" id="L23" data-diff="added"><a class="ln" href="#L23">23</a><span class="tok-com">     * @throws IOException when a configured schema file cannot be read</span></span>
+<span class="src-line" id="L24" data-diff="added"><a class="ln" href="#L24">24</a><span class="tok-com">     * @throws TypeErrorException when a configured schema has an invalid structure</span></span>
+<span class="src-line" id="L25" data-diff="added"><a class="ln" href="#L25">25</a><span class="tok-com">     * @throws UnresolvableReferenceException when a schema reference cannot be resolved</span></span>
+<span class="src-line" id="L26" data-diff="added"><a class="ln" href="#L26">26</a><span class="tok-com">     * @throws InvalidJsonPointerSyntaxException when a JSON pointer is invalid</span></span>
+<span class="src-line" id="L27" data-diff="added"><a class="ln" href="#L27">27</a><span class="tok-com">     */</span></span>
+<span class="src-line" id="L28" data-diff="added"><a class="ln" href="#L28">28</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">resolve</span>(<span class="tok-id">Server</span>|<span class="tok-id">Schema</span>|<span class="tok-id">FakeDataContext</span> <span class="tok-var">$source</span>, <span class="tok-kw">array</span> <span class="tok-var">$options</span> = []): <span class="tok-id">FakeDataContext</span></span>
+<span class="src-line" id="L29" data-diff="added"><a class="ln" href="#L29">29</a>    {</span>
+<span class="src-line" id="L30" data-diff="added"><a class="ln" href="#L30">30</a>        <span class="tok-kw">if</span> (<span class="tok-var">$source</span> <span class="tok-kw">instanceof</span> <span class="tok-id">FakeDataContext</span>) {</span>
+<span class="src-line" id="L31" data-diff="added"><a class="ln" href="#L31">31</a>            <span class="tok-kw">return</span> <span class="tok-var">$source</span>;</span>
+<span class="src-line" id="L32" data-diff="added"><a class="ln" href="#L32">32</a>        }</span>
+<span class="src-line" id="L33" data-diff="added"><a class="ln" href="#L33">33</a></span>
+<span class="src-line" id="L34" data-diff="added"><a class="ln" href="#L34">34</a>        <span class="tok-kw">if</span> (<span class="tok-var">$source</span> <span class="tok-kw">instanceof</span> <span class="tok-id">Server</span>) {</span>
+<span class="src-line" id="L35" data-diff="added"><a class="ln" href="#L35">35</a>            <span class="tok-var">$fakerOptions</span> = <span class="tok-var">$options</span> !== [] ? <span class="tok-var">$options</span> : <span class="tok-var">$source</span>-&gt;<span class="tok-id">fakerOptions</span>();</span>
+<span class="src-line" id="L36" data-diff="added"><a class="ln" href="#L36">36</a></span>
+<span class="src-line" id="L37" data-diff="added"><a class="ln" href="#L37">37</a>            <span class="tok-kw">return</span> <span class="tok-kw">new</span> <span class="tok-id">FakeDataContext</span>(<span class="tok-var">$source</span>-&gt;<span class="tok-id">schema</span>(), <span class="tok-var">$fakerOptions</span>);</span>
+<span class="src-line" id="L38" data-diff="added"><a class="ln" href="#L38">38</a>        }</span>
+<span class="src-line" id="L39" data-diff="added"><a class="ln" href="#L39">39</a></span>
+<span class="src-line" id="L40" data-diff="added"><a class="ln" href="#L40">40</a>        <span class="tok-kw">return</span> <span class="tok-kw">new</span> <span class="tok-id">FakeDataContext</span>(<span class="tok-var">$source</span>, <span class="tok-var">$options</span>);</span>
+<span class="src-line" id="L41" data-diff="added"><a class="ln" href="#L41">41</a>    }</span>
+<span class="src-line" id="L42" data-diff="added"><a class="ln" href="#L42">42</a>}</span>
+<span class="src-line" id="L43" data-diff="added"><a class="ln" href="#L43">43</a></span>
 </code></pre>
 </main>
 <footer class="site-footer">Generated by <a href="https://github.com/k-kinzal/php-ai-toolkit">php-ai-toolkit</a> docgen</footer>
