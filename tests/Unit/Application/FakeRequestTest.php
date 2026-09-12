@@ -373,12 +373,26 @@ final class FakeRequestTest extends TestCase
      */
     public function testWithPathParamOverridesValue(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'getPetById');
+        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+            openapi: 3.0.0
+            info: {title: Owned pets, version: 1.0.0}
+            paths:
+              /owners/{ownerId}/pets/{petId}:
+                get:
+                  operationId: getOwnedPet
+                  parameters:
+                    - {name: ownerId, in: path, required: true, schema: {type: integer, enum: [7]}}
+                    - {name: petId, in: path, required: true, schema: {type: integer, enum: [1]}}
+                  responses:
+                    '204': {description: No content}
+            YAML);
+        $request = FakeRequest::for($schema, 'getOwnedPet');
         $modified = $request->withPathParam('petId', '99');
 
-        self::assertSame('99', $modified->pathParams()['petId']);
-        self::assertStringContainsString('/pets/99', $modified->url());
-        self::assertNotSame($request->pathParams()['petId'], '99');
+        self::assertSame(['ownerId' => '7', 'petId' => '99'], $modified->pathParams());
+        self::assertStringEndsWith('/owners/7/pets/99', $modified->url());
+        self::assertSame(['ownerId' => '7', 'petId' => '1'], $request->pathParams());
+        self::assertStringEndsWith('/owners/7/pets/1', $request->url());
     }
 
     /**
@@ -408,14 +422,13 @@ final class FakeRequestTest extends TestCase
      */
     public function testWithQueryParamAddsParam(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'listPets');
+        $request = FakeRequest::for(Petstore::schema(), 'listPets')->withQueryParam('page', '1');
         $modified = $request->withQueryParam('limit', '10');
 
-        self::assertSame('10', $modified->queryParams()['limit']);
-        self::assertSame([], $request->queryParams());
-        self::assertSame('https://api.petstore.example.com/pets?limit=10', $modified->url());
-        self::assertSame([], $request->queryParams());
-        self::assertSame('https://api.petstore.example.com/pets', $request->url());
+        self::assertSame(['page' => '1', 'limit' => '10'], $modified->queryParams());
+        self::assertSame(['page' => '1'], $request->queryParams());
+        self::assertSame('https://api.petstore.example.com/pets?page=1&limit=10', $modified->url());
+        self::assertSame('https://api.petstore.example.com/pets?page=1', $request->url());
     }
 
     /**
@@ -512,10 +525,12 @@ final class FakeRequestTest extends TestCase
      */
     public function testWithHeaderAddsHeader(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'listPets');
+        $request = FakeRequest::for(Petstore::schema(), 'listPets')->withHeader('X-Request-Id', 'request-1');
         $modified = $request->withHeader('Authorization', 'Bearer token');
 
         self::assertSame('Bearer token', $modified->headers()['Authorization']);
+        self::assertSame('request-1', $modified->headers()['X-Request-Id']);
+        self::assertSame('request-1', $request->headers()['X-Request-Id']);
         self::assertArrayNotHasKey('Authorization', $request->headers());
     }
 
