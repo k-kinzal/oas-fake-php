@@ -101,8 +101,6 @@ $command = array_map(
         PHP_BINARY,
         '-d',
         'memory_limit=' . $memoryLimit,
-        '-d',
-        'xdebug.mode=' . ini_get('xdebug.mode'),
         $runner,
         '--configuration',
         $configurationPath,

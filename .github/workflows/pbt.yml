@@ -42,13 +42,19 @@ jobs:
           extensions: ctype, curl, date, dom, filter, hash, iconv, json, libxml, mbstring, pcntl, pcre, phar, reflection, simplexml, spl, tokenizer, xml, xmlwriter
           coverage: none
 
+      - name: Select the dependency lock
+        run: cp composer.lock.php-8.5 composer.lock
+
+      - name: Validate the Composer manifest against the lock file
+        run: composer validate --strict --no-check-publish
+
       - name: Install dependencies
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda
         with:
           working-directory: .
-          dependency-versions: highest
+          dependency-versions: locked
           composer-options: --prefer-dist
-          require-lock-file: false
+          require-lock-file: true
 
       - name: Check installed platform requirements
         run: composer check-platform-reqs

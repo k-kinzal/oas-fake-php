@@ -83,7 +83,7 @@
     },
     "scripts": {
         "test": "@php tests/run.php --parallel --exclude-group=pbt",
-        "test:coverage": "@php -d xdebug.mode=coverage tests/run.php --exclude-group=pbt --coverage-xml build/coverage-xml",
+        "test:coverage": "@php tests/run.php --exclude-group=pbt --coverage-xml build/coverage-xml",
         "test:unit": "@php tests/run.php --exclude-group=pbt",
         "test:pbt": "@php tests/run.php --group=pbt",
         "doctest": "@php tests/run.php --testsuite doctest --exclude-group=pbt",

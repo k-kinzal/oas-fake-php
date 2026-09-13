@@ -41,12 +41,18 @@ jobs:
           extensions: ctype, curl, date, dom, filter, hash, iconv, json, libxml, mbstring, pcntl, pcre, phar, reflection, simplexml, spl, tokenizer, xml, xmlwriter, gd
           coverage: pcov
 
+      - name: Select the dependency lock
+        run: cp composer.lock.php-8.5 composer.lock
+
+      - name: Validate the Composer manifest against the lock file
+        run: composer validate --strict --no-check-publish
+
       - name: Install dependencies
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda
         with:
-          dependency-versions: highest
+          dependency-versions: locked
           composer-options: --prefer-dist
-          require-lock-file: false
+          require-lock-file: true
 
       - name: Check installed platform requirements
         run: composer check-platform-reqs
@@ -55,9 +61,9 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: build/docgen-cache
-          key: docgen-${{ runner.os }}-${{ hashFiles('composer.lock') }}-${{ github.sha }}
+          key: docgen-${{ runner.os }}-${{ hashFiles('composer.lock.php-8.5') }}-${{ github.sha }}
           restore-keys: |
-            docgen-${{ runner.os }}-${{ hashFiles('composer.lock') }}-
+            docgen-${{ runner.os }}-${{ hashFiles('composer.lock.php-8.5') }}-
             docgen-${{ runner.os }}-
 
       - name: Generate the coverage report the preview reads
