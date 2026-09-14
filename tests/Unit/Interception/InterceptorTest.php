@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\Uri;
@@ -12,7 +12,6 @@ use OasFake\Exception\ValidationException;
 use OasFake\Handler;
 use OasFake\Interceptor;
 use OasFake\Mode;
-use OasFake\Testing\InterceptorScenario;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -101,20 +100,54 @@ use VCR\Request as VcrRequest;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\StringHandlerBody::class)]
 final class InterceptorTest extends TestCase
 {
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testIsRunningReturnsFalseByDefault(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
-        $interceptor = $scenario->interceptor();
+        $interceptor = new Interceptor(
+            mode: Mode::FAKE,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
+            validateRequests: true,
+            validateResponses: true,
+        );
 
         self::assertFalse($interceptor->isRunning());
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testStartMarksInterceptorRunning(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
-        $interceptor = $scenario->interceptor();
+        $interceptor = new Interceptor(
+            mode: Mode::FAKE,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
+            validateRequests: true,
+            validateResponses: true,
+        );
 
         $interceptor->start();
 
@@ -122,11 +155,28 @@ final class InterceptorTest extends TestCase
         $interceptor->stop();
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testStopMarksInterceptorStopped(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
-        $interceptor = $scenario->interceptor();
+        $interceptor = new Interceptor(
+            mode: Mode::FAKE,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
+            validateRequests: true,
+            validateResponses: true,
+        );
         $interceptor->start();
 
         $interceptor->stop();
@@ -134,11 +184,28 @@ final class InterceptorTest extends TestCase
         self::assertFalse($interceptor->isRunning());
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testHandleReturnsFakeResponseForValidRequest(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
-        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: false);
+        $interceptor = new Interceptor(
+            mode: Mode::FAKE,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
+            validateRequests: false,
+            validateResponses: false,
+        );
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
 
         $vcrResponse = $interceptor->handle($vcrRequest);
@@ -148,11 +215,28 @@ final class InterceptorTest extends TestCase
         self::assertIsArray($body);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testHandleReturnsFakeResponseForSingleResource(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
-        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: false);
+        $interceptor = new Interceptor(
+            mode: Mode::FAKE,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
+            validateRequests: false,
+            validateResponses: false,
+        );
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets/1', []);
 
         $vcrResponse = $interceptor->handle($vcrRequest);
@@ -166,15 +250,30 @@ final class InterceptorTest extends TestCase
 
     /**
      * @throws JsonException when the response fixture cannot be encoded
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testHandleUsesStubOverFaker(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
         $stubBody = json_encode([['id' => 42, 'name' => 'Stubbed Pet']], JSON_THROW_ON_ERROR);
-        $scenario->handlers()->forOperation('listPets', Handler::response(200, $stubBody));
+        $handlers->forOperation('listPets', Handler::response(200, $stubBody));
 
-        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: false);
+        $interceptor = new Interceptor(
+            mode: Mode::FAKE,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
+            validateRequests: false,
+            validateResponses: false,
+        );
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
 
         $vcrResponse = $interceptor->handle($vcrRequest);
@@ -185,15 +284,30 @@ final class InterceptorTest extends TestCase
 
     /**
      * @throws JsonException when the response fixture cannot be encoded
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testHandleUsesPathStubOverFaker(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
         $stubBody = json_encode([['id' => 77, 'name' => 'Path Stub']], JSON_THROW_ON_ERROR);
-        $scenario->handlers()->forPath('/pets', 'GET', Handler::response(200, $stubBody));
+        $handlers->forPath('/pets', 'GET', Handler::response(200, $stubBody));
 
-        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: false);
+        $interceptor = new Interceptor(
+            mode: Mode::FAKE,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
+            validateRequests: false,
+            validateResponses: false,
+        );
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
 
         $vcrResponse = $interceptor->handle($vcrRequest);
@@ -204,15 +318,30 @@ final class InterceptorTest extends TestCase
 
     /**
      * @throws JsonException when the response fixture cannot be encoded
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testHandleUsesTemplatedPathStubOverFaker(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
         $stubBody = json_encode(['id' => 77, 'name' => 'Template Path Stub'], JSON_THROW_ON_ERROR);
-        $scenario->handlers()->forPath('/pets/{petId}', 'GET', Handler::response(200, $stubBody));
+        $handlers->forPath('/pets/{petId}', 'GET', Handler::response(200, $stubBody));
 
-        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: false);
+        $interceptor = new Interceptor(
+            mode: Mode::FAKE,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
+            validateRequests: false,
+            validateResponses: false,
+        );
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets/123', []);
 
         $vcrResponse = $interceptor->handle($vcrRequest);
@@ -221,11 +350,28 @@ final class InterceptorTest extends TestCase
         self::assertSame($stubBody, $vcrResponse->getBody());
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testHandleValidatesRequestWhenEnabled(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
-        $interceptor = $scenario->interceptor(validateRequests: true, validateResponses: false);
+        $interceptor = new Interceptor(
+            mode: Mode::FAKE,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
+            validateRequests: true,
+            validateResponses: false,
+        );
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/nonexistent', []);
 
         $this->expectException(ValidationException::class);
@@ -233,12 +379,29 @@ final class InterceptorTest extends TestCase
         $interceptor->handle($vcrRequest);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testHandleValidatesResponseWhenRequestValidationDisabled(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
-        $scenario->handlers()->forOperation('listPets', Handler::response(200, ['not' => 'an array']));
-        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: true);
+        $handlers->forOperation('listPets', Handler::response(200, ['not' => 'an array']));
+        $interceptor = new Interceptor(
+            mode: Mode::FAKE,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
+            validateRequests: false,
+            validateResponses: true,
+        );
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets?limit=invalid', []);
 
         $this->expectException(ValidationException::class);
@@ -246,11 +409,28 @@ final class InterceptorTest extends TestCase
         $interceptor->handle($vcrRequest);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testHandleReturns500WhenOperationCannotBeResolved(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
-        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: false);
+        $interceptor = new Interceptor(
+            mode: Mode::FAKE,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
+            validateRequests: false,
+            validateResponses: false,
+        );
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/nonexistent', []);
 
         $vcrResponse = $interceptor->handle($vcrRequest);
@@ -258,9 +438,17 @@ final class InterceptorTest extends TestCase
         self::assertSame(500, $vcrResponse->getStatusCode());
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testHandleExecutesMiddleware(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
         $middleware = new class () implements MiddlewareInterface {
             public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -271,7 +459,13 @@ final class InterceptorTest extends TestCase
             }
         };
 
-        $interceptor = $scenario->interceptor(
+        $interceptor = new Interceptor(
+            mode: Mode::FAKE,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
             validateRequests: false,
             validateResponses: false,
             middleware: [$middleware],
@@ -286,9 +480,17 @@ final class InterceptorTest extends TestCase
         self::assertSame('applied', $headers['X-Middleware']);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testHandleLetsMiddlewareRewriteRequestBeforeOperationResolution(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
         $middleware = new class () implements MiddlewareInterface {
             public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -297,7 +499,13 @@ final class InterceptorTest extends TestCase
             }
         };
 
-        $interceptor = $scenario->interceptor(
+        $interceptor = new Interceptor(
+            mode: Mode::FAKE,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
             validateRequests: false,
             validateResponses: false,
             middleware: [$middleware],
@@ -310,9 +518,17 @@ final class InterceptorTest extends TestCase
         self::assertIsArray(json_decode($vcrResponse->getBody(), true));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testHandleExecutesMiddlewareInCorrectOrder(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
         $first = new class () implements MiddlewareInterface {
             public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -332,7 +548,13 @@ final class InterceptorTest extends TestCase
             }
         };
 
-        $interceptor = $scenario->interceptor(
+        $interceptor = new Interceptor(
+            mode: Mode::FAKE,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
             validateRequests: false,
             validateResponses: false,
             middleware: [$first, $second],
@@ -347,17 +569,32 @@ final class InterceptorTest extends TestCase
 
     /**
      * @throws JsonException when the response fixture cannot be encoded
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testHandleWithCallbackStub(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
         $callbackBody = json_encode([['id' => 1, 'name' => 'Callback Pet']], JSON_THROW_ON_ERROR);
-        $scenario->handlers()->forOperation('listPets', Handler::callback(
+        $handlers->forOperation('listPets', Handler::callback(
             static fn (ServerRequestInterface $request, ?ResponseInterface $default): ResponseInterface => new Response(200, ['Content-Type' => 'application/json'], $callbackBody),
         ));
 
-        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: false);
+        $interceptor = new Interceptor(
+            mode: Mode::FAKE,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
+            validateRequests: false,
+            validateResponses: false,
+        );
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
 
         $vcrResponse = $interceptor->handle($vcrRequest);
@@ -366,13 +603,30 @@ final class InterceptorTest extends TestCase
         self::assertSame($callbackBody, $vcrResponse->getBody());
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testHandleWithStatusStub(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
-        $scenario->handlers()->forOperation('listPets', Handler::status(201));
+        $handlers->forOperation('listPets', Handler::status(201));
 
-        $interceptor = $scenario->interceptor(validateRequests: false, validateResponses: false);
+        $interceptor = new Interceptor(
+            mode: Mode::FAKE,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
+            validateRequests: false,
+            validateResponses: false,
+        );
         $vcrRequest = new VcrRequest('GET', 'https://api.petstore.example.com/pets', []);
 
         $vcrResponse = $interceptor->handle($vcrRequest);
@@ -381,13 +635,25 @@ final class InterceptorTest extends TestCase
         self::assertSame('', $vcrResponse->getBody());
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testReplayReturnsMatchingRecording(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
-        $interceptor = $scenario->interceptor(
+        $interceptor = new Interceptor(
             mode: Mode::REPLAY,
             cassettePath: __DIR__ . '/../../Fixtures/cassettes',
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
             validateRequests: false,
             validateResponses: false,
         );
@@ -402,9 +668,17 @@ final class InterceptorTest extends TestCase
         $interceptor->stop();
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testReplayExecutesMiddleware(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
         $middleware = new class () implements MiddlewareInterface {
             public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -413,9 +687,13 @@ final class InterceptorTest extends TestCase
             }
         };
 
-        $interceptor = $scenario->interceptor(
+        $interceptor = new Interceptor(
             mode: Mode::REPLAY,
             cassettePath: __DIR__ . '/../../Fixtures/cassettes',
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
             validateRequests: false,
             validateResponses: false,
             middleware: [$middleware],
@@ -431,13 +709,25 @@ final class InterceptorTest extends TestCase
         $interceptor->stop();
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testReplayValidatesRequestWhenEnabled(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
-        $interceptor = $scenario->interceptor(
+        $interceptor = new Interceptor(
             mode: Mode::REPLAY,
             cassettePath: __DIR__ . '/../../Fixtures/cassettes',
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
             validateRequests: true,
             validateResponses: false,
         );
@@ -454,12 +744,18 @@ final class InterceptorTest extends TestCase
 
     /**
      * @throws JsonException when the response fixture cannot be encoded
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testReplayValidatesResponseWhenEnabled(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
-        file_put_contents($scenario->cassettePath() . '/recording', json_encode([[
+        file_put_contents($directory->path() . '/recording', json_encode([[
             'request' => [
                 'method' => 'GET',
                 'url' => 'https://api.petstore.example.com/pets',
@@ -473,8 +769,13 @@ final class InterceptorTest extends TestCase
             'index' => 0,
         ]], JSON_THROW_ON_ERROR));
 
-        $interceptor = $scenario->interceptor(
+        $interceptor = new Interceptor(
             mode: Mode::REPLAY,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
             validateRequests: true,
             validateResponses: true,
         );
@@ -491,12 +792,25 @@ final class InterceptorTest extends TestCase
         }
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testRecordModeGeneratesResponse(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
-        $interceptor = $scenario->interceptor(
+        $interceptor = new Interceptor(
             mode: Mode::RECORD,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
             validateRequests: false,
             validateResponses: false,
         );
@@ -512,12 +826,25 @@ final class InterceptorTest extends TestCase
         $interceptor->stop();
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testRecordModeWritesCassette(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
-        $interceptor = $scenario->interceptor(
+        $interceptor = new Interceptor(
             mode: Mode::RECORD,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
             validateRequests: false,
             validateResponses: false,
         );
@@ -527,7 +854,7 @@ final class InterceptorTest extends TestCase
         $interceptor->handle($vcrRequest);
         $interceptor->stop();
 
-        $cassetteFile = $scenario->cassettePath() . '/recording';
+        $cassetteFile = $directory->path() . '/recording';
         self::assertFileExists($cassetteFile);
 
         $recordings = json_decode((string) file_get_contents($cassetteFile), true);
@@ -543,12 +870,25 @@ final class InterceptorTest extends TestCase
         self::assertStringContainsString('/pets', $recordedUrl);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testRecordModeWritesConfiguredCassetteName(): void
     {
-        $scenario = new InterceptorScenario();
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
 
-        $interceptor = $scenario->interceptor(
+        $interceptor = new Interceptor(
             mode: Mode::RECORD,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
             validateRequests: false,
             validateResponses: false,
             cassetteName: 'petstore-recording',
@@ -559,14 +899,27 @@ final class InterceptorTest extends TestCase
         $interceptor->handle($vcrRequest);
         $interceptor->stop();
 
-        self::assertFileExists($scenario->cassettePath() . '/petstore-recording');
+        self::assertFileExists($directory->path() . '/petstore-recording');
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testRecordThenReplayRoundTrip(): void
     {
-        $scenario = new InterceptorScenario();
-        $recorder = $scenario->interceptor(
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
+        $recorder = new Interceptor(
             mode: Mode::RECORD,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
             validateRequests: false,
             validateResponses: false,
         );
@@ -576,8 +929,13 @@ final class InterceptorTest extends TestCase
         $vcrRequest->setHeader('Host', 'api.petstore.example.com');
         $recordedResponse = $recorder->handle($vcrRequest);
         $recorder->stop();
-        $replayer = $scenario->interceptor(
+        $replayer = new Interceptor(
             mode: Mode::REPLAY,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
             validateRequests: false,
             validateResponses: false,
         );
@@ -593,11 +951,24 @@ final class InterceptorTest extends TestCase
         $replayer->stop();
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testRecordThenReplayWithDifferentBodiesSameUrl(): void
     {
-        $scenario = new InterceptorScenario();
-        $recorder = $scenario->interceptor(
+        $schema = \OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $handlers = new \OasFake\HandlerMap();
+        $directory = new \Tests\Fixtures\TemporaryDirectory('oas-fake-test-cassettes');
+        $recorder = new Interceptor(
             mode: Mode::RECORD,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
             validateRequests: false,
             validateResponses: false,
         );
@@ -616,8 +987,13 @@ final class InterceptorTest extends TestCase
         $respB = $recorder->handle($reqB);
 
         $recorder->stop();
-        $replayer = $scenario->interceptor(
+        $replayer = new Interceptor(
             mode: Mode::REPLAY,
+            cassettePath: $directory->path(),
+            schema: $schema,
+            validator: new \OasFake\Validator($schema),
+            fakerOptions: [],
+            handlers: $handlers,
             validateRequests: false,
             validateResponses: false,
         );

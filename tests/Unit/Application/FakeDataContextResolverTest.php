@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use OasFake\FakeDataContext;
 use OasFake\FakeDataContextResolver;
@@ -55,7 +55,7 @@ final class FakeDataContextResolverTest extends TestCase
      */
     public function testResolvePreservesContextAndBuildsFromSchema(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $context = new FakeDataContext($schema);
         $resolver = new FakeDataContextResolver();
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use OasFake\Mode;
 use OasFake\Server;

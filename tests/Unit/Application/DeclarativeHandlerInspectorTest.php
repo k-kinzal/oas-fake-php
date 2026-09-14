@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use GuzzleHttp\Psr7\ServerRequest;
 use OasFake\DeclarativeHandlerInspector;
 use OasFake\DeclarativeHandlerRegistrar;
 use OasFake\HandlerMap;
 use OasFake\Server;
-use OasFake\Testing\HandlerShapedConstructorServer;
-use OasFake\Testing\InspectorServer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
+use Tests\Fixtures\HandlerShapedConstructorServer;
+use Tests\Fixtures\InspectorServer;
 
 /**
  * @covers \OasFake\DeclarativeHandlerInspector

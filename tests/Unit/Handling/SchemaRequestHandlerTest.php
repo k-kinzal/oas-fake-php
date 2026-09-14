@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\ServerRequest;
@@ -82,10 +82,14 @@ final class SchemaRequestHandlerTest extends TestCase
      * @throws JsonException when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoResponse when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testHandleGeneratesSchemaResponse(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $validator = new Validator($schema);
         $context = new FakeDataContext($schema);
         $resolver = new OperationRequestResolver($schema, new OperationLookup($schema), new OperationPathResolver(), $validator, false);
@@ -96,9 +100,15 @@ final class SchemaRequestHandlerTest extends TestCase
         self::assertSame(200, $response->getStatusCode());
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testValidateResponseSkipsAbsentAddressWhenDisabled(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $validator = new Validator($schema);
         $context = new FakeDataContext($schema);
         $resolver = new OperationRequestResolver($schema, new OperationLookup($schema), new OperationPathResolver(), $validator, false);
@@ -109,9 +119,15 @@ final class SchemaRequestHandlerTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testValidateResponseSkipsAnAddressWhenValidationIsDisabled(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $validator = new Validator($schema);
         $context = new FakeDataContext($schema);
         $resolver = new OperationRequestResolver($schema, new OperationLookup($schema), new OperationPathResolver(), $validator, false);
@@ -129,10 +145,14 @@ final class SchemaRequestHandlerTest extends TestCase
      * @throws JsonException when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoResponse when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testHandleEnforcesResponseValidationWhenEnabled(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $validator = new Validator($schema);
         $context = new FakeDataContext($schema);
         $handlers = new HandlerMap();

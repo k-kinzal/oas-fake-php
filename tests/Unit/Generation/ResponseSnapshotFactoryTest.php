@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use GuzzleHttp\Psr7\Response;
 use OasFake\ResponseSnapshotFactory;

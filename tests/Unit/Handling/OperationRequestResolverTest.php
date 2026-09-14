@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use GuzzleHttp\Psr7\ServerRequest;
 use OasFake\OperationLookup;
@@ -44,9 +44,15 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
 final class OperationRequestResolverTest extends TestCase
 {
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testResolveUsesEffectiveServerPathAndOperation(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $resolver = new OperationRequestResolver(
             $schema,
             new OperationLookup($schema),
@@ -62,9 +68,12 @@ final class OperationRequestResolverTest extends TestCase
         self::assertSame('/pets', $resolved->address?->path());
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     */
     public function testResolveRejectsAnOperationOutsideItsEffectiveServer(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+        $schema = Schema::fromString(<<<'YAML'
             openapi: 3.0.0
             info: {title: Scoped API, version: 1.0.0}
             servers:

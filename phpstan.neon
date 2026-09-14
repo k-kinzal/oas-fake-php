@@ -13,8 +13,8 @@ parameters:
         - bench
         - fuzz
     scanFiles:
-        - tests/Stubs/PHPUnitAttributes.stub
-        - tests/Stubs/Override.stub
+        - stubs/PHPUnitAttributes.stub
+        - stubs/Override.stub
     checkUninitializedProperties: true
     checkImplicitMixed: true
     checkBenevolentUnionTypes: true
@@ -32,25 +32,3 @@ parameters:
                 - cassette
                 - interceptor
                 - middleware
-        testNamespacePrefixes:
-            - 'OasFake\Tests'
-        restrictedTestNamespacePrefixes:
-            - 'OasFake\Tests\Unit'
-        visibilityExemptNamespacePrefixes:
-            - 'OasFake\Tests'
-    ignoreErrors:
-        -
-            identifier: customRules.nonPublicMethod
-            message: '#^Move private method __construct\(\) out of #'
-            paths:
-                - src/Application/FakeRequest.php
-                - src/Application/FakeResponse.php
-                - src/Exception/ValidationException.php
-                - src/Handling/Handler.php
-                - src/Interception/Mode.php
-                - src/OpenApi/Schema.php
-        -
-            identifier: customRules.forbiddenClassLikeNameSuffix
-            path: src/OpenApi/OperationInfo.php
-            count: 1
-    reportUnmatchedIgnoredErrors: true

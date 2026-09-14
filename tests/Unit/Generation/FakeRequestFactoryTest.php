@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use JsonException;
 use OasFake\FakeDataContext;
@@ -50,10 +50,14 @@ final class FakeRequestFactoryTest extends TestCase
      * @throws JsonException when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testCreateBuildsRequestFromIndexedOperation(): void
     {
-        $context = new FakeDataContext(\OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'));
+        $context = new FakeDataContext(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'));
         $definition = $context->operationLookup()->findByOperationId('getPetById');
 
         self::assertNotNull($definition);
@@ -69,10 +73,14 @@ final class FakeRequestFactoryTest extends TestCase
      * @throws JsonException when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testCreateAddsRequestBodyMediaType(): void
     {
-        $context = new FakeDataContext(\OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'));
+        $context = new FakeDataContext(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'));
         $definition = $context->operationLookup()->findByOperationId('createPet');
 
         self::assertNotNull($definition);

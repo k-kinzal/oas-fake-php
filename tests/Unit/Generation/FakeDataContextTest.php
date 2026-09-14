@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use cebe\openapi\spec\Schema as CebeSchema;
 use OasFake\FakeDataContext;
@@ -33,26 +33,44 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
 final class FakeDataContextTest extends TestCase
 {
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testSchemaReturnsSourceSchema(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $context = new FakeDataContext($schema);
 
         self::assertSame($schema, $context->schema());
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testOperationLookupReturnsSharedLookup(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $context = new FakeDataContext($schema);
 
         self::assertSame($context->operationLookup(), $context->operationLookup());
         self::assertNotNull($context->operationLookup()->findByOperationId('listPets'));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testFakerOptionsReturnsConfiguredOptions(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $context = new FakeDataContext($schema, ['alwaysFakeOptionals' => true]);
 
         self::assertSame(['alwaysFakeOptionals' => true], $context->fakerOptions());
@@ -61,10 +79,14 @@ final class FakeDataContextTest extends TestCase
     /**
      * @throws \Vural\OpenAPIFaker\Exception\NoPath when the fixture path is missing
      * @throws \Vural\OpenAPIFaker\Exception\NoRequest when the fixture request is missing
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testMockRequestGeneratesData(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $context = new FakeDataContext($schema);
 
         self::assertIsArray($context->mockRequest('/pets', 'POST'));
@@ -73,10 +95,14 @@ final class FakeDataContextTest extends TestCase
     /**
      * @throws \Vural\OpenAPIFaker\Exception\NoPath when the fixture path is missing
      * @throws \Vural\OpenAPIFaker\Exception\NoResponse when the fixture response is missing
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testMockResponseGeneratesData(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $context = new FakeDataContext($schema);
 
         self::assertIsArray($context->mockResponse('/pets', 'GET', 200));
@@ -84,10 +110,13 @@ final class FakeDataContextTest extends TestCase
 
     /**
      * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture is invalid
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testMockSchemaGeneratesData(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $context = new FakeDataContext($schema);
         $valueSchema = new CebeSchema([
             'type' => 'string',

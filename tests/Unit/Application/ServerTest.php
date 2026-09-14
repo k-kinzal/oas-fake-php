@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use Closure;
 use OasFake\Exception\ValidationException;
@@ -10,16 +10,6 @@ use OasFake\Handler;
 use OasFake\Mode;
 use OasFake\Server;
 use OasFake\ServerRegistry;
-use OasFake\Testing\CassetteNameTestServer;
-use OasFake\Testing\DeclarativeTestServer;
-use OasFake\Testing\InvalidSignatureOperationIdServer;
-use OasFake\Testing\OperationIdTestServer;
-use OasFake\Testing\Petstore;
-use OasFake\Testing\RouteTestServer;
-use OasFake\Testing\SchemaAwareOperationServer;
-use OasFake\Testing\SchemaAwareRouteServer;
-use OasFake\Testing\TemporaryDirectory;
-use OasFake\Testing\UnknownRouteDeclarativeServer;
 use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -28,6 +18,15 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionException;
+use Tests\Fixtures\CassetteNameTestServer;
+use Tests\Fixtures\DeclarativeTestServer;
+use Tests\Fixtures\InvalidSignatureOperationIdServer;
+use Tests\Fixtures\OperationIdTestServer;
+use Tests\Fixtures\RouteTestServer;
+use Tests\Fixtures\SchemaAwareOperationServer;
+use Tests\Fixtures\SchemaAwareRouteServer;
+use Tests\Fixtures\TemporaryDirectory;
+use Tests\Fixtures\UnknownRouteDeclarativeServer;
 use VCR\Request as VcrRequest;
 
 /**
@@ -159,7 +158,7 @@ final class ServerTest extends TestCase
     public function testWithSchemaReturnsStatic(): void
     {
         $server = new Server();
-        $result = $server->withSchema(Petstore::path());
+        $result = $server->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
 
         self::assertSame($server, $result);
     }
@@ -311,7 +310,7 @@ final class ServerTest extends TestCase
     public function testStartCanBeCalledTwiceSafely(): void
     {
         $server = (new Server())
-            ->withSchema(Petstore::path())
+            ->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')
             ->withCassettePath(sys_get_temp_dir() . '/oas-fake-test-cassettes')
             ->withRequestValidation(false)
             ->withResponseValidation(false);
@@ -340,7 +339,7 @@ final class ServerTest extends TestCase
     public function testBuildInterceptorStartsInterceptor(): void
     {
         $server = (new Server())
-            ->withSchema(Petstore::path())
+            ->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
             ->withResponseValidation(false);
 
@@ -374,7 +373,7 @@ final class ServerTest extends TestCase
         try {
             $server->buildInterceptor();
 
-            self::assertFileExists($cassettePath . '/oasfake-testing-cassettenametestserver');
+            self::assertFileExists($cassettePath . '/tests-fixtures-cassettenametestserver');
         } finally {
             $server->stop();
         }
@@ -449,7 +448,7 @@ final class ServerTest extends TestCase
     public function testInterceptorReturnsActiveInterceptor(): void
     {
         $server = (new Server())
-            ->withSchema(Petstore::path())
+            ->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
             ->withResponseValidation(false);
 
@@ -472,7 +471,7 @@ final class ServerTest extends TestCase
      */
     public function testSchemaReturnsResolvedSchema(): void
     {
-        $server = (new Server())->withSchema(Petstore::path());
+        $server = (new Server())->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
 
         self::assertSame(['https://api.petstore.example.com'], $server->schema()->serverUrls());
     }
@@ -492,7 +491,7 @@ final class ServerTest extends TestCase
      */
     public function testServerUrlsReturnsSchemaUrls(): void
     {
-        $server = (new Server())->withSchema(Petstore::path());
+        $server = (new Server())->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
 
         self::assertSame(['https://api.petstore.example.com'], $server->serverUrls());
     }
@@ -507,7 +506,7 @@ final class ServerTest extends TestCase
     public function testUnregisterFromRegistryStopsInterceptor(): void
     {
         $server = (new Server())
-            ->withSchema(Petstore::path())
+            ->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
             ->withResponseValidation(false);
         $registry = new ServerRegistry();
@@ -545,7 +544,7 @@ final class ServerTest extends TestCase
         putenv('OAS_FAKE_MODE=record');
 
         $server = new Server();
-        $server->withSchema(Petstore::path())->withMode(Mode::FAKE);
+        $server->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')->withMode(Mode::FAKE);
         self::assertSame('record', getenv('OAS_FAKE_MODE'));
     }
 
@@ -565,7 +564,7 @@ final class ServerTest extends TestCase
     public function testSubclassMethodsAreAutoRegisteredAsStubs(): void
     {
         $server = new OperationIdTestServer();
-        $result = $server->withSchema(Petstore::path());
+        $result = $server->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         self::assertSame($server, $result);
     }
 
@@ -573,7 +572,7 @@ final class ServerTest extends TestCase
     {
         $server = new RouteTestServer();
 
-        $result = $server->withSchema(Petstore::path());
+        $result = $server->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         self::assertSame($server, $result);
     }
 
@@ -669,7 +668,7 @@ final class ServerTest extends TestCase
     public function testPublicMethodsWithoutHandlerSignatureAreNotAutoRegistered(): void
     {
         $server = (new InvalidSignatureOperationIdServer())
-            ->withSchema(Petstore::path())
+            ->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
             ->withResponseValidation(false);
 
@@ -696,7 +695,7 @@ final class ServerTest extends TestCase
      */
     public function testChangingSchemaInvalidatesTheResolvedSchema(): void
     {
-        $server = (new Server())->withSchema(Petstore::path());
+        $server = (new Server())->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         self::assertSame(['https://api.petstore.example.com'], $server->schema()->serverUrls());
 
         $server->withSchema(__DIR__ . '/../../Fixtures/openapi/bookstore.yaml');
@@ -716,7 +715,7 @@ final class ServerTest extends TestCase
     public function testRequestValidationIsEnabledWhenCalledWithoutAnArgument(): void
     {
         $server = (new Server())
-            ->withSchema(Petstore::path())
+            ->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation()
             ->withResponseValidation(false);
 
@@ -741,7 +740,7 @@ final class ServerTest extends TestCase
     public function testResponseValidationIsEnabledWhenCalledWithoutAnArgument(): void
     {
         $server = (new Server())
-            ->withSchema(Petstore::path())
+            ->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
             ->withResponseValidation()
             ->withResponse('listPets', 200, ['not' => 'a list']);
@@ -773,7 +772,7 @@ final class ServerTest extends TestCase
             }
         };
         $server = (new Server())
-            ->withSchema(Petstore::path())
+            ->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
             ->withResponseValidation(false)
             ->withHandler('listPets', Handler::response(202, [['id' => 1, 'name' => 'configured']]))
@@ -803,7 +802,7 @@ final class ServerTest extends TestCase
     public function testPathResponseConfigurationAffectsResponses(): void
     {
         $server = (new Server())
-            ->withSchema(Petstore::path())
+            ->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
             ->withResponseValidation(false)
             ->withPathResponse('/pets', 'GET', 206, [['id' => 1, 'name' => 'path response']]);
@@ -831,7 +830,7 @@ final class ServerTest extends TestCase
     public function testPathCallbackConfigurationAffectsResponses(): void
     {
         $server = (new Server())
-            ->withSchema(Petstore::path())
+            ->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
             ->withResponseValidation(false)
             ->withPathCallback('/pets', 'GET', static fn (): ResponseInterface => new \GuzzleHttp\Psr7\Response(207, [], 'callback'));
@@ -859,7 +858,7 @@ final class ServerTest extends TestCase
     public function testStopReleasesADirectlyBuiltInterceptor(): void
     {
         $server = (new Server())
-            ->withSchema(Petstore::path())
+            ->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')
             ->withRequestValidation(false)
             ->withResponseValidation(false);
         $server->buildInterceptor();
@@ -876,7 +875,7 @@ final class ServerTest extends TestCase
         $server = new Server();
 
         $result = $server
-            ->withSchema(Petstore::path())
+            ->withSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')
             ->withMode(Mode::FAKE)
             ->withCassettePath('/tmp/cassettes')
             ->withRequestValidation(true)

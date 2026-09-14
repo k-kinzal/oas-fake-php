@@ -40,7 +40,7 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
         with:
           php-version: ${{ matrix.php }}
-          extensions: ctype, curl, date, dom, filter, hash, iconv, intl, json, libxml, mbstring, pcntl, pcre, phar, reflection, simplexml, spl, tokenizer, xml, xmlwriter
+          extensions: curl, intl, mbstring, pcntl
           coverage: none
 
       - name: Select the dependency lock
@@ -74,7 +74,7 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
         with:
           php-version: '8.5'
-          extensions: ctype, curl, date, dom, filter, hash, iconv, json, libxml, mbstring, pcntl, pcre, phar, reflection, simplexml, spl, tokenizer, xml, xmlwriter
+          extensions: curl, mbstring
           coverage: none
           tools: deptrac/deptrac:4.7.1
 
@@ -126,7 +126,7 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
         with:
           php-version: '8.3'
-          extensions: ctype, curl, date, dom, filter, hash, iconv, json, libxml, mbstring, pcntl, pcre, phar, reflection, simplexml, spl, tokenizer, xml, xmlwriter
+          extensions: curl, mbstring, pcntl
           coverage: pcov
           ini-values: memory_limit=1G
           tools: infection:0.35.4
@@ -219,7 +219,7 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
         with:
           php-version: ${{ matrix.php }}
-          extensions: ctype, curl, date, dom, filter, hash, iconv, json, libxml, mbstring, pcntl, pcre, phar, reflection, simplexml, spl, tokenizer, xml, xmlwriter
+          extensions: curl, mbstring
           coverage: none
 
       - name: Install example dependencies

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\ServerRequest;
@@ -63,10 +63,14 @@ final class OperationResponderTest extends TestCase
      * @throws JsonException when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoResponse when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testRespondUsesRegisteredHandler(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $operation = (new OperationLookup($schema))->findByOperationId('listPets');
         $handlers = new HandlerMap();
         $handlers->forOperation('listPets', Handler::response(200, [['id' => 1, 'name' => 'Handled']]));
@@ -86,10 +90,14 @@ final class OperationResponderTest extends TestCase
      * @throws JsonException when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoResponse when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testRespondReturnsErrorWhenOperationCannotBeResolved(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
 
         $response = (new OperationResponder(new FakeDataContext($schema), new HandlerMap()))->respond(
             new ServerRequest('GET', 'https://api.petstore.example.com/unknown'),
@@ -107,10 +115,14 @@ final class OperationResponderTest extends TestCase
      * @throws JsonException when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoResponse when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testRespondPassesTheSchemaGeneratedDefaultToCallbacks(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $operation = (new OperationLookup($schema))->findByOperationId('listPets');
         $handlers = new HandlerMap();
         $handlers->forOperation('listPets', Handler::callback(
@@ -131,10 +143,14 @@ final class OperationResponderTest extends TestCase
      * @throws JsonException when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoResponse when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testRespondPassesNullToCallbacksForOperationsWithoutABody(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $operation = (new OperationLookup($schema))->findByOperationId('deletePet');
         $handlers = new HandlerMap();
         $handlers->forOperation('deletePet', Handler::callback(

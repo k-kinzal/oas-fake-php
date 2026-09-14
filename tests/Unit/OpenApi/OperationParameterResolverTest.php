@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use cebe\openapi\spec\Operation;
 use cebe\openapi\spec\Parameter;
@@ -36,9 +36,15 @@ final class OperationParameterResolverTest extends TestCase
         self::assertSame([$petId, $locale], (new OperationParameterResolver())->forPath($pathItem));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testForPathReturnsOnlyPathLevelParameters(): void
     {
-        $paths = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')->openApi()->paths;
+        $paths = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')->openApi()->paths;
         $pathItem = $paths->getPath('/pets/{petId}');
         self::assertNotNull($pathItem);
 
@@ -47,9 +53,15 @@ final class OperationParameterResolverTest extends TestCase
         self::assertSame([], $parameters);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testMergeRetainsEffectivePathParameters(): void
     {
-        $paths = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')->openApi()->paths;
+        $paths = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')->openApi()->paths;
         $pathItem = $paths->getPath('/pets/{petId}');
         self::assertNotNull($pathItem);
         $operation = (new PathOperationResolver())->resolve($pathItem, 'get');

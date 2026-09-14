@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use cebe\openapi\spec\Server;
 use OasFake\OpenApiServerResolver;
@@ -19,23 +19,38 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 final class OpenApiServerResolverTest extends TestCase
 {
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testAllReturnsEffectiveOperationUrls(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
 
         self::assertSame(['https://api.petstore.example.com'], (new OpenApiServerResolver())->all($schema->openApi()));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testEffectiveFallsBackFromOperationToDocument(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
 
         self::assertSame(['https://api.petstore.example.com'], (new OpenApiServerResolver())->effective($schema->openApi()));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     */
     public function testEffectiveDefaultsToRootWithoutDeclaredServers(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'JSON'
+        $schema = Schema::fromString(<<<'JSON'
             {
                 "openapi": "3.0.0",
                 "info": {"title": "No Servers", "version": "1.0.0"},
@@ -48,9 +63,12 @@ final class OpenApiServerResolverTest extends TestCase
         self::assertSame(['/'], $resolver->all($schema->openApi()));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     */
     public function testEffectiveHonorsOperationPathAndDocumentPrecedence(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'JSON'
+        $schema = Schema::fromString(<<<'JSON'
             {
                 "openapi": "3.0.0",
                 "info": {"title": "Servers", "version": "1.0.0"},

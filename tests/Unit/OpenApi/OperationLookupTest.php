@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use OasFake\OperationLookup;
 use OasFake\Schema;
-use OasFake\Testing\Petstore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -34,9 +33,15 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
 final class OperationLookupTest extends TestCase
 {
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testFindByOperationIdReturnsInfo(): void
     {
-        $info = Petstore::lookup()->findByOperationId('listPets');
+        $info = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('listPets');
 
         self::assertNotNull($info);
         self::assertSame('/pets', $info->pathPattern);
@@ -44,16 +49,28 @@ final class OperationLookupTest extends TestCase
         self::assertSame('listPets', $info->operationId);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testFindByOperationIdReturnsNullForUnknown(): void
     {
-        $info = Petstore::lookup()->findByOperationId('nonexistent');
+        $info = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('nonexistent');
 
         self::assertNull($info);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testFindByPathAndMethodReturnsInfo(): void
     {
-        $info = Petstore::lookup()->findByPathAndMethod('/pets', 'POST');
+        $info = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByPathAndMethod('/pets', 'POST');
 
         self::assertNotNull($info);
         self::assertSame('/pets', $info->pathPattern);
@@ -61,16 +78,28 @@ final class OperationLookupTest extends TestCase
         self::assertSame('createPet', $info->operationId);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testFindByPathAndMethodReturnsNullForUnknown(): void
     {
-        $info = Petstore::lookup()->findByPathAndMethod('/unknown', 'GET');
+        $info = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByPathAndMethod('/unknown', 'GET');
 
         self::assertNull($info);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testParametersAreMerged(): void
     {
-        $info = Petstore::lookup()->findByOperationId('getPetById');
+        $info = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('getPetById');
 
         self::assertNotNull($info);
         self::assertNotEmpty($info->parameters);
@@ -80,11 +109,16 @@ final class OperationLookupTest extends TestCase
 
     /**
      * @dataProvider providerOperationIds
+     *
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     #[DataProvider('providerOperationIds')]
     public function testOperationIsIndexed(string $operationId): void
     {
-        self::assertNotNull(Petstore::lookup()->findByOperationId($operationId));
+        self::assertNotNull((new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId($operationId));
     }
 
     /**
@@ -102,35 +136,56 @@ final class OperationLookupTest extends TestCase
         yield 'head pet' => ['headPet'];
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testFindByPathAndMethodIsCaseInsensitive(): void
     {
-        $info = Petstore::lookup()->findByPathAndMethod('/pets', 'get');
+        $info = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByPathAndMethod('/pets', 'get');
 
         self::assertNotNull($info);
         self::assertSame('listPets', $info->operationId);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testFindByRequestPathAndMethodMatchesTemplatedPath(): void
     {
-        $info = Petstore::lookup()->findByRequestPathAndMethod('/pets/123', 'GET');
+        $info = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByRequestPathAndMethod('/pets/123', 'GET');
 
         self::assertNotNull($info);
         self::assertSame('/pets/{petId}', $info->pathPattern);
         self::assertSame('getPetById', $info->operationId);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testFindByRequestPathAndMethodPrefersExactPath(): void
     {
-        $info = Petstore::lookup()->findByRequestPathAndMethod('/pets', 'GET');
+        $info = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByRequestPathAndMethod('/pets', 'GET');
 
         self::assertNotNull($info);
         self::assertSame('/pets', $info->pathPattern);
         self::assertSame('listPets', $info->operationId);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     */
     public function testOperationInfoIncludesEffectiveServerUrls(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+        $schema = Schema::fromString(<<<'YAML'
             openapi: 3.0.0
             info:
               title: Operation Server API
@@ -157,9 +212,12 @@ final class OperationLookupTest extends TestCase
         self::assertSame(['https://operation.example.com/v2'], $info->serverUrls);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     */
     public function testSchemaWithNoPaths(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+        $schema = Schema::fromString(<<<'YAML'
             openapi: 3.0.0
             info:
               title: Empty

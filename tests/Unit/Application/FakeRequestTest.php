@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use JsonException;
 use OasFake\Exception\OperationNotFoundException;
 use OasFake\FakeDataContext;
 use OasFake\FakeRequest;
 use OasFake\Schema;
-use OasFake\Testing\Petstore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -67,7 +66,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testForCreatesRequestForGetOperation(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'listPets');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'listPets');
 
         self::assertSame('GET', $request->method());
         self::assertStringStartsWith('https://api.petstore.example.com/pets', $request->url());
@@ -85,7 +84,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testForUsesOperationLevelServerUrl(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+        $schema = Schema::fromString(<<<'YAML'
             openapi: 3.0.0
             info:
               title: Operation Server API
@@ -121,7 +120,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testForAcceptsFakeDataContext(): void
     {
-        $request = FakeRequest::for(new FakeDataContext(Petstore::schema()), 'listPets');
+        $request = FakeRequest::for(new FakeDataContext(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')), 'listPets');
 
         self::assertSame('GET', $request->method());
         self::assertStringStartsWith('https://api.petstore.example.com/pets', $request->url());
@@ -138,7 +137,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testForCreatesRequestWithPathParams(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'getPetById');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'getPetById');
 
         self::assertSame('GET', $request->method());
         self::assertArrayHasKey('petId', $request->pathParams());
@@ -157,7 +156,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testForCreatesRequestWithBody(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'createPet');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'createPet');
 
         self::assertSame('POST', $request->method());
         self::assertNotNull($request->body());
@@ -179,7 +178,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testForUsesTextPlainRequestMediaType(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+        $schema = Schema::fromString(<<<'YAML'
             openapi: 3.0.0
             info:
               title: Text API
@@ -217,7 +216,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testForUsesFormUrlEncodedRequestMediaType(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+        $schema = Schema::fromString(<<<'YAML'
             openapi: 3.0.0
             info:
               title: Form API
@@ -261,7 +260,7 @@ final class FakeRequestTest extends TestCase
     {
         $this->expectException(OperationNotFoundException::class);
 
-        FakeRequest::for(Petstore::schema(), 'nonexistent');
+        FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'nonexistent');
     }
 
     /**
@@ -275,7 +274,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testMethodReturnsUppercaseMethod(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'listPets');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'listPets');
 
         self::assertSame('GET', $request->method());
     }
@@ -291,7 +290,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testUrlReturnsFullUrl(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'getPetById')->withPathParam('petId', '123');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'getPetById')->withPathParam('petId', '123');
 
         self::assertSame('https://api.petstore.example.com/pets/123', $request->url());
     }
@@ -307,7 +306,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testUrlEncodesPathParametersAsPathSegments(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'getPetById')->withPathParam('petId', "A/B pet's");
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'getPetById')->withPathParam('petId', "A/B pet's");
 
         self::assertSame('https://api.petstore.example.com/pets/A%2FB%20pet%27s', $request->url());
         self::assertSame('/pets/A%2FB%20pet%27s', $request->toPsr7()->getUri()->getPath());
@@ -324,7 +323,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testBodyReturnsRawBody(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'createPet')->withBody('{"name":"Buddy"}');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'createPet')->withBody('{"name":"Buddy"}');
 
         self::assertSame('{"name":"Buddy"}', $request->body());
     }
@@ -340,7 +339,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testForPathCreatesRequest(): void
     {
-        $request = FakeRequest::forPath(Petstore::schema(), '/pets', 'GET');
+        $request = FakeRequest::forPath(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), '/pets', 'GET');
 
         self::assertSame('GET', $request->method());
         self::assertStringStartsWith('https://api.petstore.example.com/pets', $request->url());
@@ -359,7 +358,7 @@ final class FakeRequestTest extends TestCase
     {
         $this->expectException(OperationNotFoundException::class);
 
-        FakeRequest::forPath(Petstore::schema(), '/nonexistent', 'GET');
+        FakeRequest::forPath(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), '/nonexistent', 'GET');
     }
 
     /**
@@ -373,7 +372,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testWithPathParamOverridesValue(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+        $schema = Schema::fromString(<<<'YAML'
             openapi: 3.0.0
             info: {title: Owned pets, version: 1.0.0}
             paths:
@@ -406,7 +405,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testPathParamsReturnsPathParameters(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'getPetById')->withPathParam('petId', '99');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'getPetById')->withPathParam('petId', '99');
 
         self::assertSame(['petId' => '99'], $request->pathParams());
     }
@@ -422,7 +421,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testWithQueryParamAddsParam(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'listPets')->withQueryParam('page', '1');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'listPets')->withQueryParam('page', '1');
         $modified = $request->withQueryParam('limit', '10');
 
         self::assertSame(['page' => '1', 'limit' => '10'], $modified->queryParams());
@@ -442,7 +441,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testUrlJoinsATrailingSlashServerUrlToTheOperationPath(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+        $schema = Schema::fromString(<<<'YAML'
             openapi: 3.0.0
             info: {title: Trailing Slash API, version: 1.0.0}
             servers:
@@ -469,7 +468,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testUrlEncodesQueryParameterValues(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'listPets')->withQueryParam('filter', 'friendly pets & cats');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'listPets')->withQueryParam('filter', 'friendly pets & cats');
 
         self::assertStringContainsString('filter=friendly%20pets%20%26%20cats', $request->url());
         self::assertSame('friendly pets & cats', $request->toPsr7()->getQueryParams()['filter']);
@@ -486,7 +485,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testQueryParamsReturnsQueryParameters(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'listPets')->withQueryParam('limit', '10');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'listPets')->withQueryParam('limit', '10');
 
         self::assertSame(['limit' => '10'], $request->queryParams());
     }
@@ -502,7 +501,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testUrlUsesRepeatedQueryParamsForGeneratedArrays(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'listPets', [
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'listPets', [
             'alwaysFakeOptionals' => true,
             'minItems' => 2,
             'maxItems' => 2,
@@ -525,7 +524,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testWithHeaderAddsHeader(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'listPets')->withHeader('X-Request-Id', 'request-1');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'listPets')->withHeader('X-Request-Id', 'request-1');
         $modified = $request->withHeader('Authorization', 'Bearer token');
 
         self::assertSame('Bearer token', $modified->headers()['Authorization']);
@@ -545,7 +544,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testWithBodyOverridesBody(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'createPet');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'createPet');
         $modified = $request->withBody('{"name":"custom"}');
 
         self::assertSame('{"name":"custom"}', $modified->body());
@@ -562,7 +561,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testToPsr7ReturnsServerRequestInterface(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'createPet');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'createPet');
 
         $psr7 = $request->toPsr7();
 
@@ -581,7 +580,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testToCurlReturnsString(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'createPet');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'createPet');
 
         $curl = $request->toCurl();
 
@@ -602,7 +601,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testToCurlShellQuotesSingleQuotes(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'getPetById')
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'getPetById')
             ->withPathParam('petId', "Bob's pet")
             ->withHeader('X-Owner', "O'Reilly")
             ->withBody('{"name":"Bob\'s pet"}');
@@ -625,7 +624,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testToCurlGetOmitsMethodFlag(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'listPets');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'listPets');
 
         $curl = $request->toCurl();
 
@@ -643,7 +642,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testToArrayReturnsStructuredData(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'createPet');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'createPet');
 
         $array = $request->toArray();
 
@@ -665,7 +664,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testHeadersIncludeContentTypeForPostRequest(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'createPet');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'createPet');
 
         self::assertArrayHasKey('Content-Type', $request->headers());
         self::assertSame('application/json', $request->headers()['Content-Type']);
@@ -682,7 +681,7 @@ final class FakeRequestTest extends TestCase
      */
     public function testDeleteOperationHasNoBody(): void
     {
-        $request = FakeRequest::for(Petstore::schema(), 'deletePet');
+        $request = FakeRequest::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'deletePet');
 
         self::assertSame('DELETE', $request->method());
         self::assertNull($request->body());

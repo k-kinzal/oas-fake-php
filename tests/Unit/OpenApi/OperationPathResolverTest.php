@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use GuzzleHttp\Psr7\ServerRequest;
 use OasFake\OperationPathResolver;
@@ -23,25 +23,40 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerUrlMatcher::class)]
 final class OperationPathResolverTest extends TestCase
 {
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testResolveReturnsPathWhenServerHasNoBasePath(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $request = new ServerRequest('GET', 'https://api.petstore.example.com/pets/1');
 
         self::assertSame('/pets/1', (new OperationPathResolver())->resolve($schema, $request));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testResolveStripsMatchingServerBasePath(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/versioned-petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/versioned-petstore.yaml');
         $request = new ServerRequest('GET', 'https://api.versioned.example.com/v1/pets');
 
         self::assertSame('/pets', (new OperationPathResolver())->resolve($schema, $request));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     */
     public function testResolveUsesMostSpecificServerBasePath(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+        $schema = Schema::fromString(<<<'YAML'
             openapi: 3.0.0
             info:
               title: Specific Server API
@@ -63,9 +78,12 @@ final class OperationPathResolverTest extends TestCase
         self::assertSame('/pets', (new OperationPathResolver())->resolve($schema, $request));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     */
     public function testResolveUsesTheMostSpecificOfMultipleEffectiveServerUrls(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+        $schema = Schema::fromString(<<<'YAML'
             openapi: 3.0.0
             info: {title: Multi Server API, version: 1.0.0}
             servers:
@@ -92,9 +110,15 @@ final class OperationPathResolverTest extends TestCase
         );
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testResolveWithServerUrlReturnsMatchedServerUrl(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/versioned-petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/versioned-petstore.yaml');
         $request = new ServerRequest('GET', 'https://api.versioned.example.com/v1/pets');
 
         self::assertSame(
@@ -106,17 +130,26 @@ final class OperationPathResolverTest extends TestCase
         );
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testResolveKeepsPathWhenServerUrlDoesNotMatchRequest(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/versioned-petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/versioned-petstore.yaml');
         $request = new ServerRequest('GET', 'https://other.example.com/v1/pets');
 
         self::assertSame('/v1/pets', (new OperationPathResolver())->resolve($schema, $request));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     */
     public function testResolveContinuesPastANonMatchingServer(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+        $schema = Schema::fromString(<<<'YAML'
             openapi: 3.0.0
             info: {title: Multi-host API, version: 1.0.0}
             servers:

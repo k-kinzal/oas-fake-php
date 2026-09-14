@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit\Exception;
+namespace Tests\Unit\Exception;
 
 use LogicException;
 use OasFake\Exception\ReplayMismatchError;

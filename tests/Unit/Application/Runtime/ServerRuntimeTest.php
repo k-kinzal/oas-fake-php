@@ -2,17 +2,16 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use OasFake\EnvironmentResolver;
 use OasFake\Mode;
 use OasFake\Server;
 use OasFake\ServerRuntime;
-use OasFake\Testing\Petstore;
-use OasFake\Testing\SchemaAwareOperationServer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
+use Tests\Fixtures\SchemaAwareOperationServer;
 use VCR\Request as VcrRequest;
 
 /**
@@ -110,7 +109,7 @@ final class ServerRuntimeTest extends TestCase
      */
     public function testForgetSchemaResolvesTheConfiguredReplacement(): void
     {
-        $server = (new Server())->withSchema(Petstore::path());
+        $server = (new Server())->withSchema(__DIR__ . '/../../../Fixtures/openapi/petstore.yaml');
         $original = $server->schema();
 
         $server->withSchema(__DIR__ . '/../../../Fixtures/openapi/bookstore.yaml');
@@ -129,7 +128,7 @@ final class ServerRuntimeTest extends TestCase
      */
     public function testBuildStartsTheResolvedInterceptor(): void
     {
-        $server = (new Server())->withSchema(Petstore::path());
+        $server = (new Server())->withSchema(__DIR__ . '/../../../Fixtures/openapi/petstore.yaml');
 
         try {
             $server->buildInterceptor();
@@ -176,14 +175,14 @@ final class ServerRuntimeTest extends TestCase
      */
     public function testSchemaCachesTheResolvedDefinition(): void
     {
-        $server = (new Server())->withSchema(Petstore::path());
+        $server = (new Server())->withSchema(__DIR__ . '/../../../Fixtures/openapi/petstore.yaml');
 
         self::assertSame($server->schema(), $server->schema());
     }
 
     public function testFakerOptionsMergesFluentOverrides(): void
     {
-        $server = (new Server())->withSchema(Petstore::path())->withFakerOptions(['minItems' => 2]);
+        $server = (new Server())->withSchema(__DIR__ . '/../../../Fixtures/openapi/petstore.yaml')->withFakerOptions(['minItems' => 2]);
 
         self::assertSame(['minItems' => 2], $server->fakerOptions());
     }
@@ -196,7 +195,7 @@ final class ServerRuntimeTest extends TestCase
      */
     public function testServerUrlsReadsTheResolvedSchema(): void
     {
-        $server = (new Server())->withSchema(Petstore::path());
+        $server = (new Server())->withSchema(__DIR__ . '/../../../Fixtures/openapi/petstore.yaml');
 
         self::assertSame(['https://api.petstore.example.com'], $server->serverUrls());
     }

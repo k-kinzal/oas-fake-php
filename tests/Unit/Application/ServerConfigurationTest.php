@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use OasFake\Mode;
 use OasFake\ServerConfiguration;
-use OasFake\Testing\Petstore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -38,7 +37,7 @@ final class ServerConfigurationTest extends TestCase
     public function testSetSchemaOverridesDefault(): void
     {
         $configuration = new ServerConfiguration();
-        $configuration->setSchema(Petstore::path());
+        $configuration->setSchema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
 
         self::assertSame('Petstore API', $configuration->schema('')->openApi()->info->title);
     }
@@ -51,7 +50,7 @@ final class ServerConfigurationTest extends TestCase
      */
     public function testSchemaUsesDefaultPath(): void
     {
-        self::assertSame('Petstore API', (new ServerConfiguration())->schema(Petstore::path())->openApi()->info->title);
+        self::assertSame('Petstore API', (new ServerConfiguration())->schema(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')->openApi()->info->title);
     }
 
     public function testSetModeOverridesDefault(): void

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit\Exception;
+namespace Tests\Unit\Exception;
 
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;

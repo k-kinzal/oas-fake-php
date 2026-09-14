@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Testing;
+namespace Tests\Fixtures;
 
 /**
  * Owns an isolated temporary directory for one test scenario.
@@ -16,7 +16,7 @@ final class TemporaryDirectory
      */
     public function __construct(string $prefix)
     {
-        $this->path = sys_get_temp_dir() . '/' . $prefix . '-' . spl_object_id($this);
+        $this->path = sys_get_temp_dir() . '/' . $prefix . '-' . bin2hex(random_bytes(12));
         mkdir($this->path, 0777, true);
     }
 

@@ -21,6 +21,7 @@
 # Export ignore (excluded from archives created by `git archive` / Composer)
 /.github/           export-ignore
 /tests/             export-ignore
+/stubs/             export-ignore
 /docs/              export-ignore
 /examples/          export-ignore
 /composer.lock.php-* export-ignore

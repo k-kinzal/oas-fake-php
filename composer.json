@@ -58,7 +58,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "OasFake\\Tests\\Unit\\": [
+            "Tests\\Unit\\": [
                 "tests/Unit/Application/Runtime/",
                 "tests/Unit/Application/",
                 "tests/Unit/Interception/",
@@ -67,12 +67,11 @@
                 "tests/Unit/OpenApi/",
                 "tests/Unit/Exception/"
             ],
-            "OasFake\\Tests\\": "tests/",
-            "OasFake\\Testing\\": "tests/Testing/"
+            "Tests\\": "tests/"
         },
         "classmap": [
-            "tests/Testing/DeclarativeServers.php",
-            "tests/Testing/HandlerDeclarations.php"
+            "tests/Fixtures/DeclarativeServers.php",
+            "tests/Fixtures/HandlerDeclarations.php"
         ]
     },
     "config": {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use cebe\openapi\spec\PathItem;
 use OasFake\PathOperationResolver;
@@ -53,9 +53,15 @@ final class PathOperationResolverTest extends TestCase
         yield 'trace' => ['trace'];
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testResolveReturnsNullForUnsupportedMethod(): void
     {
-        $paths = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')->openApi()->paths;
+        $paths = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')->openApi()->paths;
         $pathItem = $paths->getPath('/pets');
         self::assertNotNull($pathItem);
 

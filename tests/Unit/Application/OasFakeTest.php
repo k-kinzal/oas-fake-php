@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use OasFake\OasFake;
-use OasFake\Testing\InspectableServer;
 use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
+use Tests\Fixtures\InspectableServer;
 
 /**
  * @covers \OasFake\OasFake

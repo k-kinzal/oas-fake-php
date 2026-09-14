@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use OasFake\OperationIndexBuilder;
 use OasFake\Schema;
@@ -28,9 +28,15 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 final class OperationIndexBuilderTest extends TestCase
 {
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testBuildIndexesIdsPathsAndMergedParameters(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $indexes = (new OperationIndexBuilder())->build($schema);
 
         self::assertArrayHasKey('listPets', $indexes['byOperationId']);
@@ -38,9 +44,12 @@ final class OperationIndexBuilderTest extends TestCase
         self::assertSame('petId', $indexes['byOperationId']['getPetById']->parameters[0]->name);
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     */
     public function testBuildContinuesPastMethodsMissingFromAPath(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+        $schema = Schema::fromString(<<<'YAML'
             openapi: 3.0.0
             info: {title: Commands, version: 1.0.0}
             paths:

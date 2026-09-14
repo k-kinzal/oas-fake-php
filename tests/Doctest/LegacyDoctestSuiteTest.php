@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Doctest;
+namespace Tests\Doctest;
 
 use Override;
 use Toolkit\Doctest\Configuration\Configuration;

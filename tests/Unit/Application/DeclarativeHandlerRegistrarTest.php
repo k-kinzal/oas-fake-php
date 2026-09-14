@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use OasFake\DeclarativeHandlerRegistrar;
 use OasFake\HandlerMap;
 use OasFake\Schema;
-use OasFake\Testing\RegistrarContinuationServer;
-use OasFake\Testing\RegistrarInvalidParameterServer;
-use OasFake\Testing\RegistrarInvalidRouteServer;
-use OasFake\Testing\RegistrarOperationServer;
-use OasFake\Testing\RegistrarRouteServer;
-use OasFake\Testing\RegistrarUnknownRouteServer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
+use Tests\Fixtures\RegistrarContinuationServer;
+use Tests\Fixtures\RegistrarInvalidParameterServer;
+use Tests\Fixtures\RegistrarInvalidRouteServer;
+use Tests\Fixtures\RegistrarOperationServer;
+use Tests\Fixtures\RegistrarRouteServer;
+use Tests\Fixtures\RegistrarUnknownRouteServer;
 
 /**
  * @covers \OasFake\DeclarativeHandlerRegistrar
@@ -68,11 +68,15 @@ final class DeclarativeHandlerRegistrarTest extends TestCase
 
     /**
      * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testRegisterWithSchemaSkipsUnknownOperationIdHandler(): void
     {
         $handlers = new HandlerMap();
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
 
         (new DeclarativeHandlerRegistrar())->register(new RegistrarOperationServer(), $handlers, $schema);
 
@@ -94,11 +98,15 @@ final class DeclarativeHandlerRegistrarTest extends TestCase
 
     /**
      * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testRegisterWithSchemaSkipsUnknownRouteHandler(): void
     {
         $handlers = new HandlerMap();
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
 
         (new DeclarativeHandlerRegistrar())->register(new RegistrarUnknownRouteServer(), $handlers, $schema);
 
@@ -131,11 +139,15 @@ final class DeclarativeHandlerRegistrarTest extends TestCase
 
     /**
      * @throws ReflectionException when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testRegisterContinuesAfterEverySkippedDeclaration(): void
     {
         $handlers = new HandlerMap();
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
 
         (new DeclarativeHandlerRegistrar())->register(new RegistrarContinuationServer(), $handlers, $schema);
 

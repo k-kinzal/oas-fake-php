@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use JsonException;
 use OasFake\ParameterFaker;
-use OasFake\Testing\ExampleParameter;
-use OasFake\Testing\Petstore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -40,10 +38,14 @@ final class ParameterFakerTest extends TestCase
 {
     /**
      * @throws JsonException when a generated parameter cannot be serialized
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testGeneratesPathParameter(): void
     {
-        $info = Petstore::lookup()->findByOperationId('getPetById');
+        $info = (new \OasFake\OperationLookup(\OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('getPetById');
         self::assertNotNull($info);
 
         $faker = new ParameterFaker();
@@ -58,10 +60,14 @@ final class ParameterFakerTest extends TestCase
 
     /**
      * @throws JsonException when a generated parameter cannot be serialized
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testSkipsOptionalParametersWhenNotAlwaysFakeOptionals(): void
     {
-        $info = Petstore::lookup()->findByOperationId('listPets');
+        $info = (new \OasFake\OperationLookup(\OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('listPets');
         self::assertNotNull($info);
 
         $faker = new ParameterFaker();
@@ -72,10 +78,14 @@ final class ParameterFakerTest extends TestCase
 
     /**
      * @throws JsonException when a generated parameter cannot be serialized
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testGeneratesOptionalParametersWhenAlwaysFakeOptionals(): void
     {
-        $info = Petstore::lookup()->findByOperationId('listPets');
+        $info = (new \OasFake\OperationLookup(\OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('listPets');
         self::assertNotNull($info);
 
         $faker = new ParameterFaker(['alwaysFakeOptionals' => true]);
@@ -92,7 +102,22 @@ final class ParameterFakerTest extends TestCase
     {
         $faker = new ParameterFaker(['minItems' => 2, 'maxItems' => 2]);
         $result = $faker->generate([
-            ExampleParameter::array('tags', 'query', 'form', true),
+            new \cebe\openapi\spec\Parameter([
+                'name' => 'tags',
+                'in' => 'query',
+                'required' => true,
+                'style' => 'form',
+                'explode' => true,
+                'schema' => [
+                    'type' => 'array',
+                    'minItems' => 2,
+                    'maxItems' => 2,
+                    'items' => [
+                        'type' => 'string',
+                        'enum' => ['friendly'],
+                    ],
+                ],
+            ]),
         ]);
 
         self::assertSame(['friendly', 'friendly'], $result['query']['tags']);
@@ -106,7 +131,22 @@ final class ParameterFakerTest extends TestCase
     {
         $faker = new ParameterFaker(['minItems' => 2, 'maxItems' => 2]);
         $result = $faker->generate([
-            ExampleParameter::array('tags', 'query', 'pipeDelimited', false),
+            new \cebe\openapi\spec\Parameter([
+                'name' => 'tags',
+                'in' => 'query',
+                'required' => true,
+                'style' => 'pipeDelimited',
+                'explode' => false,
+                'schema' => [
+                    'type' => 'array',
+                    'minItems' => 2,
+                    'maxItems' => 2,
+                    'items' => [
+                        'type' => 'string',
+                        'enum' => ['friendly'],
+                    ],
+                ],
+            ]),
         ]);
 
         self::assertSame('friendly|friendly', $result['query']['tags']);
@@ -120,7 +160,22 @@ final class ParameterFakerTest extends TestCase
     {
         $faker = new ParameterFaker(['minItems' => 2, 'maxItems' => 2]);
         $result = $faker->generate([
-            ExampleParameter::array('X-Tags', 'header', 'simple', false),
+            new \cebe\openapi\spec\Parameter([
+                'name' => 'X-Tags',
+                'in' => 'header',
+                'required' => true,
+                'style' => 'simple',
+                'explode' => false,
+                'schema' => [
+                    'type' => 'array',
+                    'minItems' => 2,
+                    'maxItems' => 2,
+                    'items' => [
+                        'type' => 'string',
+                        'enum' => ['friendly'],
+                    ],
+                ],
+            ]),
         ]);
 
         self::assertSame('friendly,friendly', $result['header']['X-Tags']);
@@ -134,7 +189,22 @@ final class ParameterFakerTest extends TestCase
     {
         $faker = new ParameterFaker(['minItems' => 2, 'maxItems' => 2]);
         $result = $faker->generate([
-            ExampleParameter::array('tags', 'path', 'matrix', true),
+            new \cebe\openapi\spec\Parameter([
+                'name' => 'tags',
+                'in' => 'path',
+                'required' => true,
+                'style' => 'matrix',
+                'explode' => true,
+                'schema' => [
+                    'type' => 'array',
+                    'minItems' => 2,
+                    'maxItems' => 2,
+                    'items' => [
+                        'type' => 'string',
+                        'enum' => ['friendly'],
+                    ],
+                ],
+            ]),
         ]);
 
         self::assertSame(';tags=friendly;tags=friendly', $result['path']['tags']);
@@ -155,10 +225,14 @@ final class ParameterFakerTest extends TestCase
 
     /**
      * @throws JsonException when a generated parameter cannot be serialized
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testValuesAreStrings(): void
     {
-        $info = Petstore::lookup()->findByOperationId('getPetById');
+        $info = (new \OasFake\OperationLookup(\OasFake\Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('getPetById');
         self::assertNotNull($info);
 
         $faker = new ParameterFaker();

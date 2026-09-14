@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use JsonException;
 use OasFake\Exception\OperationNotFoundException;
 use OasFake\FakeDataContext;
 use OasFake\FakeResponse;
 use OasFake\Schema;
-use OasFake\Testing\Petstore;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -63,7 +62,7 @@ final class FakeResponseTest extends TestCase
      */
     public function testForGeneratesResponse(): void
     {
-        $response = FakeResponse::for(Petstore::schema(), 'listPets');
+        $response = FakeResponse::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'listPets');
 
         self::assertSame(200, $response->statusCode());
         self::assertSame('application/json', $response->headers()['Content-Type']);
@@ -83,7 +82,7 @@ final class FakeResponseTest extends TestCase
      */
     public function testForAcceptsFakeDataContext(): void
     {
-        $response = FakeResponse::for(new FakeDataContext(Petstore::schema()), 'listPets');
+        $response = FakeResponse::for(new FakeDataContext(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')), 'listPets');
 
         self::assertSame(200, $response->statusCode());
         self::assertIsArray($response->json());
@@ -100,7 +99,7 @@ final class FakeResponseTest extends TestCase
      */
     public function testForWithCustomStatusCode(): void
     {
-        $response = FakeResponse::for(Petstore::schema(), 'getPetById', 404);
+        $response = FakeResponse::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'getPetById', 404);
 
         self::assertSame(404, $response->statusCode());
 
@@ -121,7 +120,7 @@ final class FakeResponseTest extends TestCase
      */
     public function testForPathGeneratesResponse(): void
     {
-        $response = FakeResponse::forPath(Petstore::schema(), '/pets/{petId}', 'GET', 200);
+        $response = FakeResponse::forPath(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), '/pets/{petId}', 'GET', 200);
 
         self::assertSame(200, $response->statusCode());
 
@@ -144,7 +143,7 @@ final class FakeResponseTest extends TestCase
     {
         $this->expectException(OperationNotFoundException::class);
 
-        FakeResponse::for(Petstore::schema(), 'nonexistent');
+        FakeResponse::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'nonexistent');
     }
 
     /**
@@ -158,7 +157,7 @@ final class FakeResponseTest extends TestCase
      */
     public function testStatusCodeReturnsHttpStatus(): void
     {
-        $response = FakeResponse::for(Petstore::schema(), 'createPet', 201);
+        $response = FakeResponse::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'createPet', 201);
 
         self::assertSame(201, $response->statusCode());
     }
@@ -174,7 +173,7 @@ final class FakeResponseTest extends TestCase
      */
     public function testForDefaultsToFirstSuccessStatusCode(): void
     {
-        $response = FakeResponse::for(Petstore::schema(), 'createPet');
+        $response = FakeResponse::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'createPet');
 
         self::assertSame(201, $response->statusCode());
     }
@@ -190,7 +189,7 @@ final class FakeResponseTest extends TestCase
      */
     public function testForPathDefaultsToFirstSuccessStatusCode(): void
     {
-        $response = FakeResponse::forPath(Petstore::schema(), '/pets', 'POST');
+        $response = FakeResponse::forPath(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), '/pets', 'POST');
 
         self::assertSame(201, $response->statusCode());
     }
@@ -206,7 +205,7 @@ final class FakeResponseTest extends TestCase
      */
     public function testForPathHonorsAnExplicitStatusCode(): void
     {
-        $response = FakeResponse::forPath(Petstore::schema(), '/pets/{petId}', 'GET', 404);
+        $response = FakeResponse::forPath(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), '/pets/{petId}', 'GET', 404);
 
         self::assertSame(404, $response->statusCode());
     }
@@ -222,7 +221,7 @@ final class FakeResponseTest extends TestCase
      */
     public function testHeadersReturnsResponseHeaders(): void
     {
-        $response = FakeResponse::for(Petstore::schema(), 'listPets');
+        $response = FakeResponse::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'listPets');
 
         self::assertSame('application/json', $response->headers()['Content-Type']);
     }
@@ -238,7 +237,7 @@ final class FakeResponseTest extends TestCase
      */
     public function testForUsesTextPlainResponseMediaType(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+        $schema = Schema::fromString(<<<'YAML'
             openapi: 3.0.0
             info:
               title: Text API
@@ -274,7 +273,7 @@ final class FakeResponseTest extends TestCase
      */
     public function testForUsesFormUrlEncodedResponseMediaType(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+        $schema = Schema::fromString(<<<'YAML'
             openapi: 3.0.0
             info:
               title: Form API
@@ -314,7 +313,7 @@ final class FakeResponseTest extends TestCase
      */
     public function testJsonDecodesResponseBody(): void
     {
-        $response = FakeResponse::for(Petstore::schema(), 'listPets');
+        $response = FakeResponse::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'listPets');
 
         self::assertIsArray($response->json());
     }
@@ -330,7 +329,7 @@ final class FakeResponseTest extends TestCase
      */
     public function testToPsr7ReturnsResponseInterface(): void
     {
-        $response = FakeResponse::for(Petstore::schema(), 'listPets');
+        $response = FakeResponse::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'listPets');
 
         $psr7 = $response->toPsr7();
 
@@ -349,7 +348,7 @@ final class FakeResponseTest extends TestCase
      */
     public function testToArrayReturnsStructuredData(): void
     {
-        $response = FakeResponse::for(Petstore::schema(), 'listPets');
+        $response = FakeResponse::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'listPets');
 
         $array = $response->toArray();
 
@@ -370,7 +369,7 @@ final class FakeResponseTest extends TestCase
      */
     public function testBodyReturnsRawJson(): void
     {
-        $response = FakeResponse::for(Petstore::schema(), 'listPets');
+        $response = FakeResponse::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'listPets');
 
         $body = $response->body();
 
@@ -388,7 +387,7 @@ final class FakeResponseTest extends TestCase
      */
     public function testWithFakerOptionsAlwaysFakeOptionals(): void
     {
-        $response = FakeResponse::for(Petstore::schema(), 'getPetById', 200, ['alwaysFakeOptionals' => true]);
+        $response = FakeResponse::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'getPetById', 200, ['alwaysFakeOptionals' => true]);
 
         $data = $response->json();
         self::assertIsArray($data);
@@ -408,7 +407,7 @@ final class FakeResponseTest extends TestCase
      */
     public function testCreatePetReturnsCreatedStatus(): void
     {
-        $response = FakeResponse::for(Petstore::schema(), 'createPet', 201);
+        $response = FakeResponse::for(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), 'createPet', 201);
 
         self::assertSame(201, $response->statusCode());
 
@@ -422,10 +421,14 @@ final class FakeResponseTest extends TestCase
      * @throws JsonException when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoResponse when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testGenerateResponseStaticMethod(): void
     {
-        $psr7 = FakeResponse::generateResponse(Petstore::schema(), '/pets', 'GET', 200);
+        $psr7 = FakeResponse::generateResponse(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), '/pets', 'GET', 200);
 
         self::assertSame(200, $psr7->getStatusCode());
     }
@@ -434,10 +437,14 @@ final class FakeResponseTest extends TestCase
      * @throws JsonException when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoResponse when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testGenerateResponseDefaultsToOk(): void
     {
-        $psr7 = FakeResponse::generateResponse(Petstore::schema(), '/pets', 'GET');
+        $psr7 = FakeResponse::generateResponse(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'), '/pets', 'GET');
 
         self::assertSame(200, $psr7->getStatusCode());
     }
@@ -446,10 +453,14 @@ final class FakeResponseTest extends TestCase
      * @throws JsonException when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoPath when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoResponse when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testGenerateResponseAcceptsFakeDataContext(): void
     {
-        $psr7 = FakeResponse::generateResponse(new FakeDataContext(Petstore::schema()), '/pets', 'GET', 200);
+        $psr7 = FakeResponse::generateResponse(new FakeDataContext(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')), '/pets', 'GET', 200);
 
         self::assertSame(200, $psr7->getStatusCode());
     }

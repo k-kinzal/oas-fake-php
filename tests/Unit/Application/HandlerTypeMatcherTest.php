@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use OasFake\DeclarativeHandlerRegistrar;
 use OasFake\HandlerMap;
 use OasFake\HandlerTypeMatcher;
-use OasFake\Testing\InspectorServer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use ReflectionException;
+use Tests\Fixtures\InspectorServer;
 
 /**
  * @covers \OasFake\HandlerTypeMatcher

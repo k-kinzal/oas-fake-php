@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Testing;
+namespace Tests\Fixtures;
 
 use GuzzleHttp\Psr7\Response;
 use OasFake\Route;

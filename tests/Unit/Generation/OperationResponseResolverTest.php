@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use cebe\openapi\spec\Operation;
 use OasFake\OperationInfo;
@@ -54,17 +54,29 @@ final class OperationResponseResolverTest extends TestCase
         self::assertNull($resolver->schema($definition, 404, 'application/json'));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testDefaultStatusCodeReturnsFirstSuccessfulResponse(): void
     {
-        $definition = (new OperationLookup(\OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('createPet');
+        $definition = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('createPet');
         self::assertNotNull($definition);
 
         self::assertSame(201, (new OperationResponseResolver())->defaultStatusCode($definition));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testSuccessfulResponse(): void
     {
-        $definition = (new OperationLookup(\OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('createPet');
+        $definition = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('createPet');
         self::assertNotNull($definition);
 
         $successful = (new OperationResponseResolver())->successfulResponse($definition);
@@ -136,33 +148,57 @@ final class OperationResponseResolverTest extends TestCase
         self::assertNull($resolver->successfulResponse($definition));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testHasSuccessfulBodyReflectsResponseContent(): void
     {
-        $definition = (new OperationLookup(\OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('deletePet');
+        $definition = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('deletePet');
         self::assertNotNull($definition);
 
         self::assertFalse((new OperationResponseResolver())->hasSuccessfulBody($definition));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testForStatusReturnsExactResponse(): void
     {
-        $definition = (new OperationLookup(\OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('createPet');
+        $definition = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('createPet');
         self::assertNotNull($definition);
 
         self::assertNotNull((new OperationResponseResolver())->forStatus($definition, 201));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testMediaTypePrefersJson(): void
     {
-        $definition = (new OperationLookup(\OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('listPets');
+        $definition = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('listPets');
         self::assertNotNull($definition);
 
         self::assertSame('application/json', (new OperationResponseResolver())->mediaType($definition, 200));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testSchemaReturnsMediaTypeSchema(): void
     {
-        $definition = (new OperationLookup(\OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('listPets');
+        $definition = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('listPets');
         self::assertNotNull($definition);
 
         self::assertNotNull((new OperationResponseResolver())->schema($definition, 200, 'application/json'));

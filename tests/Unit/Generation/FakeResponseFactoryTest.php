@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use JsonException;
 use OasFake\FakeDataContext;
@@ -47,10 +47,14 @@ final class FakeResponseFactoryTest extends TestCase
      * @throws JsonException when the exercised contract propagates it
      * @throws NoPath when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoResponse when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testCreateUsesDeclaredStatusMediaTypeAndSchema(): void
     {
-        $context = new FakeDataContext(\OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'));
+        $context = new FakeDataContext(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'));
         $response = (new FakeResponseFactory())->create($context, '/pets', 'get', 200);
 
         self::assertSame(200, $response->getStatusCode());
@@ -62,10 +66,14 @@ final class FakeResponseFactoryTest extends TestCase
      * @throws JsonException when the exercised contract propagates it
      * @throws NoPath when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoResponse when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
      */
     public function testCreatePreservesFakerFailureContract(): void
     {
-        $context = new FakeDataContext(\OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'));
+        $context = new FakeDataContext(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml'));
 
         $this->expectException(NoPath::class);
         (new FakeResponseFactory())->create($context, '/unknown', 'get', 200);
@@ -75,10 +83,11 @@ final class FakeResponseFactoryTest extends TestCase
      * @throws JsonException when the exercised contract propagates it
      * @throws NoPath when the exercised contract propagates it
      * @throws \Vural\OpenAPIFaker\Exception\NoResponse when the exercised contract propagates it
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
      */
     public function testCreateGeneratesNonJsonPayloadFromTheDeclaredSchema(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromString(<<<'YAML'
+        $schema = Schema::fromString(<<<'YAML'
             openapi: 3.0.0
             info: {title: Text API, version: 1.0.0}
             paths:

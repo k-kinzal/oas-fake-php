@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit;
+namespace Tests\Unit;
 
 use OasFake\Handler;
 use OasFake\HandlerMap;
@@ -86,9 +86,15 @@ use VCR\Request as VcrRequest;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\JsonHandlerBody::class)]
 final class InterceptorRouterTest extends TestCase
 {
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testAddRegistersRoutesForDispatch(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $interceptor = new Interceptor(Mode::FAKE, sys_get_temp_dir(), $schema, new Validator($schema), [], new HandlerMap(), false, false);
         $router = new InterceptorRouter(new ServerUrlMatcher());
         $router->add('pet', $schema->serverUrls(), $interceptor, Mode::fromString(Mode::FAKE));
@@ -96,9 +102,15 @@ final class InterceptorRouterTest extends TestCase
         self::assertNotNull($router->dispatch(new VcrRequest('GET', 'https://api.petstore.example.com/pets', [])));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testRemoveDeletesOnlyOwnedRoutes(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $interceptor = new Interceptor(Mode::FAKE, sys_get_temp_dir(), $schema, new Validator($schema), [], new HandlerMap(), false, false);
         $router = new InterceptorRouter(new ServerUrlMatcher());
         $router->add('pet', $schema->serverUrls(), $interceptor, Mode::fromString(Mode::FAKE));
@@ -107,9 +119,15 @@ final class InterceptorRouterTest extends TestCase
         self::assertNull($router->dispatch(new VcrRequest('GET', 'https://api.petstore.example.com/pets', [])));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testClearDeletesAllRoutes(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $interceptor = new Interceptor(Mode::FAKE, sys_get_temp_dir(), $schema, new Validator($schema), [], new HandlerMap(), false, false);
         $router = new InterceptorRouter(new ServerUrlMatcher());
         $router->add('pet', $schema->serverUrls(), $interceptor, Mode::fromString(Mode::FAKE));
@@ -125,9 +143,15 @@ final class InterceptorRouterTest extends TestCase
         self::assertNull($router->dispatch(new VcrRequest('GET', 'https://unknown.example.com/pets', [])));
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testRemoveRestoresThePreviousRouteForTheSameUrl(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml');
         $firstHandlers = new HandlerMap();
         $firstHandlers->forOperation('listPets', Handler::response(200, [['name' => 'First']]));
         $secondHandlers = new HandlerMap();
@@ -144,9 +168,15 @@ final class InterceptorRouterTest extends TestCase
         self::assertStringContainsString('First', $router->dispatch($request)?->getBody() ?? '');
     }
 
+    /**
+     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded
+     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded
+     */
     public function testDispatchChoosesTheMostSpecificMatchingUrl(): void
     {
-        $schema = \OasFake\Testing\SchemaFixture::fromFile(__DIR__ . '/../../Fixtures/openapi/versioned-petstore.yaml');
+        $schema = Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/versioned-petstore.yaml');
         $rootHandlers = new HandlerMap();
         $rootHandlers->forOperation('listPets', Handler::response(200, [['name' => 'Root']]));
         $versionedHandlers = new HandlerMap();

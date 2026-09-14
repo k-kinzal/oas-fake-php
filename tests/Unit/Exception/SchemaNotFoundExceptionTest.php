@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit\Exception;
+namespace Tests\Unit\Exception;
 
 use OasFake\Exception\SchemaNotFoundException;
 use PHPUnit\Framework\Attributes\CoversClass;
