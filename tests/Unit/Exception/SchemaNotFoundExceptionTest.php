@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
-namespace OasFake\Tests\Unit\Exception;
+namespace Tests\Unit\Exception;
 
 use OasFake\Exception\SchemaNotFoundException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \OasFake\Exception\SchemaNotFoundException
+ */
 #[CoversClass(SchemaNotFoundException::class)]
 final class SchemaNotFoundExceptionTest extends TestCase
 {

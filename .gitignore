@@ -1,9 +1,15 @@
 /vendor/
 /coverage/
+/build/
 /.phpunit.cache/
 .phpunit.result.cache
 /.php-cs-fixer.cache
+/.deptrac.cache
 /composer.lock
+/phpbench.json
+/fuzz/corpus/*/*
+/crash-*
+/minimized-*
 *.phar
 .DS_Store
 .idea/
@@ -14,3 +20,6 @@
 examples/*/vendor/
 examples/*/composer.lock
 examples/*/.phpunit.result.cache
+
+# PHP-VCR can leave this empty registry cassette when a mutation interrupts cleanup.
+/tests/Fixtures/oas-fake-registry
