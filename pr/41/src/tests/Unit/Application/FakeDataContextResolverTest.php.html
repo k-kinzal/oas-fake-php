@@ -40,7 +40,7 @@
 <span class="src-line" id="L2" data-diff="added"><a class="ln" href="#L2">2</a></span>
 <span class="src-line" id="L3" data-diff="added"><a class="ln" href="#L3">3</a><span class="tok-kw">declare</span>(<span class="tok-id">strict_types</span>=<span class="tok-num">1</span>);</span>
 <span class="src-line" id="L4" data-diff="added"><a class="ln" href="#L4">4</a></span>
-<span class="src-line" id="L5" data-diff="added"><a class="ln" href="#L5">5</a><span class="tok-kw">namespace</span> <span class="tok-id">OasFake\Tests\Unit</span>;</span>
+<span class="src-line" id="L5" data-diff="added"><a class="ln" href="#L5">5</a><span class="tok-kw">namespace</span> <span class="tok-id">Tests\Unit</span>;</span>
 <span class="src-line" id="L6" data-diff="added"><a class="ln" href="#L6">6</a></span>
 <span class="src-line" id="L7" data-diff="added"><a class="ln" href="#L7">7</a><span class="tok-kw">use</span> <span class="tok-id">OasFake\FakeDataContext</span>;</span>
 <span class="src-line" id="L8" data-diff="added"><a class="ln" href="#L8">8</a><span class="tok-kw">use</span> <span class="tok-id">OasFake\FakeDataContextResolver</span>;</span>
@@ -93,7 +93,7 @@
 <span class="src-line" id="L55" data-diff="added"><a class="ln" href="#L55">55</a><span class="tok-com">     */</span></span>
 <span class="src-line" id="L56" data-diff="added"><a class="ln" href="#L56">56</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">testResolvePreservesContextAndBuildsFromSchema</span>(): <span class="tok-id">void</span></span>
 <span class="src-line" id="L57" data-diff="added"><a class="ln" href="#L57">57</a>    {</span>
-<span class="src-line" id="L58" data-diff="added"><a class="ln" href="#L58">58</a>        <span class="tok-var">$schema</span> = <span class="tok-id">\OasFake\Testing\SchemaFixture</span>::<span class="tok-id">fromFile</span>(__DIR__ . <span class="tok-str">&#039;/../../Fixtures/openapi/petstore.yaml&#039;</span>);</span>
+<span class="src-line" id="L58" data-diff="added"><a class="ln" href="#L58">58</a>        <span class="tok-var">$schema</span> = <span class="tok-id">Schema</span>::<span class="tok-id">fromFile</span>(__DIR__ . <span class="tok-str">&#039;/../../Fixtures/openapi/petstore.yaml&#039;</span>);</span>
 <span class="src-line" id="L59" data-diff="added"><a class="ln" href="#L59">59</a>        <span class="tok-var">$context</span> = <span class="tok-kw">new</span> <span class="tok-id">FakeDataContext</span>(<span class="tok-var">$schema</span>);</span>
 <span class="src-line" id="L60" data-diff="added"><a class="ln" href="#L60">60</a>        <span class="tok-var">$resolver</span> = <span class="tok-kw">new</span> <span class="tok-id">FakeDataContextResolver</span>();</span>
 <span class="src-line" id="L61" data-diff="added"><a class="ln" href="#L61">61</a></span>

@@ -40,7 +40,7 @@
 <span class="src-line" id="L2" data-diff="added"><a class="ln" href="#L2">2</a></span>
 <span class="src-line" id="L3" data-diff="added"><a class="ln" href="#L3">3</a><span class="tok-kw">declare</span>(<span class="tok-id">strict_types</span>=<span class="tok-num">1</span>);</span>
 <span class="src-line" id="L4" data-diff="added"><a class="ln" href="#L4">4</a></span>
-<span class="src-line" id="L5" data-diff="added"><a class="ln" href="#L5">5</a><span class="tok-kw">namespace</span> <span class="tok-id">OasFake\Tests\Unit</span>;</span>
+<span class="src-line" id="L5" data-diff="added"><a class="ln" href="#L5">5</a><span class="tok-kw">namespace</span> <span class="tok-id">Tests\Unit</span>;</span>
 <span class="src-line" id="L6" data-diff="added"><a class="ln" href="#L6">6</a></span>
 <span class="src-line" id="L7" data-diff="added"><a class="ln" href="#L7">7</a><span class="tok-kw">use</span> <span class="tok-id">cebe\openapi\spec\PathItem</span>;</span>
 <span class="src-line" id="L8" data-diff="added"><a class="ln" href="#L8">8</a><span class="tok-kw">use</span> <span class="tok-id">OasFake\PathOperationResolver</span>;</span>
@@ -91,16 +91,22 @@
 <span class="src-line" id="L53" data-diff="added"><a class="ln" href="#L53">53</a>        <span class="tok-kw">yield</span> <span class="tok-str">&#039;trace&#039;</span> =&gt; [<span class="tok-str">&#039;trace&#039;</span>];</span>
 <span class="src-line" id="L54" data-diff="added"><a class="ln" href="#L54">54</a>    }</span>
 <span class="src-line" id="L55" data-diff="added"><a class="ln" href="#L55">55</a></span>
-<span class="src-line" id="L56" data-diff="added"><a class="ln" href="#L56">56</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">testResolveReturnsNullForUnsupportedMethod</span>(): <span class="tok-id">void</span></span>
-<span class="src-line" id="L57" data-diff="added"><a class="ln" href="#L57">57</a>    {</span>
-<span class="src-line" id="L58" data-diff="added"><a class="ln" href="#L58">58</a>        <span class="tok-var">$paths</span> = <span class="tok-id">\OasFake\Testing\SchemaFixture</span>::<span class="tok-id">fromFile</span>(__DIR__ . <span class="tok-str">&#039;/../../Fixtures/openapi/petstore.yaml&#039;</span>)-&gt;<span class="tok-id">openApi</span>()-&gt;<span class="tok-id">paths</span>;</span>
-<span class="src-line" id="L59" data-diff="added"><a class="ln" href="#L59">59</a>        <span class="tok-var">$pathItem</span> = <span class="tok-var">$paths</span>-&gt;<span class="tok-id">getPath</span>(<span class="tok-str">&#039;/pets&#039;</span>);</span>
-<span class="src-line" id="L60" data-diff="added"><a class="ln" href="#L60">60</a>        <span class="tok-id">self</span>::<span class="tok-id">assertNotNull</span>(<span class="tok-var">$pathItem</span>);</span>
-<span class="src-line" id="L61" data-diff="added"><a class="ln" href="#L61">61</a></span>
-<span class="src-line" id="L62" data-diff="added"><a class="ln" href="#L62">62</a>        <span class="tok-id">self</span>::<span class="tok-id">assertNull</span>((<span class="tok-kw">new</span> <span class="tok-id">PathOperationResolver</span>())-&gt;<span class="tok-id">resolve</span>(<span class="tok-var">$pathItem</span>, <span class="tok-str">&#039;connect&#039;</span>));</span>
-<span class="src-line" id="L63" data-diff="added"><a class="ln" href="#L63">63</a>    }</span>
-<span class="src-line" id="L64" data-diff="added"><a class="ln" href="#L64">64</a>}</span>
-<span class="src-line" id="L65" data-diff="added"><a class="ln" href="#L65">65</a></span>
+<span class="src-line" id="L56" data-diff="added"><a class="ln" href="#L56">56</a>    <span class="tok-com">/**</span></span>
+<span class="src-line" id="L57" data-diff="added"><a class="ln" href="#L57">57</a><span class="tok-com">     * @throws \cebe\openapi\exceptions\IOException when the schema fixture cannot be loaded</span></span>
+<span class="src-line" id="L58" data-diff="added"><a class="ln" href="#L58">58</a><span class="tok-com">     * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded</span></span>
+<span class="src-line" id="L59" data-diff="added"><a class="ln" href="#L59">59</a><span class="tok-com">     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException when the schema fixture cannot be loaded</span></span>
+<span class="src-line" id="L60" data-diff="added"><a class="ln" href="#L60">60</a><span class="tok-com">     * @throws \cebe\openapi\json\InvalidJsonPointerSyntaxException when the schema fixture cannot be loaded</span></span>
+<span class="src-line" id="L61" data-diff="added"><a class="ln" href="#L61">61</a><span class="tok-com">     */</span></span>
+<span class="src-line" id="L62" data-diff="added"><a class="ln" href="#L62">62</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">testResolveReturnsNullForUnsupportedMethod</span>(): <span class="tok-id">void</span></span>
+<span class="src-line" id="L63" data-diff="added"><a class="ln" href="#L63">63</a>    {</span>
+<span class="src-line" id="L64" data-diff="added"><a class="ln" href="#L64">64</a>        <span class="tok-var">$paths</span> = <span class="tok-id">Schema</span>::<span class="tok-id">fromFile</span>(__DIR__ . <span class="tok-str">&#039;/../../Fixtures/openapi/petstore.yaml&#039;</span>)-&gt;<span class="tok-id">openApi</span>()-&gt;<span class="tok-id">paths</span>;</span>
+<span class="src-line" id="L65" data-diff="added"><a class="ln" href="#L65">65</a>        <span class="tok-var">$pathItem</span> = <span class="tok-var">$paths</span>-&gt;<span class="tok-id">getPath</span>(<span class="tok-str">&#039;/pets&#039;</span>);</span>
+<span class="src-line" id="L66" data-diff="added"><a class="ln" href="#L66">66</a>        <span class="tok-id">self</span>::<span class="tok-id">assertNotNull</span>(<span class="tok-var">$pathItem</span>);</span>
+<span class="src-line" id="L67" data-diff="added"><a class="ln" href="#L67">67</a></span>
+<span class="src-line" id="L68" data-diff="added"><a class="ln" href="#L68">68</a>        <span class="tok-id">self</span>::<span class="tok-id">assertNull</span>((<span class="tok-kw">new</span> <span class="tok-id">PathOperationResolver</span>())-&gt;<span class="tok-id">resolve</span>(<span class="tok-var">$pathItem</span>, <span class="tok-str">&#039;connect&#039;</span>));</span>
+<span class="src-line" id="L69" data-diff="added"><a class="ln" href="#L69">69</a>    }</span>
+<span class="src-line" id="L70" data-diff="added"><a class="ln" href="#L70">70</a>}</span>
+<span class="src-line" id="L71" data-diff="added"><a class="ln" href="#L71">71</a></span>
 </code></pre>
 </main>
 <footer class="site-footer">Generated by <a href="https://github.com/k-kinzal/php-ai-toolkit">php-ai-toolkit</a> docgen</footer>
