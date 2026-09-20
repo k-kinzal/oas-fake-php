@@ -52,12 +52,12 @@
 <span class="src-line" id="L14" data-diff="added"><a class="ln" href="#L14">14</a>    <span class="tok-kw">private</span> <span class="tok-id">RequestPathMatcher</span> <span class="tok-var">$requestPathMatcher</span>;</span>
 <span class="src-line" id="L15" data-diff="added"><a class="ln" href="#L15">15</a></span>
 <span class="src-line" id="L16" data-diff="added"><a class="ln" href="#L16">16</a>    <span class="tok-com">/**</span></span>
-<span class="src-line" id="L17" data-diff="added"><a class="ln" href="#L17">17</a><span class="tok-com">     * @var array&lt;string, OperationInfo&gt; keyed by operationId</span></span>
+<span class="src-line" id="L17" data-diff="added"><a class="ln" href="#L17">17</a><span class="tok-com">     * @var array&lt;string, OperationDefinition&gt; keyed by operationId</span></span>
 <span class="src-line" id="L18" data-diff="added"><a class="ln" href="#L18">18</a><span class="tok-com">     */</span></span>
 <span class="src-line" id="L19" data-diff="added"><a class="ln" href="#L19">19</a>    <span class="tok-kw">private</span> <span class="tok-kw">array</span> <span class="tok-var">$byOperationId</span> = [];</span>
 <span class="src-line" id="L20" data-diff="added"><a class="ln" href="#L20">20</a></span>
 <span class="src-line" id="L21" data-diff="added"><a class="ln" href="#L21">21</a>    <span class="tok-com">/**</span></span>
-<span class="src-line" id="L22" data-diff="added"><a class="ln" href="#L22">22</a><span class="tok-com">     * @var array&lt;string, OperationInfo&gt; keyed by &quot;METHOD:/path&quot;</span></span>
+<span class="src-line" id="L22" data-diff="added"><a class="ln" href="#L22">22</a><span class="tok-com">     * @var array&lt;string, OperationDefinition&gt; keyed by &quot;METHOD:/path&quot;</span></span>
 <span class="src-line" id="L23" data-diff="added"><a class="ln" href="#L23">23</a><span class="tok-com">     */</span></span>
 <span class="src-line" id="L24" data-diff="added"><a class="ln" href="#L24">24</a>    <span class="tok-kw">private</span> <span class="tok-kw">array</span> <span class="tok-var">$byPathMethod</span> = [];</span>
 <span class="src-line" id="L25" data-diff="added"><a class="ln" href="#L25">25</a></span>
@@ -77,7 +77,7 @@
 <span class="src-line" id="L39" data-diff="added"><a class="ln" href="#L39">39</a><span class="tok-com">     *</span></span>
 <span class="src-line" id="L40" data-diff="added"><a class="ln" href="#L40">40</a><span class="tok-com">     * @param string $operationId The OpenAPI operationId</span></span>
 <span class="src-line" id="L41" data-diff="added"><a class="ln" href="#L41">41</a><span class="tok-com">     */</span></span>
-<span class="src-line" id="L42" data-diff="added"><a class="ln" href="#L42">42</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">findByOperationId</span>(<span class="tok-id">string</span> <span class="tok-var">$operationId</span>): ?<span class="tok-id">OperationInfo</span></span>
+<span class="src-line" id="L42" data-diff="added"><a class="ln" href="#L42">42</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">findByOperationId</span>(<span class="tok-id">string</span> <span class="tok-var">$operationId</span>): ?<span class="tok-id">OperationDefinition</span></span>
 <span class="src-line" id="L43" data-diff="added"><a class="ln" href="#L43">43</a>    {</span>
 <span class="src-line" id="L44" data-diff="added"><a class="ln" href="#L44">44</a>        <span class="tok-kw">return</span> <span class="tok-var">$this</span>-&gt;<span class="tok-id">byOperationId</span>[<span class="tok-var">$operationId</span>] ?? <span class="tok-id">null</span>;</span>
 <span class="src-line" id="L45" data-diff="added"><a class="ln" href="#L45">45</a>    }</span>
@@ -88,7 +88,7 @@
 <span class="src-line" id="L50" data-diff="added"><a class="ln" href="#L50">50</a><span class="tok-com">     * @param string $path The OpenAPI path pattern</span></span>
 <span class="src-line" id="L51" data-diff="added"><a class="ln" href="#L51">51</a><span class="tok-com">     * @param string $method The HTTP method (case-insensitive)</span></span>
 <span class="src-line" id="L52" data-diff="added"><a class="ln" href="#L52">52</a><span class="tok-com">     */</span></span>
-<span class="src-line" id="L53" data-diff="added"><a class="ln" href="#L53">53</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">findByPathAndMethod</span>(<span class="tok-id">string</span> <span class="tok-var">$path</span>, <span class="tok-id">string</span> <span class="tok-var">$method</span>): ?<span class="tok-id">OperationInfo</span></span>
+<span class="src-line" id="L53" data-diff="added"><a class="ln" href="#L53">53</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">findByPathAndMethod</span>(<span class="tok-id">string</span> <span class="tok-var">$path</span>, <span class="tok-id">string</span> <span class="tok-var">$method</span>): ?<span class="tok-id">OperationDefinition</span></span>
 <span class="src-line" id="L54" data-diff="added"><a class="ln" href="#L54">54</a>    {</span>
 <span class="src-line" id="L55" data-diff="added"><a class="ln" href="#L55">55</a>        <span class="tok-var">$key</span> = <span class="tok-id">strtolower</span>(<span class="tok-var">$method</span>) . <span class="tok-str">&#039;:&#039;</span> . <span class="tok-var">$path</span>;</span>
 <span class="src-line" id="L56" data-diff="added"><a class="ln" href="#L56">56</a></span>
@@ -103,7 +103,7 @@
 <span class="src-line" id="L65" data-diff="added"><a class="ln" href="#L65">65</a><span class="tok-com">     * @param string $path The request path, for example &quot;/pets/123&quot;</span></span>
 <span class="src-line" id="L66" data-diff="added"><a class="ln" href="#L66">66</a><span class="tok-com">     * @param string $method The HTTP method (case-insensitive)</span></span>
 <span class="src-line" id="L67" data-diff="added"><a class="ln" href="#L67">67</a><span class="tok-com">     */</span></span>
-<span class="src-line" id="L68" data-diff="added"><a class="ln" href="#L68">68</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">findByRequestPathAndMethod</span>(<span class="tok-id">string</span> <span class="tok-var">$path</span>, <span class="tok-id">string</span> <span class="tok-var">$method</span>): ?<span class="tok-id">OperationInfo</span></span>
+<span class="src-line" id="L68" data-diff="added"><a class="ln" href="#L68">68</a>    <span class="tok-kw">public</span> <span class="tok-kw">function</span> <span class="tok-id">findByRequestPathAndMethod</span>(<span class="tok-id">string</span> <span class="tok-var">$path</span>, <span class="tok-id">string</span> <span class="tok-var">$method</span>): ?<span class="tok-id">OperationDefinition</span></span>
 <span class="src-line" id="L69" data-diff="added"><a class="ln" href="#L69">69</a>    {</span>
 <span class="src-line" id="L70" data-diff="added"><a class="ln" href="#L70">70</a>        <span class="tok-var">$normalizedMethod</span> = <span class="tok-id">strtolower</span>(<span class="tok-var">$method</span>);</span>
 <span class="src-line" id="L71" data-diff="added"><a class="ln" href="#L71">71</a>        <span class="tok-var">$exact</span> = <span class="tok-var">$this</span>-&gt;<span class="tok-id">findByPathAndMethod</span>(<span class="tok-var">$path</span>, <span class="tok-var">$normalizedMethod</span>);</span>
@@ -116,7 +116,7 @@
 <span class="src-line" id="L78" data-diff="added"><a class="ln" href="#L78">78</a>                <span class="tok-kw">continue</span>;</span>
 <span class="src-line" id="L79" data-diff="added"><a class="ln" href="#L79">79</a>            }</span>
 <span class="src-line" id="L80" data-diff="added"><a class="ln" href="#L80">80</a></span>
-<span class="src-line" id="L81" data-diff="added"><a class="ln" href="#L81">81</a>            <span class="tok-kw">if</span> (<span class="tok-var">$this</span>-&gt;<span class="tok-id">requestPathMatcher</span>-&gt;<span class="tok-id">matches</span>(<span class="tok-var">$info</span>-&gt;<span class="tok-id">pathPattern</span>, <span class="tok-var">$path</span>)) {</span>
+<span class="src-line" id="L81" data-diff="added"><a class="ln" href="#L81">81</a>            <span class="tok-kw">if</span> (<span class="tok-var">$this</span>-&gt;<span class="tok-id">requestPathMatcher</span>-&gt;<span class="tok-id">matches</span>(<span class="tok-var">$info</span>-&gt;<span class="tok-id">pathPattern</span>(), <span class="tok-var">$path</span>)) {</span>
 <span class="src-line" id="L82" data-diff="added"><a class="ln" href="#L82">82</a>                <span class="tok-kw">return</span> <span class="tok-var">$info</span>;</span>
 <span class="src-line" id="L83" data-diff="added"><a class="ln" href="#L83">83</a>            }</span>
 <span class="src-line" id="L84" data-diff="added"><a class="ln" href="#L84">84</a>        }</span>

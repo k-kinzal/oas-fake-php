@@ -61,7 +61,7 @@
 <span class="src-line" id="L23" data-diff="added"><a class="ln" href="#L23">23</a><span class="tok-com"> * @uses \OasFake\MiddlewarePipeline</span></span>
 <span class="src-line" id="L24" data-diff="added"><a class="ln" href="#L24">24</a><span class="tok-com"> * @uses \OasFake\Mode</span></span>
 <span class="src-line" id="L25" data-diff="added"><a class="ln" href="#L25">25</a><span class="tok-com"> * @uses \OasFake\OpenApiServerResolver</span></span>
-<span class="src-line" id="L26" data-diff="added"><a class="ln" href="#L26">26</a><span class="tok-com"> * @uses \OasFake\OperationInfo</span></span>
+<span class="src-line" id="L26" data-diff="added"><a class="ln" href="#L26">26</a><span class="tok-com"> * @uses \OasFake\OperationDefinition</span></span>
 <span class="src-line" id="L27" data-diff="added"><a class="ln" href="#L27">27</a><span class="tok-com"> * @uses \OasFake\OperationIndexBuilder</span></span>
 <span class="src-line" id="L28" data-diff="added"><a class="ln" href="#L28">28</a><span class="tok-com"> * @uses \OasFake\OperationLookup</span></span>
 <span class="src-line" id="L29" data-diff="added"><a class="ln" href="#L29">29</a><span class="tok-com"> * @uses \OasFake\OperationParameterResolver</span></span>
@@ -73,7 +73,7 @@
 <span class="src-line" id="L35" data-diff="added"><a class="ln" href="#L35">35</a><span class="tok-com"> * @uses \OasFake\SchemaRequestHandler</span></span>
 <span class="src-line" id="L36" data-diff="added"><a class="ln" href="#L36">36</a><span class="tok-com"> * @uses \OasFake\ServerOptions</span></span>
 <span class="src-line" id="L37" data-diff="added"><a class="ln" href="#L37">37</a><span class="tok-com"> * @uses \OasFake\Validator</span></span>
-<span class="src-line" id="L38" data-diff="added"><a class="ln" href="#L38">38</a><span class="tok-com"> * @uses \OasFake\OperationInfoFactory</span></span>
+<span class="src-line" id="L38" data-diff="added"><a class="ln" href="#L38">38</a><span class="tok-com"> * @uses \OasFake\OperationDefinitionResolver</span></span>
 <span class="src-line" id="L39" data-diff="added"><a class="ln" href="#L39">39</a><span class="tok-com"> */</span></span>
 <span class="src-line" id="L40" data-diff="added"><a class="ln" href="#L40">40</a>#[<span class="tok-id">CoversClass</span>(<span class="tok-id">InterceptorFactory</span>::<span class="tok-kw">class</span>)]</span>
 <span class="src-line" id="L41" data-diff="added"><a class="ln" href="#L41">41</a>#[<span class="tok-id">\PHPUnit\Framework\Attributes\UsesClass</span>(<span class="tok-id">\OasFake\LosslessVcrResponse</span>::<span class="tok-kw">class</span>)]</span>
@@ -83,7 +83,7 @@
 <span class="src-line" id="L45" data-diff="added"><a class="ln" href="#L45">45</a>#[<span class="tok-id">\PHPUnit\Framework\Attributes\UsesClass</span>(<span class="tok-id">\OasFake\MiddlewarePipeline</span>::<span class="tok-kw">class</span>)]</span>
 <span class="src-line" id="L46" data-diff="added"><a class="ln" href="#L46">46</a>#[<span class="tok-id">\PHPUnit\Framework\Attributes\UsesClass</span>(<span class="tok-id">Mode</span>::<span class="tok-kw">class</span>)]</span>
 <span class="src-line" id="L47" data-diff="added"><a class="ln" href="#L47">47</a>#[<span class="tok-id">\PHPUnit\Framework\Attributes\UsesClass</span>(<span class="tok-id">\OasFake\OpenApiServerResolver</span>::<span class="tok-kw">class</span>)]</span>
-<span class="src-line" id="L48" data-diff="added"><a class="ln" href="#L48">48</a>#[<span class="tok-id">\PHPUnit\Framework\Attributes\UsesClass</span>(<span class="tok-id">\OasFake\OperationInfo</span>::<span class="tok-kw">class</span>)]</span>
+<span class="src-line" id="L48" data-diff="added"><a class="ln" href="#L48">48</a>#[<span class="tok-id">\PHPUnit\Framework\Attributes\UsesClass</span>(<span class="tok-id">\OasFake\OperationDefinition</span>::<span class="tok-kw">class</span>)]</span>
 <span class="src-line" id="L49" data-diff="added"><a class="ln" href="#L49">49</a>#[<span class="tok-id">\PHPUnit\Framework\Attributes\UsesClass</span>(<span class="tok-id">\OasFake\OperationIndexBuilder</span>::<span class="tok-kw">class</span>)]</span>
 <span class="src-line" id="L50" data-diff="added"><a class="ln" href="#L50">50</a>#[<span class="tok-id">\PHPUnit\Framework\Attributes\UsesClass</span>(<span class="tok-id">\OasFake\OperationLookup</span>::<span class="tok-kw">class</span>)]</span>
 <span class="src-line" id="L51" data-diff="added"><a class="ln" href="#L51">51</a>#[<span class="tok-id">\PHPUnit\Framework\Attributes\UsesClass</span>(<span class="tok-id">\OasFake\OperationParameterResolver</span>::<span class="tok-kw">class</span>)]</span>
@@ -95,7 +95,7 @@
 <span class="src-line" id="L57" data-diff="added"><a class="ln" href="#L57">57</a>#[<span class="tok-id">\PHPUnit\Framework\Attributes\UsesClass</span>(<span class="tok-id">\OasFake\SchemaRequestHandler</span>::<span class="tok-kw">class</span>)]</span>
 <span class="src-line" id="L58" data-diff="added"><a class="ln" href="#L58">58</a>#[<span class="tok-id">\PHPUnit\Framework\Attributes\UsesClass</span>(<span class="tok-id">ServerOptions</span>::<span class="tok-kw">class</span>)]</span>
 <span class="src-line" id="L59" data-diff="added"><a class="ln" href="#L59">59</a>#[<span class="tok-id">\PHPUnit\Framework\Attributes\UsesClass</span>(<span class="tok-id">\OasFake\Validator</span>::<span class="tok-kw">class</span>)]</span>
-<span class="src-line" id="L60" data-diff="added"><a class="ln" href="#L60">60</a>#[<span class="tok-id">\PHPUnit\Framework\Attributes\UsesClass</span>(<span class="tok-id">\OasFake\OperationInfoFactory</span>::<span class="tok-kw">class</span>)]</span>
+<span class="src-line" id="L60" data-diff="added"><a class="ln" href="#L60">60</a>#[<span class="tok-id">\PHPUnit\Framework\Attributes\UsesClass</span>(<span class="tok-id">\OasFake\OperationDefinitionResolver</span>::<span class="tok-kw">class</span>)]</span>
 <span class="src-line" id="L61" data-diff="added"><a class="ln" href="#L61">61</a><span class="tok-kw">final</span> <span class="tok-kw">class</span> <span class="tok-id">InterceptorFactoryTest</span> <span class="tok-kw">extends</span> <span class="tok-id">TestCase</span></span>
 <span class="src-line" id="L62" data-diff="added"><a class="ln" href="#L62">62</a>{</span>
 <span class="src-line" id="L63" data-diff="added"><a class="ln" href="#L63">63</a>    <span class="tok-com">/**</span></span>
