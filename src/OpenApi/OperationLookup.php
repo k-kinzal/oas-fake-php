@@ -14,12 +14,12 @@ final class OperationLookup
     private RequestPathMatcher $requestPathMatcher;
 
     /**
-     * @var array<string, OperationInfo> keyed by operationId
+     * @var array<string, OperationDefinition> keyed by operationId
      */
     private array $byOperationId = [];
 
     /**
-     * @var array<string, OperationInfo> keyed by "METHOD:/path"
+     * @var array<string, OperationDefinition> keyed by "METHOD:/path"
      */
     private array $byPathMethod = [];
 
@@ -39,7 +39,7 @@ final class OperationLookup
      *
      * @param string $operationId The OpenAPI operationId
      */
-    public function findByOperationId(string $operationId): ?OperationInfo
+    public function findByOperationId(string $operationId): ?OperationDefinition
     {
         return $this->byOperationId[$operationId] ?? null;
     }
@@ -50,7 +50,7 @@ final class OperationLookup
      * @param string $path The OpenAPI path pattern
      * @param string $method The HTTP method (case-insensitive)
      */
-    public function findByPathAndMethod(string $path, string $method): ?OperationInfo
+    public function findByPathAndMethod(string $path, string $method): ?OperationDefinition
     {
         $key = strtolower($method) . ':' . $path;
 
@@ -65,7 +65,7 @@ final class OperationLookup
      * @param string $path The request path, for example "/pets/123"
      * @param string $method The HTTP method (case-insensitive)
      */
-    public function findByRequestPathAndMethod(string $path, string $method): ?OperationInfo
+    public function findByRequestPathAndMethod(string $path, string $method): ?OperationDefinition
     {
         $normalizedMethod = strtolower($method);
         $exact = $this->findByPathAndMethod($path, $normalizedMethod);
@@ -78,7 +78,7 @@ final class OperationLookup
                 continue;
             }
 
-            if ($this->requestPathMatcher->matches($info->pathPattern, $path)) {
+            if ($this->requestPathMatcher->matches($info->pathPattern(), $path)) {
                 return $info;
             }
         }

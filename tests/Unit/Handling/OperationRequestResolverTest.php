@@ -17,7 +17,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \OasFake\OperationRequestResolver
  *
  * @uses \OasFake\OpenApiServerResolver
- * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationDefinition
  * @uses \OasFake\OperationIndexBuilder
  * @uses \OasFake\OperationLookup
  * @uses \OasFake\OperationParameterResolver
@@ -27,11 +27,11 @@ use PHPUnit\Framework\TestCase;
  * @uses \OasFake\Schema
  * @uses \OasFake\ServerUrlMatcher
  * @uses \OasFake\Validator
- * @uses \OasFake\OperationInfoFactory
+ * @uses \OasFake\OperationDefinitionResolver
  */
 #[CoversClass(OperationRequestResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfo::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(OperationLookup::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
@@ -41,7 +41,7 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerUrlMatcher::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Validator::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinitionResolver::class)]
 final class OperationRequestResolverTest extends TestCase
 {
     /**
@@ -64,7 +64,7 @@ final class OperationRequestResolverTest extends TestCase
         $resolved = $resolver->resolve(new ServerRequest('GET', 'https://api.petstore.example.com/pets'));
 
         self::assertSame('/pets', $resolved->path);
-        self::assertSame('listPets', $resolved->definition?->operationId);
+        self::assertSame('listPets', $resolved->definition?->operationId());
         self::assertSame('/pets', $resolved->address?->path());
     }
 

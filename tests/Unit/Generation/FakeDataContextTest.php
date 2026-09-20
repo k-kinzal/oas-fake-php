@@ -14,23 +14,23 @@ use PHPUnit\Framework\TestCase;
  * @covers \OasFake\FakeDataContext
  *
  * @uses \OasFake\OpenApiServerResolver
- * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationDefinition
  * @uses \OasFake\OperationIndexBuilder
  * @uses \OasFake\OperationLookup
  * @uses \OasFake\OperationParameterResolver
  * @uses \OasFake\PathOperationResolver
  * @uses \OasFake\Schema
- * @uses \OasFake\OperationInfoFactory
+ * @uses \OasFake\OperationDefinitionResolver
  */
 #[CoversClass(FakeDataContext::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfo::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationLookup::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinitionResolver::class)]
 final class FakeDataContextTest extends TestCase
 {
     /**

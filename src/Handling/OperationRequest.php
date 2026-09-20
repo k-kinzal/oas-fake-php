@@ -19,7 +19,7 @@ final class OperationRequest
     public function __construct(
         public string $path,
         public string $method,
-        public ?OperationInfo $definition,
+        public ?OperationDefinition $definition,
         public ?OperationAddress $address,
     ) {
     }

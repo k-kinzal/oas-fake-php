@@ -40,7 +40,7 @@ use VCR\Request as VcrRequest;
  * @uses \OasFake\MiddlewareRequestHandler
  * @uses \OasFake\Mode
  * @uses \OasFake\OpenApiServerResolver
- * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationDefinition
  * @uses \OasFake\OperationIndexBuilder
  * @uses \OasFake\OperationLookup
  * @uses \OasFake\OperationParameterResolver
@@ -58,7 +58,7 @@ use VCR\Request as VcrRequest;
  * @uses \OasFake\Validator
  * @uses \OasFake\VcrResponseFactory
  * @uses \OasFake\JsonHandlerBody
- * @uses \OasFake\OperationInfoFactory
+ * @uses \OasFake\OperationDefinitionResolver
  * @uses \OasFake\StringHandlerBody
  */
 #[CoversClass(Interceptor::class)]
@@ -78,7 +78,7 @@ use VCR\Request as VcrRequest;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\MiddlewareRequestHandler::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Mode::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfo::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationLookup::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
@@ -96,7 +96,7 @@ use VCR\Request as VcrRequest;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Validator::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\VcrResponseFactory::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\JsonHandlerBody::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinitionResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\StringHandlerBody::class)]
 final class InterceptorTest extends TestCase
 {

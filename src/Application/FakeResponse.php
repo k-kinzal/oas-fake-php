@@ -64,7 +64,7 @@ final class FakeResponse
         }
 
         $resolvedStatus = $statusCode ?? (new OperationResponseResolver())->defaultStatusCode($definition);
-        $response = self::generateResponse($context, $definition->pathPattern, $definition->method, $resolvedStatus);
+        $response = self::generateResponse($context, $definition->pathPattern(), $definition->method(), $resolvedStatus);
 
         return new self(...(new ResponseSnapshotFactory())->create($response));
     }
@@ -91,7 +91,7 @@ final class FakeResponse
         }
 
         $resolvedStatus = $statusCode ?? (new OperationResponseResolver())->defaultStatusCode($definition);
-        $response = self::generateResponse($context, $definition->pathPattern, $definition->method, $resolvedStatus);
+        $response = self::generateResponse($context, $definition->pathPattern(), $definition->method(), $resolvedStatus);
 
         return new self(...(new ResponseSnapshotFactory())->create($response));
     }

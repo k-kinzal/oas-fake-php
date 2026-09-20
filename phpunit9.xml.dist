@@ -32,7 +32,7 @@
             <directory>tests/Unit</directory>
         </testsuite>
         <testsuite name="doctest">
-            <directory>tests/Doctest</directory>
+            <file>vendor/k-kinzal/php-ai-toolkit/src/Doctest/Legacy/LegacyDoctestSuite.php</file>
         </testsuite>
     </testsuites>
     <listeners>
@@ -45,6 +45,7 @@
         </include>
     </coverage>
     <php>
+        <env name="DOCTEST_DIRECTORIES" value="src"/>
         <env name="OAS_FAKE_MODE" value="fake"/>
     </php>
 </phpunit>

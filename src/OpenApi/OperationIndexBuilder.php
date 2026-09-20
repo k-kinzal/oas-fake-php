@@ -21,8 +21,8 @@ final class OperationIndexBuilder
 
     /**
      * @return array{
-     *     byOperationId: array<string, OperationInfo>,
-     *     byPathMethod: array<string, OperationInfo>
+     *     byOperationId: array<string, OperationDefinition>,
+     *     byPathMethod: array<string, OperationDefinition>
      * }
      */
     public function build(Schema $schema): array
@@ -44,7 +44,7 @@ final class OperationIndexBuilder
                     continue;
                 }
 
-                $definition = (new OperationInfoFactory())->create(
+                $definition = (new OperationDefinitionResolver())->resolve(
                     $schema,
                     $pathItem,
                     $pathPattern,
@@ -53,8 +53,8 @@ final class OperationIndexBuilder
                     $pathParameters,
                 );
 
-                if ($definition->operationId !== '') {
-                    $byOperationId[$definition->operationId] = $definition;
+                if ($definition->operationId() !== '') {
+                    $byOperationId[$definition->operationId()] = $definition;
                 }
                 $byPathMethod[$method . ':' . $pathPattern] = $definition;
             }

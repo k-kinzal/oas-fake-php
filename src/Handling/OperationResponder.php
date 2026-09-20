@@ -44,12 +44,12 @@ final class OperationResponder
         ServerRequestInterface $request,
         string $path,
         string $method,
-        ?OperationInfo $operationInfo,
+        ?OperationDefinition $definition,
     ): ResponseInterface {
-        $operationId = $operationInfo?->operationId;
-        $handler = $this->handlers->find($operationId ?? '', $path, $method, $operationInfo?->pathPattern);
+        $operationId = $definition?->operationId();
+        $handler = $this->handlers->find($operationId ?? '', $path, $method, $definition?->pathPattern());
 
-        if ($operationInfo === null) {
+        if ($definition === null) {
             if ($handler !== null) {
                 return $handler->resolve($request, null);
             }
@@ -59,9 +59,9 @@ final class OperationResponder
             ]));
         }
 
-        $statusCode = $this->responseResolver->defaultStatusCode($operationInfo);
-        $fakerDefault = $this->responseResolver->hasSuccessfulBody($operationInfo)
-            ? (new FakeResponseFactory())->create($this->fakeDataContext, $operationInfo->pathPattern, $method, $statusCode)
+        $statusCode = $this->responseResolver->defaultStatusCode($definition);
+        $fakerDefault = $this->responseResolver->hasSuccessfulBody($definition)
+            ? (new FakeResponseFactory())->create($this->fakeDataContext, $definition->pathPattern(), $method, $statusCode)
             : null;
 
         if ($handler !== null) {

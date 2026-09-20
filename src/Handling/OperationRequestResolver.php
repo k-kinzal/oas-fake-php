@@ -41,14 +41,14 @@ final class OperationRequestResolver
         $method = $request->getMethod();
         $definition = $this->operationLookup->findByRequestPathAndMethod($path, $method);
 
-        if ($definition !== null && $resolvedPath['serverUrl'] !== null && !in_array($resolvedPath['serverUrl'], $definition->serverUrls, true)) {
+        if ($definition !== null && $resolvedPath['serverUrl'] !== null && !in_array($resolvedPath['serverUrl'], $definition->serverUrls(), true)) {
             $definition = null;
         }
 
         if ($this->validateRequests) {
             $address = $this->validator->validateRequest($request);
         } elseif ($definition !== null) {
-            $address = new OperationAddress($definition->pathPattern, $definition->method);
+            $address = new OperationAddress($definition->pathPattern(), $definition->method());
         } else {
             $address = null;
         }

@@ -23,7 +23,7 @@ use PHPUnit\Framework\TestCase;
  * @uses \OasFake\MiddlewarePipeline
  * @uses \OasFake\Mode
  * @uses \OasFake\OpenApiServerResolver
- * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationDefinition
  * @uses \OasFake\OperationIndexBuilder
  * @uses \OasFake\OperationLookup
  * @uses \OasFake\OperationParameterResolver
@@ -35,7 +35,7 @@ use PHPUnit\Framework\TestCase;
  * @uses \OasFake\SchemaRequestHandler
  * @uses \OasFake\ServerOptions
  * @uses \OasFake\Validator
- * @uses \OasFake\OperationInfoFactory
+ * @uses \OasFake\OperationDefinitionResolver
  */
 #[CoversClass(InterceptorFactory::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\LosslessVcrResponse::class)]
@@ -45,7 +45,7 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\MiddlewarePipeline::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Mode::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfo::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationLookup::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
@@ -57,7 +57,7 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\SchemaRequestHandler::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(ServerOptions::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Validator::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinitionResolver::class)]
 final class InterceptorFactoryTest extends TestCase
 {
     /**

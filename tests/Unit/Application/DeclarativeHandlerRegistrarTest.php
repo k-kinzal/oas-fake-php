@@ -24,7 +24,7 @@ use Tests\Fixtures\RegistrarUnknownRouteServer;
  * @uses \OasFake\Handler
  * @uses \OasFake\HandlerMap
  * @uses \OasFake\OpenApiServerResolver
- * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationDefinition
  * @uses \OasFake\OperationIndexBuilder
  * @uses \OasFake\OperationLookup
  * @uses \OasFake\OperationParameterResolver
@@ -33,7 +33,7 @@ use Tests\Fixtures\RegistrarUnknownRouteServer;
  * @uses \OasFake\Schema
  * @uses \OasFake\Server
  * @uses \OasFake\HandlerTypeMatcher
- * @uses \OasFake\OperationInfoFactory
+ * @uses \OasFake\OperationDefinitionResolver
  * @uses \OasFake\ServerRuntime
  */
 #[CoversClass(DeclarativeHandlerRegistrar::class)]
@@ -41,7 +41,7 @@ use Tests\Fixtures\RegistrarUnknownRouteServer;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Handler::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(HandlerMap::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfo::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationLookup::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
@@ -50,7 +50,7 @@ use Tests\Fixtures\RegistrarUnknownRouteServer;
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\Server::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\HandlerTypeMatcher::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinitionResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerRuntime::class)]
 final class DeclarativeHandlerRegistrarTest extends TestCase
 {

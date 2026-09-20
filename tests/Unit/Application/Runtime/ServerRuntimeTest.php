@@ -34,7 +34,7 @@ use VCR\Request as VcrRequest;
  * @uses \OasFake\Mode
  * @uses \OasFake\OpenApiServerResolver
  * @uses \OasFake\OperationIndexBuilder
- * @uses \OasFake\OperationInfoFactory
+ * @uses \OasFake\OperationDefinitionResolver
  * @uses \OasFake\OperationLookup
  * @uses \OasFake\OperationParameterResolver
  * @uses \OasFake\OperationPathResolver
@@ -52,7 +52,7 @@ use VCR\Request as VcrRequest;
  * @uses \OasFake\ServerMiddleware
  * @uses \OasFake\FakeDataContext
  * @uses \OasFake\MiddlewarePipeline
- * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationDefinition
  * @uses \OasFake\OperationRequestResolver
  * @uses \OasFake\OperationResponder
  * @uses \OasFake\SchemaRequestHandler
@@ -76,7 +76,7 @@ use VCR\Request as VcrRequest;
 #[\PHPUnit\Framework\Attributes\UsesClass(Mode::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinitionResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationLookup::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationPathResolver::class)]
@@ -93,7 +93,7 @@ use VCR\Request as VcrRequest;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerUrlMatcher::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeDataContext::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\MiddlewarePipeline::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfo::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationRequestResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationResponder::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\SchemaRequestHandler::class)]

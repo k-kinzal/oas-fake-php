@@ -8,7 +8,6 @@ use function array_keys;
 
 use cebe\openapi\spec\MediaType;
 use cebe\openapi\spec\Response;
-use cebe\openapi\spec\Responses;
 use cebe\openapi\spec\Schema as CebeSchema;
 
 use function is_int;
@@ -23,7 +22,7 @@ final class OperationResponseResolver
     /**
      * Return the first declared successful status, falling back to 200.
      */
-    public function defaultStatusCode(OperationInfo $definition): int
+    public function defaultStatusCode(OperationDefinition $definition): int
     {
         return $this->successfulResponse($definition)['status'] ?? 200;
     }
@@ -31,7 +30,7 @@ final class OperationResponseResolver
     /**
      * Check whether the first declared successful response has content.
      */
-    public function hasSuccessfulBody(OperationInfo $definition): bool
+    public function hasSuccessfulBody(OperationDefinition $definition): bool
     {
         $successful = $this->successfulResponse($definition);
 
@@ -42,14 +41,9 @@ final class OperationResponseResolver
     /**
      * Return the response object declared for an exact status code.
      */
-    public function forStatus(OperationInfo $definition, int $statusCode): ?Response
+    public function forStatus(OperationDefinition $definition, int $statusCode): ?Response
     {
-        $responses = $definition->operation->responses;
-        if (!$responses instanceof Responses) {
-            return null;
-        }
-
-        $response = $responses->getResponse((string) $statusCode);
+        $response = $definition->responses()[$statusCode] ?? null;
 
         return $response instanceof Response ? $response : null;
     }
@@ -57,7 +51,7 @@ final class OperationResponseResolver
     /**
      * Return the preferred media type for an exact response status.
      */
-    public function mediaType(OperationInfo $definition, int $statusCode): string
+    public function mediaType(OperationDefinition $definition, int $statusCode): string
     {
         $response = $this->forStatus($definition, $statusCode);
         if ($response === null || $response->content === []) {
@@ -73,7 +67,7 @@ final class OperationResponseResolver
     /**
      * Return the schema declared for a response status and media type.
      */
-    public function schema(OperationInfo $definition, int $statusCode, string $mediaType): ?CebeSchema
+    public function schema(OperationDefinition $definition, int $statusCode, string $mediaType): ?CebeSchema
     {
         $response = $this->forStatus($definition, $statusCode);
         if ($response === null) {
@@ -92,14 +86,9 @@ final class OperationResponseResolver
      *
      * @return array{status: int, response: Response}|null
      */
-    public function successfulResponse(OperationInfo $definition): ?array
+    public function successfulResponse(OperationDefinition $definition): ?array
     {
-        $responses = $definition->operation->responses;
-        if (!$responses instanceof Responses) {
-            return null;
-        }
-
-        foreach ($responses->getResponses() as $code => $response) {
+        foreach ($definition->responses() as $code => $response) {
             if (is_int($code) && $code >= 200 && $code < 300 && $response instanceof Response) {
                 return ['status' => $code, 'response' => $response];
             }

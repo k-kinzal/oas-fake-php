@@ -14,23 +14,23 @@ use PHPUnit\Framework\TestCase;
  * @covers \OasFake\OperationLookup
  *
  * @uses \OasFake\OpenApiServerResolver
- * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationDefinition
  * @uses \OasFake\OperationIndexBuilder
  * @uses \OasFake\OperationParameterResolver
  * @uses \OasFake\PathOperationResolver
  * @uses \OasFake\RequestPathMatcher
  * @uses \OasFake\Schema
- * @uses \OasFake\OperationInfoFactory
+ * @uses \OasFake\OperationDefinitionResolver
  */
 #[CoversClass(OperationLookup::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfo::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\RequestPathMatcher::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinitionResolver::class)]
 final class OperationLookupTest extends TestCase
 {
     /**
@@ -44,9 +44,9 @@ final class OperationLookupTest extends TestCase
         $info = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('listPets');
 
         self::assertNotNull($info);
-        self::assertSame('/pets', $info->pathPattern);
-        self::assertSame('get', $info->method);
-        self::assertSame('listPets', $info->operationId);
+        self::assertSame('/pets', $info->pathPattern());
+        self::assertSame('get', $info->method());
+        self::assertSame('listPets', $info->operationId());
     }
 
     /**
@@ -73,9 +73,9 @@ final class OperationLookupTest extends TestCase
         $info = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByPathAndMethod('/pets', 'POST');
 
         self::assertNotNull($info);
-        self::assertSame('/pets', $info->pathPattern);
-        self::assertSame('post', $info->method);
-        self::assertSame('createPet', $info->operationId);
+        self::assertSame('/pets', $info->pathPattern());
+        self::assertSame('post', $info->method());
+        self::assertSame('createPet', $info->operationId());
     }
 
     /**
@@ -102,9 +102,9 @@ final class OperationLookupTest extends TestCase
         $info = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByOperationId('getPetById');
 
         self::assertNotNull($info);
-        self::assertNotEmpty($info->parameters);
-        self::assertSame('petId', $info->parameters[0]->name);
-        self::assertSame('path', $info->parameters[0]->in);
+        self::assertNotEmpty($info->parameters());
+        self::assertSame('petId', $info->parameters()[0]->name);
+        self::assertSame('path', $info->parameters()[0]->in);
     }
 
     /**
@@ -147,7 +147,7 @@ final class OperationLookupTest extends TestCase
         $info = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByPathAndMethod('/pets', 'get');
 
         self::assertNotNull($info);
-        self::assertSame('listPets', $info->operationId);
+        self::assertSame('listPets', $info->operationId());
     }
 
     /**
@@ -161,8 +161,8 @@ final class OperationLookupTest extends TestCase
         $info = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByRequestPathAndMethod('/pets/123', 'GET');
 
         self::assertNotNull($info);
-        self::assertSame('/pets/{petId}', $info->pathPattern);
-        self::assertSame('getPetById', $info->operationId);
+        self::assertSame('/pets/{petId}', $info->pathPattern());
+        self::assertSame('getPetById', $info->operationId());
     }
 
     /**
@@ -176,14 +176,14 @@ final class OperationLookupTest extends TestCase
         $info = (new OperationLookup(Schema::fromFile(__DIR__ . '/../../Fixtures/openapi/petstore.yaml')))->findByRequestPathAndMethod('/pets', 'GET');
 
         self::assertNotNull($info);
-        self::assertSame('/pets', $info->pathPattern);
-        self::assertSame('listPets', $info->operationId);
+        self::assertSame('/pets', $info->pathPattern());
+        self::assertSame('listPets', $info->operationId());
     }
 
     /**
      * @throws \cebe\openapi\exceptions\TypeErrorException when the schema fixture cannot be loaded
      */
-    public function testOperationInfoIncludesEffectiveServerUrls(): void
+    public function testOperationDefinitionIncludesEffectiveServerUrls(): void
     {
         $schema = Schema::fromString(<<<'YAML'
             openapi: 3.0.0
@@ -209,7 +209,7 @@ final class OperationLookupTest extends TestCase
         $info = $lookup->findByOperationId('listPets');
 
         self::assertNotNull($info);
-        self::assertSame(['https://operation.example.com/v2'], $info->serverUrls);
+        self::assertSame(['https://operation.example.com/v2'], $info->serverUrls());
     }
 
     /**

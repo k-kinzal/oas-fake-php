@@ -32,7 +32,7 @@ use PHPUnit\Framework\TestCase;
  * @uses \OasFake\FakeResponseFactory
  * @uses \OasFake\HandlerMap
  * @uses \OasFake\OpenApiServerResolver
- * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationDefinition
  * @uses \OasFake\OperationIndexBuilder
  * @uses \OasFake\OperationLookup
  * @uses \OasFake\OperationParameterResolver
@@ -46,7 +46,7 @@ use PHPUnit\Framework\TestCase;
  * @uses \OasFake\Schema
  * @uses \OasFake\ServerUrlMatcher
  * @uses \OasFake\Validator
- * @uses \OasFake\OperationInfoFactory
+ * @uses \OasFake\OperationDefinitionResolver
  * @uses \OasFake\Handler
  * @uses \OasFake\JsonHandlerBody
  * @uses \OasFake\Exception\ValidationException
@@ -58,7 +58,7 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\FakeResponseFactory::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(HandlerMap::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfo::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(OperationLookup::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
@@ -72,7 +72,7 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\ServerUrlMatcher::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Validator::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinitionResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Handler::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\JsonHandlerBody::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(ValidationException::class)]

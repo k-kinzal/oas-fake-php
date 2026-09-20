@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use cebe\openapi\spec\Operation;
-use OasFake\OperationInfo;
+use OasFake\OperationDefinition;
 use OasFake\OperationLookup;
 use OasFake\OperationResponseResolver;
 use OasFake\Schema;
@@ -17,26 +17,26 @@ use PHPUnit\Framework\TestCase;
  *
  * @uses \OasFake\PayloadCodec
  * @uses \OasFake\OpenApiServerResolver
- * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationDefinition
  * @uses \OasFake\OperationIndexBuilder
  * @uses \OasFake\OperationLookup
  * @uses \OasFake\OperationParameterResolver
  * @uses \OasFake\PathOperationResolver
  * @uses \OasFake\PayloadSerializer
  * @uses \OasFake\Schema
- * @uses \OasFake\OperationInfoFactory
+ * @uses \OasFake\OperationDefinitionResolver
  */
 #[CoversClass(OperationResponseResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadCodec::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(OperationInfo::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(OperationDefinition::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(OperationLookup::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadSerializer::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinitionResolver::class)]
 final class OperationResponseResolverTest extends TestCase
 {
     /**
@@ -44,7 +44,7 @@ final class OperationResponseResolverTest extends TestCase
      */
     public function testDefaultsWhenNoSuccessfulResponseIsDeclared(): void
     {
-        $definition = new OperationInfo('/pets', 'get', 'listPets', new Operation(['responses' => []]), []);
+        $definition = new OperationDefinition('/pets', 'get', new Operation(['responses' => []]), []);
         $resolver = new OperationResponseResolver();
 
         self::assertSame(200, $resolver->defaultStatusCode($definition));
@@ -90,7 +90,7 @@ final class OperationResponseResolverTest extends TestCase
      */
     public function testSuccessfulResponseHonorsThe2xxRange(): void
     {
-        $definition = new OperationInfo('/pets', 'get', 'listPets', new Operation([
+        $definition = new OperationDefinition('/pets', 'get', new Operation([
             'responses' => [
                 '199' => ['description' => 'Informational'],
                 '200' => [
@@ -115,7 +115,7 @@ final class OperationResponseResolverTest extends TestCase
      */
     public function testSuccessfulResponseRejectsThe300Boundary(): void
     {
-        $definition = new OperationInfo('/pets', 'get', 'listPets', new Operation([
+        $definition = new OperationDefinition('/pets', 'get', new Operation([
             'responses' => ['300' => ['description' => 'Redirect']],
         ]), []);
 
@@ -127,7 +127,7 @@ final class OperationResponseResolverTest extends TestCase
      */
     public function testForStatusRejectsAnUnresolvedReference(): void
     {
-        $definition = new OperationInfo('/pets', 'get', 'listPets', new Operation([
+        $definition = new OperationDefinition('/pets', 'get', new Operation([
             'responses' => ['201' => ['$ref' => '#/components/responses/Created']],
         ]), []);
         $resolver = new OperationResponseResolver();
@@ -141,7 +141,7 @@ final class OperationResponseResolverTest extends TestCase
      */
     public function testForStatusReturnsNullWithoutAResponsesCollection(): void
     {
-        $definition = new OperationInfo('/pets', 'get', 'listPets', new Operation([]), []);
+        $definition = new OperationDefinition('/pets', 'get', new Operation([]), []);
         $resolver = new OperationResponseResolver();
 
         self::assertNull($resolver->forStatus($definition, 200));

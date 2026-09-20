@@ -12,17 +12,17 @@ use PHPUnit\Framework\TestCase;
 /**
  * @covers \OasFake\OperationIndexBuilder
  *
- * @uses \OasFake\OperationInfoFactory
+ * @uses \OasFake\OperationDefinitionResolver
  * @uses \OasFake\OpenApiServerResolver
- * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationDefinition
  * @uses \OasFake\OperationParameterResolver
  * @uses \OasFake\PathOperationResolver
  * @uses \OasFake\Schema
  */
 #[CoversClass(OperationIndexBuilder::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinitionResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfo::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PathOperationResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
@@ -41,7 +41,7 @@ final class OperationIndexBuilderTest extends TestCase
 
         self::assertArrayHasKey('listPets', $indexes['byOperationId']);
         self::assertArrayHasKey('get:/pets', $indexes['byPathMethod']);
-        self::assertSame('petId', $indexes['byOperationId']['getPetById']->parameters[0]->name);
+        self::assertSame('petId', $indexes['byOperationId']['getPetById']->parameters()[0]->name);
     }
 
     /**

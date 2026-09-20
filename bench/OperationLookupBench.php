@@ -6,7 +6,7 @@ namespace OasFake\Bench;
 
 use JsonException;
 use LogicException;
-use OasFake\OperationInfo;
+use OasFake\OperationDefinition;
 use OasFake\OperationLookup;
 use OasFake\Schema;
 use PhpBench\Attributes as Bench;
@@ -60,7 +60,7 @@ final class OperationLookupBench
      * @throws LogicException when the benchmark setup hook was not run
      */
     #[Bench\Revs(1000000)]
-    public function benchIndexedOperation(array $params): ?OperationInfo
+    public function benchIndexedOperation(array $params): ?OperationDefinition
     {
         $lookup = $this->lookup ?? throw new LogicException('Run the benchmark setup before measuring lookup.');
 
@@ -73,7 +73,7 @@ final class OperationLookupBench
      * @throws LogicException when the benchmark setup hook was not run
      */
     #[Bench\Revs(100)]
-    public function benchTemplatedRequestPath(array $params): ?OperationInfo
+    public function benchTemplatedRequestPath(array $params): ?OperationDefinition
     {
         $lookup = $this->lookup ?? throw new LogicException('Run the benchmark setup before measuring lookup.');
 

@@ -29,9 +29,9 @@ final class RequestBodyGenerator
      *
      * @return array{body: ?string, mediaType: string}
      */
-    public function generate(FakeDataContext $context, OperationInfo $definition): array
+    public function generate(FakeDataContext $context, OperationDefinition $definition): array
     {
-        $requestBody = $definition->operation->requestBody;
+        $requestBody = $definition->requestBody();
 
         /** @var array<string, MediaType> $content */
         $content = $requestBody instanceof RequestBody ? ($requestBody->content ?? []) : [];
@@ -40,7 +40,7 @@ final class RequestBodyGenerator
         $schema = $selectedMediaType?->schema instanceof CebeSchema ? $selectedMediaType->schema : null;
 
         $fakeData = $schema === null
-            ? $context->mockRequest($definition->pathPattern, $definition->method)
+            ? $context->mockRequest($definition->pathPattern(), $definition->method())
             : $context->mockSchema($schema);
 
         return [

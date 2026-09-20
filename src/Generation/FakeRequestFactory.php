@@ -32,13 +32,13 @@ final class FakeRequestFactory
      *     rawBody: string|null
      * }
      */
-    public function create(FakeDataContext $context, OperationInfo $definition): array
+    public function create(FakeDataContext $context, OperationDefinition $definition): array
     {
-        $parameters = (new ParameterFaker($context->fakerOptions()))->generate($definition->parameters);
+        $parameters = (new ParameterFaker($context->fakerOptions()))->generate($definition->parameters());
         $body = null;
         $headers = $parameters['header'];
 
-        if ($definition->operation->requestBody !== null) {
+        if ($definition->requestBody() !== null) {
             $payload = (new RequestBodyGenerator())->generate($context, $definition);
             $body = $payload['body'];
             if ($body !== null) {
@@ -47,9 +47,9 @@ final class FakeRequestFactory
         }
 
         return [
-            'method' => $definition->method,
-            'baseUrl' => $definition->serverUrls[0] ?? '/',
-            'pathPattern' => $definition->pathPattern,
+            'method' => $definition->method(),
+            'baseUrl' => $definition->serverUrls()[0] ?? '/',
+            'pathPattern' => $definition->pathPattern(),
             'pathParams' => $parameters['path'],
             'queryParams' => $parameters['query'],
             'headerParams' => $headers,

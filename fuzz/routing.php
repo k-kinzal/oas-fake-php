@@ -29,7 +29,7 @@ $config->setTarget(static function (string $input) use ($lookup): void {
         $expected = 'pet';
     }
 
-    $actual = $lookup->findByRequestPathAndMethod($path, 'GET')?->operationId;
+    $actual = $lookup->findByRequestPathAndMethod($path, 'GET')?->operationId();
     $wrongMethod = $lookup->findByRequestPathAndMethod($path, 'POST');
     if ($actual !== $expected || $wrongMethod !== null) {
         throw new Error(sprintf(
@@ -37,7 +37,7 @@ $config->setTarget(static function (string $input) use ($lookup): void {
             bin2hex($input),
             $expected ?? 'none',
             $actual ?? 'none',
-            $wrongMethod === null ? 'none' : $wrongMethod->operationId,
+            $wrongMethod === null ? 'none' : $wrongMethod->operationId(),
             PHP_VERSION,
         ));
     }

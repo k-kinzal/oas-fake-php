@@ -17,7 +17,7 @@ use PHPUnit\Framework\TestCase;
  * @uses \OasFake\PayloadCodec
  * @uses \OasFake\FakeDataContext
  * @uses \OasFake\OpenApiServerResolver
- * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationDefinition
  * @uses \OasFake\OperationIndexBuilder
  * @uses \OasFake\OperationLookup
  * @uses \OasFake\OperationParameterResolver
@@ -27,13 +27,13 @@ use PHPUnit\Framework\TestCase;
  * @uses \OasFake\PayloadSerializer
  * @uses \OasFake\RequestBodyGenerator
  * @uses \OasFake\Schema
- * @uses \OasFake\OperationInfoFactory
+ * @uses \OasFake\OperationDefinitionResolver
  */
 #[CoversClass(FakeRequestFactory::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadCodec::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(FakeDataContext::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfo::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationLookup::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
@@ -43,7 +43,7 @@ use PHPUnit\Framework\TestCase;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadSerializer::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\RequestBodyGenerator::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinitionResolver::class)]
 final class FakeRequestFactoryTest extends TestCase
 {
     /**

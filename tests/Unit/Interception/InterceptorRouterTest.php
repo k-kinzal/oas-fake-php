@@ -32,7 +32,7 @@ use VCR\Request as VcrRequest;
  * @uses \OasFake\MiddlewarePipeline
  * @uses \OasFake\Mode
  * @uses \OasFake\OpenApiServerResolver
- * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationDefinition
  * @uses \OasFake\OperationIndexBuilder
  * @uses \OasFake\OperationLookup
  * @uses \OasFake\OperationParameterResolver
@@ -48,7 +48,7 @@ use VCR\Request as VcrRequest;
  * @uses \OasFake\ServerUrlMatcher
  * @uses \OasFake\Validator
  * @uses \OasFake\VcrResponseFactory
- * @uses \OasFake\OperationInfoFactory
+ * @uses \OasFake\OperationDefinitionResolver
  * @uses \OasFake\Handler
  * @uses \OasFake\JsonHandlerBody
  */
@@ -65,7 +65,7 @@ use VCR\Request as VcrRequest;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\MiddlewarePipeline::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Mode::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfo::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationLookup::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
@@ -81,7 +81,7 @@ use VCR\Request as VcrRequest;
 #[\PHPUnit\Framework\Attributes\UsesClass(ServerUrlMatcher::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Validator::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\VcrResponseFactory::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinitionResolver::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Handler::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\JsonHandlerBody::class)]
 final class InterceptorRouterTest extends TestCase

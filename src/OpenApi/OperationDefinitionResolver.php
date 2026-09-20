@@ -9,27 +9,28 @@ use cebe\openapi\spec\Parameter;
 use cebe\openapi\spec\PathItem;
 
 /**
- * Creates indexed operation metadata from one OpenAPI path operation.
+ * Resolves inherited parameters and server URLs for one schema path operation.
  *
  * @visibility namespace
  */
-final class OperationInfoFactory
+final class OperationDefinitionResolver
 {
     /**
+     * Bind the operation to its effective path and operation-level declarations.
+     *
      * @param list<Parameter> $pathParameters
      */
-    public function create(
+    public function resolve(
         Schema $schema,
         PathItem $pathItem,
         string $pathPattern,
         string $method,
         Operation $operation,
         array $pathParameters,
-    ): OperationInfo {
-        return new OperationInfo(
+    ): OperationDefinition {
+        return new OperationDefinition(
             pathPattern: $pathPattern,
             method: $method,
-            operationId: $operation->operationId ?? '',
             operation: $operation,
             parameters: (new OperationParameterResolver())->merge($pathParameters, $operation),
             serverUrls: $schema->effectiveServerUrls($pathItem, $operation),

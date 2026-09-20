@@ -28,7 +28,7 @@ use Psr\Http\Message\ServerRequestInterface;
  * @uses \OasFake\Handler
  * @uses \OasFake\HandlerMap
  * @uses \OasFake\OpenApiServerResolver
- * @uses \OasFake\OperationInfo
+ * @uses \OasFake\OperationDefinition
  * @uses \OasFake\OperationIndexBuilder
  * @uses \OasFake\OperationLookup
  * @uses \OasFake\OperationParameterResolver
@@ -37,7 +37,7 @@ use Psr\Http\Message\ServerRequestInterface;
  * @uses \OasFake\PayloadSerializer
  * @uses \OasFake\Schema
  * @uses \OasFake\JsonHandlerBody
- * @uses \OasFake\OperationInfoFactory
+ * @uses \OasFake\OperationDefinitionResolver
  */
 #[CoversClass(OperationResponder::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadCodec::class)]
@@ -47,7 +47,7 @@ use Psr\Http\Message\ServerRequestInterface;
 #[\PHPUnit\Framework\Attributes\UsesClass(Handler::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(HandlerMap::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OpenApiServerResolver::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfo::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinition::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationIndexBuilder::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(OperationLookup::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationParameterResolver::class)]
@@ -56,7 +56,7 @@ use Psr\Http\Message\ServerRequestInterface;
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\PayloadSerializer::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(Schema::class)]
 #[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\JsonHandlerBody::class)]
-#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationInfoFactory::class)]
+#[\PHPUnit\Framework\Attributes\UsesClass(\OasFake\OperationDefinitionResolver::class)]
 final class OperationResponderTest extends TestCase
 {
     /**
