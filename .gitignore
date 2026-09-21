@@ -7,9 +7,6 @@
 /.deptrac.cache
 /composer.lock
 /phpbench.json
-/fuzz/corpus/*/*
-/crash-*
-/minimized-*
 *.phar
 .DS_Store
 .idea/

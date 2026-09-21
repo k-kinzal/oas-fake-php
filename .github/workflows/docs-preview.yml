@@ -67,7 +67,7 @@ jobs:
             docgen-${{ runner.os }}-
 
       - name: Generate the coverage report the preview reads
-        run: vendor/bin/phpunit --exclude-group=pbt --coverage-xml build/coverage-xml
+        run: vendor/bin/phpunit --coverage-xml build/coverage-xml
 
       - name: Generate the documentation in diff mode
         env:

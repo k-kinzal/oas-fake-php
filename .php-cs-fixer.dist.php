@@ -7,7 +7,6 @@ $finder = PhpCsFixer\Finder::create()
     ->in(__DIR__ . '/src')
     ->in(__DIR__ . '/tests')
     ->in(__DIR__ . '/bench')
-    ->in(__DIR__ . '/fuzz')
     ->name('*.php')
     ->ignoreDotFiles(true)
     ->ignoreVCS(true);

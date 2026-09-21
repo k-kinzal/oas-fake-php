@@ -10,7 +10,6 @@ exclude:
   - 'coverage'
   - 'node_modules'
   - 'vendor'
-  - 'fuzz/corpus'
 
 rules:
   - path: '**'
