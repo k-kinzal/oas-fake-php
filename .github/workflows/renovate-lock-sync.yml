@@ -1,0 +1,77 @@
+name: Sync Renovate lock files
+
+# Renovate only edits composer.json because this repository commits one lock file per
+# supported PHP version instead of a single composer.lock. This workflow regenerates
+# those lock files on Renovate branches so that CI can validate and automerge them.
+
+on:
+  push:
+    branches:
+      - 'renovate/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  COMPOSER_NO_INTERACTION: '1'
+
+jobs:
+  sync:
+    name: Sync per-PHP Composer lock files
+    if: github.actor == 'renovate[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      # Push the regenerated lock files, re-run CI, and re-approve the updated PR.
+      contents: write
+      actions: write
+      pull-requests: write
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: curl, intl, mbstring, pcntl
+          coverage: none
+
+      - name: Regenerate the lock files
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: php .github/renovate/sync-composer-locks.php "$(git merge-base "origin/$DEFAULT_BRANCH" HEAD)"
+
+      - name: Commit the lock files and re-run CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          if git diff --quiet -- 'composer.lock.php-*'; then
+            echo 'The lock files are already in sync.'
+            exit 0
+          fi
+
+          # This author is listed in gitIgnoredAuthors so Renovate keeps managing the branch.
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- 'composer.lock.php-*'
+          git commit -m 'Sync per-PHP Composer lock files'
+          git push origin "HEAD:refs/heads/$BRANCH"
+
+          # Pushes made with GITHUB_TOKEN do not trigger workflows, so start CI explicitly
+          # for the new head commit.
+          gh workflow run ci.yml --ref "$BRANCH"
+
+          # The push dismisses earlier approvals, so approve the new head again.
+          pr_url="$(gh pr list --head "$BRANCH" --state open --json url --jq '.[0].url')"
+          if [ -n "$pr_url" ]; then
+            gh pr review "$pr_url" --approve || echo '::warning::Could not re-approve the pull request.'
+          fi
