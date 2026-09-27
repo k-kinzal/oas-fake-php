@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.10.3",
+  "checkpoint_id": "01M3GTZFDZ3W3SBEZA6HHSFE0R",
+  "session_id": "e26c1c77-a30e-4198-98ff-8fbb355e2560",
+  "strategy": "manual-commit",
+  "created_at": "2026-09-27T07:06:28.03136Z",
+  "branch": "codex/setup-renovate",
+  "checkpoints_count": 1,
+  "files_touched": null,
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "turn_id": "6b8cbf6e6ff5",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 686,
+    "cache_creation_tokens": 74852,
+    "cache_read_tokens": 1148026,
+    "output_tokens": 8454,
+    "api_call_count": 28
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 330,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".codex/hooks.json": 88,
+        ".cursor/hooks.json": 40,
+        ".gemini/settings.json": 141,
+        ".github/hooks/entire.json": 61
+      }
+    }
+  ]
+}
