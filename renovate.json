@@ -15,34 +15,28 @@
   ],
   "dependencyDashboard": true,
   "labels": [
-    "dependencies"
+    "dependencies",
+    "renovate-automerge"
   ],
   "minimumReleaseAge": "3 days",
   "internalChecksFilter": "strict",
+  "vulnerabilityAlerts": {
+    "minimumReleaseAge": "3 days"
+  },
   "prConcurrentLimit": 5,
+  "automerge": true,
+  "automergeType": "pr",
+  "platformAutomerge": false,
+  "gitIgnoredAuthors": [
+    "41898282+github-actions[bot]@users.noreply.github.com"
+  ],
   "packageRules": [
     {
-      "description": "Automatically merge stable non-major updates after CI succeeds",
-      "matchUpdateTypes": [
-        "minor",
-        "patch",
-        "pin",
-        "digest",
-        "lockFileMaintenance"
+      "description": "Widen constraints so the library keeps supporting existing versions; the lock sync workflow updates the per-PHP lock files",
+      "matchManagers": [
+        "composer"
       ],
-      "addLabels": [
-        "renovate-automerge"
-      ],
-      "automerge": true,
-      "automergeType": "pr",
-      "platformAutomerge": false
-    },
-    {
-      "description": "Require manual merge for major updates",
-      "matchUpdateTypes": [
-        "major"
-      ],
-      "automerge": false
+      "rangeStrategy": "widen"
     }
   ]
 }
