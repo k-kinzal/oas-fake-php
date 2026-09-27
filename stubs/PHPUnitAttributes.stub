@@ -1,0 +1,57 @@
+<?php
+
+declare(strict_types=1);
+
+namespace PHPUnit\Framework\Attributes {
+    use Attribute;
+
+    /**
+     * PHPUnit 9 analysis contract for metadata implemented by PHPUnit 10 and later.
+     */
+    #[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
+    final class CoversClass
+    {
+        /**
+         * @param class-string $className
+         */
+        public function __construct(string $className)
+        {
+        }
+    }
+
+    /**
+     * PHPUnit 9 analysis contract for metadata implemented by PHPUnit 10 and later.
+     */
+    #[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
+    final class UsesClass
+    {
+        /**
+         * @param class-string $className
+         */
+        public function __construct(string $className)
+        {
+        }
+    }
+
+    /**
+     * PHPUnit 9 analysis contract for metadata implemented by PHPUnit 10 and later.
+     */
+    #[Attribute(Attribute::TARGET_CLASS)]
+    final class CoversNothing
+    {
+        public function __construct()
+        {
+        }
+    }
+
+    /**
+     * PHPUnit 9 analysis contract for metadata implemented by PHPUnit 10 and later.
+     */
+    #[Attribute(Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
+    final class DataProvider
+    {
+        public function __construct(string $methodName)
+        {
+        }
+    }
+}
