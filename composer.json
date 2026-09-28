@@ -26,7 +26,7 @@
         "ext-curl": "*",
         "canvural/php-openapi-faker": "^2.1",
         "devizzent/cebe-php-openapi": "^1.1.5",
-        "guzzlehttp/psr7": "^2.0",
+        "guzzlehttp/psr7": "^2.0 || ^3.0",
         "league/openapi-psr7-validator": ">=0.18, <1.0",
         "php-vcr/php-vcr": "^1.7"
     },
